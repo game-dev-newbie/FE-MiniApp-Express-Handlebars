@@ -12,10 +12,10 @@ export function initRouter() {
 
 function handleRouteChange() {
   const hash = window.location.hash || "#/splash";
-  
+
   // Parse route
   const route = hash.slice(2); // Remove "#/"
-  
+
   // Route handling
   switch (route) {
     case "splash":
@@ -43,7 +43,9 @@ function handleRouteChange() {
       break;
     default:
       // Check if onboarding completed
-      const hasCompletedOnboarding = localStorage.getItem('onboardingCompleted');
+      const hasCompletedOnboarding = localStorage.getItem(
+        "onboardingCompleted"
+      );
       if (!hasCompletedOnboarding) {
         window.location.hash = "#/splash";
       } else {

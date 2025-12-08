@@ -23,7 +23,7 @@ export function registerHelpers() {
   Handlebars.registerHelper("uppercase", (str) =>
     String(str || "").toUpperCase()
   );
-  
+
   // Helper để so sánh bằng
   Handlebars.registerHelper("eq", (a, b) => a === b);
 }

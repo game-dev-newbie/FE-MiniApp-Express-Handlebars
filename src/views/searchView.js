@@ -5,8 +5,8 @@ const appEl = document.getElementById("app");
 
 export function renderSearch() {
   const headerHtml = renderTemplate("header", {});
-  const bottomNavHtml = renderTemplate("bottomNav", { activePage: 'search' });
-  
+  const bottomNavHtml = renderTemplate("bottomNav", { activePage: "search" });
+
   const searchContent = `
     <main class="main-content">
       <header class="page-header">
@@ -17,18 +17,18 @@ export function renderSearch() {
       </div>
     </main>
   `;
-  
+
   appEl.innerHTML = headerHtml + searchContent + bottomNavHtml;
-  
+
   // Initialize bottom nav
-  const navButtons = document.querySelectorAll('.nav-btn');
-  navButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      const page = button.getAttribute('data-page');
+  const navButtons = document.querySelectorAll(".nav-btn");
+  navButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const page = button.getAttribute("data-page");
       if (navigator.vibrate) {
         navigator.vibrate(10);
       }
-      window.location.hash = `#/${page === 'home' ? '' : page}`;
+      window.location.hash = `#/${page === "home" ? "" : page}`;
     });
   });
 }
