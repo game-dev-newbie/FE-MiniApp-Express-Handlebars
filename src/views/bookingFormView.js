@@ -67,12 +67,12 @@ function initBookingFormListeners(restaurant) {
     // Handle manual input
     peopleInput.addEventListener("input", () => {
       let value = parseInt(peopleInput.value);
-      
+
       // Allow empty input (user is typing)
       if (peopleInput.value === "" || isNaN(value)) {
         return;
       }
-      
+
       // Validate and constrain input
       if (value < 1) {
         value = 1;
@@ -81,14 +81,14 @@ function initBookingFormListeners(restaurant) {
         value = 50;
         peopleInput.value = 50;
       }
-      
+
       updateAvailableTables(restaurant.id, value);
     });
 
     // Validate on blur (when user leaves the field)
     peopleInput.addEventListener("blur", () => {
       let value = parseInt(peopleInput.value);
-      
+
       if (peopleInput.value === "" || isNaN(value) || value < 1) {
         value = 2;
         peopleInput.value = 2;
@@ -417,7 +417,7 @@ function updateSelectedTablesSummary() {
   `
     )
     .join("");
-  
+
   totalCapacityDiv.innerHTML = `Tổng: ${totalCapacity} người`;
 
   // Add remove listeners
