@@ -63,7 +63,7 @@ function initBookingFormListeners(restaurant) {
         updateAvailableTables(restaurant.id, currentValue + 1);
       }
     });
-    
+
     // Initial load of tables
     updateAvailableTables(restaurant.id, parseInt(peopleInput.value));
   }
@@ -73,7 +73,7 @@ function initBookingFormListeners(restaurant) {
   if (bookingForm) {
     bookingForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      
+
       // Validate table selection
       if (selectedTables.length === 0) {
         alert("Vui lòng chọn bàn trước khi xác nhận đặt bàn!");
@@ -82,11 +82,16 @@ function initBookingFormListeners(restaurant) {
 
       const formData = new FormData(bookingForm);
       const peopleCount = parseInt(formData.get("people"));
-      const selectedCapacity = selectedTables.reduce((sum, t) => sum + t.capacity, 0);
-      
+      const selectedCapacity = selectedTables.reduce(
+        (sum, t) => sum + t.capacity,
+        0
+      );
+
       // Check if selected tables can accommodate people
       if (selectedCapacity < peopleCount) {
-        alert(`Bàn đã chọn chỉ đủ cho ${selectedCapacity} người. Vui lòng chọn thêm bàn hoặc giảm số người.`);
+        alert(
+          `Bàn đã chọn chỉ đủ cho ${selectedCapacity} người. Vui lòng chọn thêm bàn hoặc giảm số người.`
+        );
         return;
       }
 
@@ -96,7 +101,11 @@ function initBookingFormListeners(restaurant) {
         date: formData.get("date"),
         time: formData.get("time"),
         people: formData.get("people"),
-        tables: selectedTables.map(t => ({ id: t.id, name: t.name, type: t.type })),
+        tables: selectedTables.map((t) => ({
+          id: t.id,
+          name: t.name,
+          type: t.type,
+        })),
         customerName: formData.get("name"),
         customerPhone: formData.get("phone"),
         note: formData.get("note"),
@@ -107,7 +116,7 @@ function initBookingFormListeners(restaurant) {
       console.log("Booking data:", bookingData);
 
       // Show success message
-      const tablesInfo = selectedTables.map(t => t.name).join(", ");
+      const tablesInfo = selectedTables.map((t) => t.name).join(", ");
       alert(
         `Đặt bàn thành công!\n\nNhà hàng: ${bookingData.restaurantName}\nBàn: ${tablesInfo}\nNgày: ${bookingData.date}\nGiờ: ${bookingData.time}\nSố người: ${bookingData.people}\n\nChúng tôi sẽ liên hệ với bạn để xác nhận.`
       );
@@ -116,7 +125,7 @@ function initBookingFormListeners(restaurant) {
       window.location.hash = "#/booking";
     });
   }
-  
+
   // Modal close listeners
   initModalListeners();
 }
@@ -127,85 +136,92 @@ function updateAvailableTables(restaurantId, peopleCount) {
   const tablesSection = document.getElementById("tablesSection");
   const tablesGrid = document.getElementById("tablesGrid");
   const overCapacityWarning = document.getElementById("overCapacityWarning");
-  
+
   if (!tablesSection || !tablesGrid) return;
-  
+
   // Show tables section
   tablesSection.style.display = "block";
-  
+
   // Check if over capacity
-  const totalSelectedCapacity = selectedTables.reduce((sum, t) => sum + t.capacity, 0);
-  const needsMoreTables = peopleCount > totalSelectedCapacity && selectedTables.length > 0;
-  const noSuitableSingleTable = tablesData.standard.length === 0 && tablesData.vip.length === 0;
-  
+  const totalSelectedCapacity = selectedTables.reduce(
+    (sum, t) => sum + t.capacity,
+    0
+  );
+  const needsMoreTables =
+    peopleCount > totalSelectedCapacity && selectedTables.length > 0;
+  const noSuitableSingleTable =
+    tablesData.standard.length === 0 && tablesData.vip.length === 0;
+
   if (noSuitableSingleTable && tablesData.maxTableCapacity > 0) {
     // Show warning for table combining
     overCapacityWarning.style.display = "flex";
   } else {
     overCapacityWarning.style.display = "none";
   }
-  
+
   // Render tables
   let tablesHTML = "";
-  
+
   if (tablesData.standard.length > 0) {
     tablesHTML += `
       <div class="table-type-section">
         <h3 class="table-type-title">Bàn thường</h3>
         <div class="table-cards">
-          ${tablesData.standard.map(table => createTableCard(table)).join("")}
+          ${tablesData.standard.map((table) => createTableCard(table)).join("")}
         </div>
       </div>
     `;
   }
-  
+
   if (tablesData.vip.length > 0) {
     tablesHTML += `
       <div class="table-type-section">
         <h3 class="table-type-title">Bàn VIP</h3>
         <div class="table-cards">
-          ${tablesData.vip.map(table => createTableCard(table)).join("")}
+          ${tablesData.vip.map((table) => createTableCard(table)).join("")}
         </div>
       </div>
     `;
   }
-  
+
   // Show all available tables if need to combine
   if (noSuitableSingleTable && tablesData.allAvailable.length > 0) {
-    const standardAll = tablesData.allAvailable.filter(t => t.type === 'standard');
-    const vipAll = tablesData.allAvailable.filter(t => t.type === 'vip');
-    
+    const standardAll = tablesData.allAvailable.filter(
+      (t) => t.type === "standard"
+    );
+    const vipAll = tablesData.allAvailable.filter((t) => t.type === "vip");
+
     tablesHTML = `<p class="combine-tables-hint">Chọn nhiều bàn để ghép (tối đa ${tablesData.totalCapacity} người)</p>`;
-    
+
     if (standardAll.length > 0) {
       tablesHTML += `
         <div class="table-type-section">
           <h3 class="table-type-title">Bàn thường</h3>
           <div class="table-cards">
-            ${standardAll.map(table => createTableCard(table)).join("")}
+            ${standardAll.map((table) => createTableCard(table)).join("")}
           </div>
         </div>
       `;
     }
-    
+
     if (vipAll.length > 0) {
       tablesHTML += `
         <div class="table-type-section">
           <h3 class="table-type-title">Bàn VIP</h3>
           <div class="table-cards">
-            ${vipAll.map(table => createTableCard(table)).join("")}
+            ${vipAll.map((table) => createTableCard(table)).join("")}
           </div>
         </div>
       `;
     }
   }
-  
+
   if (tablesHTML === "") {
     tablesHTML = `<p class="no-tables-message">Không có bàn phù hợp. Vui lòng giảm số người hoặc chọn ngày khác.</p>`;
   }
-  
+
   tablesGrid.innerHTML = tablesHTML;
-  
+
   // Add click listeners to table cards
   attachTableCardListeners();
   updateSelectedTablesSummary();
@@ -213,9 +229,11 @@ function updateAvailableTables(restaurantId, peopleCount) {
 
 // Create table card HTML
 function createTableCard(table) {
-  const isSelected = selectedTables.some(t => t.id === table.id);
+  const isSelected = selectedTables.some((t) => t.id === table.id);
   return `
-    <div class="table-card ${isSelected ? 'selected' : ''}" data-table-id="${table.id}">
+    <div class="table-card ${isSelected ? "selected" : ""}" data-table-id="${
+    table.id
+  }">
       <div class="table-card-header">
         <span class="table-name">${table.name}</span>
         <span class="table-capacity">
@@ -227,7 +245,7 @@ function createTableCard(table) {
         </span>
       </div>
       <div class="table-card-type ${table.type}">
-        ${table.type === 'vip' ? '⭐ VIP' : '🍽️ Thường'}
+        ${table.type === "vip" ? "⭐ VIP" : "🍽️ Thường"}
       </div>
     </div>
   `;
@@ -236,7 +254,7 @@ function createTableCard(table) {
 // Attach listeners to table cards
 function attachTableCardListeners() {
   const tableCards = document.querySelectorAll(".table-card");
-  tableCards.forEach(card => {
+  tableCards.forEach((card) => {
     card.addEventListener("click", () => {
       const tableId = card.dataset.tableId;
       handleTableSelection(tableId);
@@ -249,14 +267,14 @@ function handleTableSelection(tableId) {
   const restaurantId = parseInt(window.location.hash.split("/")[3]);
   const peopleCount = parseInt(document.getElementById("peopleCount").value);
   const tablesData = getAvailableTables(restaurantId, peopleCount);
-  
+
   // Find the table
-  const table = [...tablesData.allAvailable].find(t => t.id === tableId);
+  const table = [...tablesData.allAvailable].find((t) => t.id === tableId);
   if (!table) return;
-  
+
   // Check if already selected
-  const selectedIndex = selectedTables.findIndex(t => t.id === tableId);
-  
+  const selectedIndex = selectedTables.findIndex((t) => t.id === tableId);
+
   if (selectedIndex >= 0) {
     // Deselect
     selectedTables.splice(selectedIndex, 1);
@@ -264,7 +282,7 @@ function handleTableSelection(tableId) {
     // Select - show modal first
     showTablePreviewModal(table);
   }
-  
+
   // Update UI
   updateAvailableTables(restaurantId, peopleCount);
 }
@@ -273,17 +291,19 @@ function handleTableSelection(tableId) {
 function showTablePreviewModal(table) {
   const modal = document.getElementById("tablePreviewModal");
   const modalBody = document.getElementById("tableModalBody");
-  
+
   if (!modal || !modalBody) return;
-  
+
   modalBody.innerHTML = `
     <div class="table-preview">
-      <img src="${table.image}" alt="${table.name}" class="table-preview-image" />
+      <img src="${table.image}" alt="${
+    table.name
+  }" class="table-preview-image" />
       <div class="table-preview-info">
         <h2>${table.name}</h2>
         <div class="table-preview-meta">
           <span class="table-preview-type ${table.type}">
-            ${table.type === 'vip' ? '⭐ Bàn VIP' : '🍽️ Bàn Thường'}
+            ${table.type === "vip" ? "⭐ Bàn VIP" : "🍽️ Bàn Thường"}
           </span>
           <span class="table-preview-capacity">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -297,9 +317,9 @@ function showTablePreviewModal(table) {
       </div>
     </div>
   `;
-  
+
   modal.style.display = "flex";
-  
+
   // Add confirm listener
   const btnConfirm = document.getElementById("btnConfirmTable");
   if (btnConfirm) {
@@ -307,7 +327,9 @@ function showTablePreviewModal(table) {
       selectedTables.push(table);
       modal.style.display = "none";
       const restaurantId = parseInt(window.location.hash.split("/")[3]);
-      const peopleCount = parseInt(document.getElementById("peopleCount").value);
+      const peopleCount = parseInt(
+        document.getElementById("peopleCount").value
+      );
       updateAvailableTables(restaurantId, peopleCount);
     });
   }
@@ -318,13 +340,13 @@ function initModalListeners() {
   const modal = document.getElementById("tablePreviewModal");
   const overlay = document.getElementById("tableModalOverlay");
   const btnClose = document.getElementById("btnCloseModal");
-  
+
   if (overlay) {
     overlay.addEventListener("click", () => {
       modal.style.display = "none";
     });
   }
-  
+
   if (btnClose) {
     btnClose.addEventListener("click", () => {
       modal.style.display = "none";
@@ -336,18 +358,21 @@ function initModalListeners() {
 function updateSelectedTablesSummary() {
   const summary = document.getElementById("selectedTablesSummary");
   const list = document.getElementById("selectedTablesList");
-  
+
   if (!summary || !list) return;
-  
+
   if (selectedTables.length === 0) {
     summary.style.display = "none";
     return;
   }
-  
+
   summary.style.display = "block";
   const totalCapacity = selectedTables.reduce((sum, t) => sum + t.capacity, 0);
-  
-  list.innerHTML = selectedTables.map(table => `
+
+  list.innerHTML =
+    selectedTables
+      .map(
+        (table) => `
     <div class="selected-table-item">
       <span>${table.name} (${table.capacity} người)</span>
       <button class="btn-remove-table" data-table-id="${table.id}">
@@ -357,18 +382,22 @@ function updateSelectedTablesSummary() {
         </svg>
       </button>
     </div>
-  `).join("") + `<div class="total-capacity">Tổng: ${totalCapacity} người</div>`;
-  
+  `
+      )
+      .join("") +
+    `<div class="total-capacity">Tổng: ${totalCapacity} người</div>`;
+
   // Add remove listeners
   const removeButtons = list.querySelectorAll(".btn-remove-table");
-  removeButtons.forEach(btn => {
+  removeButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       const tableId = btn.dataset.tableId;
-      selectedTables = selectedTables.filter(t => t.id !== tableId);
+      selectedTables = selectedTables.filter((t) => t.id !== tableId);
       const restaurantId = parseInt(window.location.hash.split("/")[3]);
-      const peopleCount = parseInt(document.getElementById("peopleCount").value);
+      const peopleCount = parseInt(
+        document.getElementById("peopleCount").value
+      );
       updateAvailableTables(restaurantId, peopleCount);
     });
   });
 }
-

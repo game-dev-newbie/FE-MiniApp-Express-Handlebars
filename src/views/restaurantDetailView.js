@@ -42,7 +42,7 @@ function initRestaurantDetailListeners(restaurant) {
     if (isFavorite(restaurant.id)) {
       btnBookmark.classList.add("active");
     }
-    
+
     btnBookmark.addEventListener("click", () => {
       toggleFavorite(restaurant.id);
       btnBookmark.classList.toggle("active");
@@ -65,14 +65,16 @@ function initCarousel() {
   if (!carousel) return;
 
   const slides = carousel.querySelectorAll(".carousel-slide");
-  const indicators = document.querySelectorAll(".carousel-indicators .indicator");
+  const indicators = document.querySelectorAll(
+    ".carousel-indicators .indicator"
+  );
   let currentSlide = 0;
   let autoPlayInterval;
 
   function showSlide(index) {
-    slides.forEach(slide => slide.classList.remove("active"));
-    indicators.forEach(ind => ind.classList.remove("active"));
-    
+    slides.forEach((slide) => slide.classList.remove("active"));
+    indicators.forEach((ind) => ind.classList.remove("active"));
+
     slides[index].classList.add("active");
     indicators[index].classList.add("active");
   }

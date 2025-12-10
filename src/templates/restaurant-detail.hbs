@@ -13,7 +13,7 @@
         <polyline points="15 18 9 12 15 6"></polyline>
       </svg>
     </button>
-    
+
     <!-- Image Carousel -->
     <div class="restaurant-carousel">
       <div class="carousel-container" id="restaurantCarousel">
@@ -21,20 +21,26 @@
           <img src="{{restaurant.image}}" alt="{{restaurant.name}} - 1" />
         </div>
         <div class="carousel-slide">
-          <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400" alt="{{restaurant.name}} - 2" />
+          <img
+            src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400"
+            alt="{{restaurant.name}} - 2"
+          />
         </div>
         <div class="carousel-slide">
-          <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400" alt="{{restaurant.name}} - 3" />
+          <img
+            src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400"
+            alt="{{restaurant.name}} - 3"
+          />
         </div>
       </div>
-      
+
       <!-- Carousel Indicators -->
       <div class="carousel-indicators">
         <span class="indicator active" data-slide="0"></span>
         <span class="indicator" data-slide="1"></span>
         <span class="indicator" data-slide="2"></span>
       </div>
-      
+
       <button
         class="btn-bookmark-detail"
         data-id="{{restaurant.id}}"
