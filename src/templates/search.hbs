@@ -1,0 +1,230 @@
+<main class="main-content search-page">
+  <!-- Search Header -->
+  <div class="search-page-header">
+    <div class="search-header-top">
+      <div class="search-input-wrapper">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <input
+          type="text"
+          class="search-input-main"
+          placeholder="Tìm nhà hàng, món ăn, khu vực..."
+          id="searchMainInput"
+          value="{{searchQuery}}"
+          autofocus
+        />
+        <button class="btn-clear-search" id="btnClearSearchInput" aria-label="Xóa">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="search-main-content">
+    {{#if hasSearched}}
+      <!-- Results Header -->
+      <div class="results-header">
+        <div class="results-count">
+          Tìm thấy <strong>{{results.length}}</strong> kết quả
+        </div>
+        <div class="view-toggle">
+          <button class="view-btn active" data-view="list" aria-label="Xem dạng danh sách">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="18" x2="21" y2="18"></line>
+              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+          </button>
+          <button class="view-btn" data-view="grid" aria-label="Xem dạng lưới">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {{#if results.length}}
+        <!-- List View -->
+        <div id="listView" class="search-results-list active">
+          {{#each results}}
+            <div class="search-result-card" data-id="{{this.id}}">
+              <img src="{{this.image}}" alt="{{this.name}}" class="result-image" />
+              <div class="result-content">
+                <div class="result-header">
+                  <div class="result-title">
+                    <h3>{{this.name}}</h3>
+                    <span class="result-category">{{this.cuisine}}</span>
+                  </div>
+                  <button class="btn-bookmark-result" data-id="{{this.id}}" aria-label="Yêu thích">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                  </button>
+                </div>
+                <div class="result-info">
+                  <div class="result-rating">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    <span class="rating-value">{{this.average_rating}}</span>
+                    <span class="rating-count">({{this.review_count}})</span>
+                  </div>
+                  <div class="result-tags">{{this.tags}}</div>
+                </div>
+                <div class="result-footer">
+                  <span class="result-price">{{this.priceRange}}</span>
+                  <button class="btn-book-small" data-id="{{this.id}}">Đặt bàn</button>
+                </div>
+              </div>
+            </div>
+          {{/each}}
+        </div>
+
+        <!-- Grid View -->
+        <div id="gridView" class="search-results-grid">
+          {{#each results}}
+            <div class="grid-card" data-id="{{this.id}}">
+              <div class="grid-card-image">
+                <img src="{{this.image}}" alt="{{this.name}}" />
+                <button class="bookmark-btn" data-id="{{this.id}}" aria-label="Yêu thích">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="grid-card-content">
+                <h3 class="grid-card-title">{{this.name}}</h3>
+                <div class="grid-card-rating">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                  <span>{{this.average_rating}}</span>
+                  <span class="reviews">({{this.review_count}})</span>
+                </div>
+                <p class="grid-card-cuisine">{{this.cuisine}}</p>
+                <div class="grid-card-hours">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  <span>{{this.opening_hours}} - {{this.closing_hours}}</span>
+                </div>
+                <div class="grid-card-footer">
+                  <span class="grid-card-price">{{this.priceRange}}</span>
+                  <button class="btn-book-small" data-id="{{this.id}}">Đặt</button>
+                </div>
+              </div>
+            </div>
+          {{/each}}
+        </div>
+      {{else}}
+        <div class="empty-state">
+          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <h3>Không tìm thấy kết quả</h3>
+          <p>Thử tìm kiếm với từ khóa khác</p>
+        </div>
+      {{/if}}
+
+    {{else}}
+      <!-- Search Suggestions (Before search) -->
+      <div class="search-suggestions">
+        <div class="suggestion-section">
+          <h3>Tìm kiếm phổ biến</h3>
+          <div class="suggestion-chips">
+            <button class="suggestion-chip" data-query="buffet hải sản">🦐 Buffet hải sản</button>
+            <button class="suggestion-chip" data-query="lẩu thái">🥘 Lẩu Thái</button>
+            <button class="suggestion-chip" data-query="bbq nướng">🍖 BBQ Nướng</button>
+            <button class="suggestion-chip" data-query="sushi nhật bản">🍣 Sushi Nhật</button>
+            <button class="suggestion-chip" data-query="phở việt nam">🍜 Phở Việt Nam</button>
+            <button class="suggestion-chip" data-query="dimsum">🥟 Dimsum</button>
+          </div>
+        </div>
+
+        <div class="suggestion-section">
+          <h3>Khu vực gần bạn</h3>
+          <div class="location-list">
+            <button class="location-item" data-location="Quận 1">
+              <div class="location-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+              </div>
+              <span class="location-name">Quận 1</span>
+            </button>
+            <button class="location-item" data-location="Quận 3">
+              <div class="location-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+              </div>
+              <span class="location-name">Quận 3</span>
+            </button>
+            <button class="location-item" data-location="Quận 10">
+              <div class="location-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+              </div>
+              <span class="location-name">Quận 10</span>
+            </button>
+            <button class="location-item" data-location="Bình Thạnh">
+              <div class="location-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+              </div>
+              <span class="location-name">Bình Thạnh</span>
+            </button>
+          </div>
+        </div>
+
+        {{#if recentSearches.length}}
+          <div class="suggestion-section">
+            <div class="recent-header">
+              <h3>Tìm kiếm gần đây</h3>
+              <button class="btn-clear-history" id="btnClearHistory">Xóa tất cả</button>
+            </div>
+            <div class="recent-list">
+              {{#each recentSearches}}
+                <div class="recent-search-item">
+                  <button class="recent-search-btn" data-query="{{this}}">
+                    <svg class="recent-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span class="recent-text">{{this}}</span>
+                  </button>
+                  <button class="btn-remove-search" data-query="{{this}}" aria-label="Xóa">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
+              {{/each}}
+            </div>
+          </div>
+        {{/if}}
+      </div>
+    {{/if}}
+  </div>
+</main>

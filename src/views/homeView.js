@@ -1,79 +1,42 @@
 // src/views/homeView.js
-import { fetchRestaurants } from "../api/restaurantApi.js";
 import { renderTemplate } from "../core/templates.js";
+import {
+  getFeaturedRestaurants,
+  getPopularRestaurants,
+  getRestaurantsByCategory,
+  searchRestaurants,
+  getRecentlyVisitedRestaurants,
+  getRestaurantsByTimeOfDay,
+  getTimeOfDayTitle,
+  users,
+} from "../data/mockData.js";
+import { toggleFavorite, isFavorite } from "../utils/favoritesHelper.js";
 
 const appEl = document.getElementById("app");
+const currentUser = users[0]; // Simulate logged in user
 
 export async function renderHome() {
   // Render header and bottom nav
-  const headerHtml = renderTemplate("header", {});
+  const headerHtml = renderTemplate("header", {
+    userAvatar: currentUser.avatar_url,
+    userName: currentUser.display_name,
+  });
   const bottomNavHtml = renderTemplate("bottomNav", { activePage: "home" });
 
-  // Sample data for restaurants
-  const restaurants = [
-    {
-      id: 1,
-      name: "Phòng VIP Sang Trọng",
-      address: "Quận 1, TP.HCM",
-      price: "500.000đ / bàn",
-      category: "recommended",
-      gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-    },
-    {
-      id: 2,
-      name: "Bàn Riêng Tư 4-6 Người",
-      address: "Quận 3, TP.HCM",
-      price: "350.000đ / bàn",
-      category: "recommended",
-      gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-    },
-    {
-      id: 3,
-      name: "Sân Vườn Ngoài Trời",
-      address: "Quận 2, TP.HCM",
-      price: "400.000đ / bàn",
-      category: "popular",
-      gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
-    },
-    {
-      id: 4,
-      name: "Rooftop View Lãng Mạn",
-      address: "Quận 7, TP.HCM",
-      price: "600.000đ / bàn",
-      category: "trending",
-      gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
-    },
-    {
-      id: 5,
-      name: "Phòng Gia Đình Rộng Rãi",
-      address: "Quận 5, TP.HCM",
-      price: "450.000đ / bàn",
-      category: "popular",
-      gradient: "linear-gradient(135deg, #30cfd0 0%, #330867 100%)",
-    },
-    {
-      id: 6,
-      name: "Bàn Cạnh Cửa Sổ",
-      address: "Quận 10, TP.HCM",
-      price: "300.000đ / bàn",
-      category: "trending",
-      gradient: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
-    },
-  ];
-
-  const recentBooking = {
-    name: "President Restaurant",
-    address: "Quận 1, TP.HCM",
-    rating: "4.8",
-    reviews: "6,283",
-    price: "350.000đ",
-    gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-  };
+  // Get data from mockData
+  const featuredRestaurants = getFeaturedRestaurants();
+  const popularRestaurants = getPopularRestaurants();
+  const recentRestaurants = getRecentlyVisitedRestaurants(currentUser.id);
+  const timeBasedRestaurants = getRestaurantsByTimeOfDay();
+  const timeOfDayTitle = getTimeOfDayTitle();
 
   const contentHtml = renderTemplate("homeContent", {
-    userName: "Nguyễn Văn A",
-    restaurants,
-    recentBooking,
+    userName: currentUser.display_name,
+    featuredRestaurants,
+    popularRestaurants,
+    recentRestaurants,
+    timeBasedRestaurants,
+    timeOfDayTitle,
   });
 
   appEl.innerHTML = headerHtml + contentHtml + bottomNavHtml;
@@ -83,62 +46,34 @@ export async function renderHome() {
 }
 
 function initHomeEventListeners() {
-  // Filter tabs
-  const tabButtons = document.querySelectorAll(".tab-btn");
-  const restaurantCards = document.querySelectorAll(".restaurant-card");
+  console.log("Initializing home event listeners...");
+  
+  // Category tabs
+  const categoryButtons = document.querySelectorAll(".category-btn");
+  console.log("Found category buttons:", categoryButtons.length);
 
-  tabButtons.forEach((button) => {
+  categoryButtons.forEach((button) => {
     button.addEventListener("click", () => {
-      tabButtons.forEach((btn) => btn.classList.remove("active"));
-      button.classList.add("active");
+      const category = button.getAttribute("data-category");
+      console.log("Navigate to category:", category);
 
-      const selectedCategory = button.getAttribute("data-category");
-
-      restaurantCards.forEach((card, index) => {
-        const cardCategory = card.getAttribute("data-category");
-
-        if (
-          selectedCategory === "recommended" ||
-          cardCategory === selectedCategory
-        ) {
-          card.style.display = "block";
-          card.style.animation = "none";
-          setTimeout(() => {
-            card.style.animation = `fadeIn 350ms ease-out ${
-              index * 100
-            }ms both`;
-          }, 10);
-        } else {
-          card.style.display = "none";
-        }
-      });
+      // Navigate to category page
+      window.location.hash = `#/category/${category}`;
     });
   });
 
   // Search functionality
   const searchInput = document.getElementById("searchInput");
   if (searchInput) {
-    searchInput.addEventListener(
-      "input",
-      debounce((e) => {
-        const searchTerm = e.target.value.toLowerCase();
+    // Navigate to search page on click
+    searchInput.addEventListener("click", () => {
+      window.location.hash = "#/search";
+    });
 
-        restaurantCards.forEach((card) => {
-          const title = card
-            .querySelector(".card-title")
-            .textContent.toLowerCase();
-          const location = card
-            .querySelector(".card-location")
-            .textContent.toLowerCase();
-
-          if (title.includes(searchTerm) || location.includes(searchTerm)) {
-            card.style.display = "block";
-          } else {
-            card.style.display = "none";
-          }
-        });
-      }, 300)
-    );
+    // Navigate to search page on focus
+    searchInput.addEventListener("focus", () => {
+      window.location.hash = "#/search";
+    });
   }
 
   // Bottom navigation
@@ -155,16 +90,79 @@ function initHomeEventListeners() {
     });
   });
 
-  // Bookmark functionality
-  const bookmarkCardButtons = document.querySelectorAll(".bookmark-card-btn");
-  bookmarkCardButtons.forEach((button) => {
+  // Book table buttons - navigate to booking form
+  const bookButtons = document.querySelectorAll(".btn-book-table, .btn-book-again");
+  console.log("Found book buttons:", bookButtons.length);
+  bookButtons.forEach((button) => {
     button.addEventListener("click", (e) => {
       e.stopPropagation();
-      button.classList.toggle("active");
+      const id = button.getAttribute("data-id");
+      console.log("Book button clicked, restaurant ID:", id);
+      window.location.hash = `#/booking/new/${id}`;
+    });
+  });
+
+  // Bookmark buttons - toggle favorites
+  const bookmarkButtons = document.querySelectorAll(".bookmark-featured-btn");
+  bookmarkButtons.forEach((button) => {
+    const restaurantId = button.closest(".featured-card")?.getAttribute("data-id");
+    
+    // Set initial state based on favorites
+    if (restaurantId && isFavorite(restaurantId)) {
+      button.classList.add("active");
+    }
+    
+    button.addEventListener("click", (e) => {
+      e.stopPropagation();
+      
+      if (restaurantId) {
+        const isNowFavorite = toggleFavorite(restaurantId);
+        
+        if (isNowFavorite) {
+          button.classList.add("active");
+        } else {
+          button.classList.remove("active");
+        }
+      }
 
       if (navigator.vibrate) {
         navigator.vibrate(10);
       }
+    });
+  });
+
+  // Featured card click - navigate to detail page
+  const featuredCards = document.querySelectorAll(".featured-card");
+  console.log("Found featured cards:", featuredCards.length);
+  featuredCards.forEach((card) => {
+    card.addEventListener("click", (e) => {
+      // Don't trigger if clicking bookmark or book button
+      if (
+        e.target.closest(".bookmark-featured-btn") ||
+        e.target.closest(".btn-book-table")
+      ) {
+        return;
+      }
+
+      const id = card.getAttribute("data-id");
+      console.log("Featured card clicked, restaurant ID:", id);
+      window.location.hash = `#/restaurant/${id}`;
+    });
+  });
+
+  // Recent visited card click - navigate to detail page
+  const recentCards = document.querySelectorAll(".recent-visited-card");
+  console.log("Found recent cards:", recentCards.length);
+  recentCards.forEach((card) => {
+    card.addEventListener("click", (e) => {
+      // Don't trigger if clicking book button
+      if (e.target.closest(".btn-book-again")) {
+        return;
+      }
+
+      const id = card.getAttribute("data-id");
+      console.log("Recent card clicked, restaurant ID:", id);
+      window.location.hash = `#/restaurant/${id}`;
     });
   });
 
@@ -176,13 +174,13 @@ function initHomeEventListeners() {
 
   if (notificationBtn) {
     notificationBtn.addEventListener("click", () => {
-      alert("Bạn có 3 thông báo mới!");
+      window.location.hash = "#/notifications";
     });
   }
 
   if (bookmarkBtn) {
     bookmarkBtn.addEventListener("click", () => {
-      alert("Danh sách đã lưu");
+      window.location.hash = "#/favorites";
     });
   }
 
@@ -198,11 +196,144 @@ function initHomeEventListeners() {
     });
   }
 
-  // Restaurant card click
-  restaurantCards.forEach((card) => {
-    card.addEventListener("click", () => {
-      const title = card.querySelector(".card-title").textContent;
-      alert(`Bạn đã chọn: ${title}`);
+  // See all links
+  const seeAllLinks = document.querySelectorAll(".see-all-link");
+  seeAllLinks.forEach((link) => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      console.log("See all clicked");
+      alert("Xem tất cả nhà hàng");
+    });
+  });
+}
+
+// Update restaurant lists without full page reload
+function updateRestaurantLists(restaurants) {
+  const featured = restaurants.filter((r) => r.recommended);
+  const popular = restaurants.slice(0, 5);
+
+  // Update featured section
+  const featuredContainer = document.querySelector(
+    ".restaurant-section:nth-of-type(1) .horizontal-scroll"
+  );
+  if (featuredContainer) {
+    featuredContainer.innerHTML = featured
+      .map(
+        (r) => `
+      <div class="featured-card" data-id="${r.id}">
+        <div class="featured-card-image">
+          <img src="${r.image}" alt="${r.name}" />
+          ${r.recommended ? '<span class="badge-recommended">Được đề xuất</span>' : ""}
+          <button class="bookmark-featured-btn" data-id="${r.id}">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="featured-card-content">
+          <h3 class="featured-card-title">${r.name}</h3>
+          <div class="featured-card-meta">
+            <span class="rating">⭐ ${r.average_rating}</span>
+            <span class="distance">📍 ${r.distance}</span>
+          </div>
+          <div class="featured-card-info">
+            <span class="cuisine">${r.cuisine}</span>
+            <span class="price">${r.priceRange}</span>
+          </div>
+        </div>
+        <div class="featured-card-footer">
+          <button class="btn-book-table" data-id="${r.id}">Đặt bàn</button>
+        </div>
+      </div>
+    `
+      )
+      .join("");
+
+    // Re-attach event listeners for new cards
+    reattachCardListeners();
+  }
+
+  // Update popular section
+  const popularContainer = document.querySelector(
+    ".restaurant-section:nth-of-type(2) .horizontal-scroll"
+  );
+  if (popularContainer) {
+    popularContainer.innerHTML = popular
+      .map(
+        (r) => `
+      <div class="featured-card" data-id="${r.id}">
+        <div class="featured-card-image">
+          <img src="${r.image}" alt="${r.name}" />
+          ${r.recommended ? '<span class="badge-recommended">Được đề xuất</span>' : ""}
+          <button class="bookmark-featured-btn" data-id="${r.id}">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="featured-card-content">
+          <h3 class="featured-card-title">${r.name}</h3>
+          <div class="featured-card-meta">
+            <span class="rating">⭐ ${r.average_rating}</span>
+            <span class="distance">📍 ${r.distance}</span>
+          </div>
+          <div class="featured-card-info">
+            <span class="cuisine">${r.cuisine}</span>
+            <span class="price">${r.priceRange}</span>
+          </div>
+        </div>
+        <div class="featured-card-footer">
+          <button class="btn-book-table" data-id="${r.id}">Đặt bàn</button>
+        </div>
+      </div>
+    `
+      )
+      .join("");
+
+    // Re-attach event listeners for new cards
+    reattachCardListeners();
+  }
+}
+
+// Re-attach event listeners after updating DOM
+function reattachCardListeners() {
+  // Book table buttons - navigate to booking form
+  const bookButtons = document.querySelectorAll(".btn-book-table");
+  bookButtons.forEach((button) => {
+    button.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const id = button.getAttribute("data-id");
+      window.location.hash = `#/booking/new/${id}`;
+    });
+  });
+
+  // Bookmark buttons
+  const bookmarkButtons = document.querySelectorAll(".bookmark-featured-btn");
+  bookmarkButtons.forEach((button) => {
+    button.addEventListener("click", (e) => {
+      e.stopPropagation();
+      button.classList.toggle("active");
+
+      if (navigator.vibrate) {
+        navigator.vibrate(10);
+      }
+    });
+  });
+
+  // Featured card click - navigate to detail page
+  const featuredCards = document.querySelectorAll(".featured-card");
+  featuredCards.forEach((card) => {
+    card.addEventListener("click", (e) => {
+      // Don't trigger if clicking bookmark or book button
+      if (
+        e.target.closest(".bookmark-featured-btn") ||
+        e.target.closest(".btn-book-table")
+      ) {
+        return;
+      }
+
+      const id = card.getAttribute("data-id");
+      window.location.hash = `#/restaurant/${id}`;
     });
   });
 }

@@ -3,7 +3,7 @@
   <section class="greeting-section">
     <h1 class="greeting-title">Xin chào,
       <span class="user-name">{{userName}}</span>
-      👋</h1>
+    </h1>
   </section>
 
   <!-- Search Bar -->
@@ -24,111 +24,228 @@
       <input
         type="text"
         class="search-input"
-        placeholder="Tìm kiếm nhà hàng, khu vực..."
+        placeholder="Tìm kiếm nhà hàng, món ăn..."
         id="searchInput"
       />
-      <button class="filter-btn" id="filterBtn" aria-label="Bộ lọc">
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <polygon
-            points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"
-          ></polygon>
-        </svg>
-      </button>
     </div>
   </div>
 
-  <!-- Filter Tabs -->
-  <div class="filter-tabs">
-    <button
-      class="tab-btn active"
-      data-category="recommended"
-    >Recommended</button>
-    <button class="tab-btn" data-category="popular">Popular</button>
-    <button class="tab-btn" data-category="trending">Trending</button>
+  <!-- Category Tabs -->
+  <div class="category-tabs">
+    <button class="category-btn" data-category="buffet">
+      <span class="category-icon">🍽️</span>
+      <span class="category-label">Buffet</span>
+    </button>
+    <button class="category-btn" data-category="lau">
+      <span class="category-icon">🥘</span>
+      <span class="category-label">Lẩu</span>
+    </button>
+    <button class="category-btn" data-category="nuong">
+      <span class="category-icon">🍖</span>
+      <span class="category-label">Nướng</span>
+    </button>
+    <button class="category-btn" data-category="hai-san">
+      <span class="category-icon">🦐</span>
+      <span class="category-label">Hải sản</span>
+    </button>
+    <button class="category-btn" data-category="mon-nhat">
+      <span class="category-icon">🍣</span>
+      <span class="category-label">Món Nhật</span>
+    </button>
+    <button class="category-btn" data-category="mon-viet">
+      <span class="category-icon">🍜</span>
+      <span class="category-label">Món Việt</span>
+    </button>
+    <button class="category-btn" data-category="mon-han">
+      <span class="category-icon">🍲</span>
+      <span class="category-label">Món Hàn</span>
+    </button>
+    <button class="category-btn" data-category="mon-chay">
+      <span class="category-icon">🥬</span>
+      <span class="category-label">Món Chay</span>
+    </button>
+    <button class="category-btn" data-category="chau-a">
+      <span class="category-icon">🥟</span>
+      <span class="category-label">Châu Á</span>
+    </button>
+    <button class="category-btn" data-category="chau-au">
+      <span class="category-icon">🍕</span>
+      <span class="category-label">Châu Âu</span>
+    </button>
   </div>
 
-  <!-- Restaurant Cards Grid -->
-  <section class="cards-section">
-    <div class="cards-grid" id="cardsGrid">
-      {{#each restaurants}}
-        <div class="restaurant-card" data-category="{{this.category}}">
-          <div class="card-image" style="background: {{this.gradient}};">
-            <div class="card-overlay">
-              <h3 class="card-title">{{this.name}}</h3>
-              <p class="card-location">{{this.address}}</p>
-              <p class="card-price">{{this.price}}</p>
+  <!-- Top Deals Section -->
+  <section class="featured-section">
+    <div class="section-header">
+      <h2 class="section-title-large">Top nhà hàng ưu đãi tốt</h2>
+      <a href="#" class="see-all-link">Xem tất cả</a>
+    </div>
+
+    <div class="horizontal-scroll">
+      {{#each featuredRestaurants}}
+        <div class="featured-card" data-id="{{this.id}}">
+          <div
+            class="featured-card-image"
+            style="background-image: url('{{this.image}}');"
+          >
+            {{#if this.recommended}}
+              <span class="badge-recommended">Được đề xuất</span>
+            {{/if}}
+            <button class="bookmark-featured-btn" aria-label="Yêu thích">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          <div class="featured-card-content">
+            <h3 class="featured-card-title">{{this.name}}</h3>
+            <div class="featured-card-info">
+              <span class="featured-card-rating">⭐ {{this.average_rating}}</span>
+            </div>
+            <p class="featured-card-cuisine">{{this.cuisine}}</p>
+            <div class="featured-card-footer">
+              <span class="featured-card-price">{{this.priceRange}}</span>
+              <button class="btn-book-table" data-id="{{this.id}}">Đặt bàn</button>
             </div>
           </div>
-          <button
-            class="bookmark-card-btn"
-            aria-label="Lưu"
-            data-id="{{this.id}}"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"
-              ></path>
-            </svg>
-          </button>
         </div>
       {{/each}}
     </div>
   </section>
 
-  <!-- Recently Booked Section -->
-  <section class="recently-booked">
+  <!-- Popular Section -->
+  <section class="featured-section">
     <div class="section-header">
-      <h2 class="section-title">Recently Booked</h2>
-      <a href="#" class="see-all-link">See All</a>
+      <h2 class="section-title-large">Được yêu thích nhất</h2>
+      <a href="#" class="see-all-link">Xem tất cả</a>
     </div>
-    {{#if recentBooking}}
-      <div class="recent-card">
-        <div
-          class="recent-card-image"
-          style="background: {{recentBooking.gradient}};"
-        ></div>
-        <div class="recent-card-content">
-          <h3 class="recent-card-title">{{recentBooking.name}}</h3>
-          <p class="recent-card-location">{{recentBooking.address}}</p>
-          <div class="recent-card-rating">
-            <span class="star">⭐</span>
-            <span class="rating-text">{{recentBooking.rating}}
-              ({{recentBooking.reviews}}
-              reviews)</span>
+
+    <div class="horizontal-scroll">
+      {{#each popularRestaurants}}
+        <div class="featured-card" data-id="{{this.id}}">
+          <div
+            class="featured-card-image"
+            style="background-image: url('{{this.image}}');"
+          >
+            {{#if this.recommended}}
+              <span class="badge-recommended">Được đề xuất</span>
+            {{/if}}
+            <button class="bookmark-featured-btn" aria-label="Yêu thích">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          <div class="featured-card-content">
+            <h3 class="featured-card-title">{{this.name}}</h3>
+            <div class="featured-card-info">
+              <span class="featured-card-rating">⭐ {{this.average_rating}}</span>
+            </div>
+            <p class="featured-card-cuisine">{{this.cuisine}}</p>
+            <div class="featured-card-footer">
+              <span class="featured-card-price">{{this.priceRange}}</span>
+              <button class="btn-book-table" data-id="{{this.id}}">Đặt bàn</button>
+            </div>
           </div>
         </div>
-        <div class="recent-card-price">
-          <span class="price-amount">{{recentBooking.price}}</span>
-          <button class="bookmark-recent-btn" aria-label="Lưu">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"
-              ></path>
-            </svg>
-          </button>
+      {{/each}}
+    </div>
+  </section>
+
+  <!-- Time-Based Recommendation Section -->
+  <section class="time-based-section">
+    <div class="section-header">
+      <h2 class="section-title-large">{{timeOfDayTitle}}</h2>
+      <a href="#" class="see-all-link">Xem tất cả</a>
+    </div>
+
+    <div class="horizontal-scroll">
+      {{#each timeBasedRestaurants}}
+        <div class="featured-card" data-id="{{this.id}}">
+          <div
+            class="featured-card-image"
+            style="background-image: url('{{this.image}}');"
+          >
+            {{#if this.recommended}}
+              <span class="badge-recommended">Được đề xuất</span>
+            {{/if}}
+            <button class="bookmark-featured-btn" aria-label="Yêu thích">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          <div class="featured-card-content">
+            <h3 class="featured-card-title">{{this.name}}</h3>
+            <div class="featured-card-info">
+              <span class="featured-card-rating">⭐ {{this.average_rating}}</span>
+            </div>
+            <p class="featured-card-cuisine">{{this.cuisine}}</p>
+            <div class="featured-card-footer">
+              <span class="featured-card-price">{{this.priceRange}}</span>
+              <button class="btn-book-table" data-id="{{this.id}}">Đặt bàn</button>
+            </div>
+          </div>
         </div>
-      </div>
-    {{/if}}
+      {{/each}}
+    </div>
+  </section>
+
+  <!-- Recently Viewed Section -->
+  <section class="recent-visited-section">
+    <div class="section-header">
+      <h2 class="section-title-large">Nhà hàng đã ghé thăm</h2>
+      <a href="#" class="see-all-link">Xem tất cả</a>
+    </div>
+
+    <div class="recent-visited-list">
+      {{#each recentRestaurants}}
+        <div class="recent-visited-card" data-id="{{this.id}}">
+          <div class="recent-card-image" style="background-image: url('{{this.image}}');">
+            {{#if this.recommended}}
+              <span class="badge-recommended">Được đề xuất</span>
+            {{/if}}
+          </div>
+          <div class="recent-card-content">
+            <h3 class="recent-card-title">{{this.name}}</h3>
+            <div class="recent-card-info">
+              <span class="rating">⭐ {{this.average_rating}}</span>
+            </div>
+            <p class="recent-card-cuisine">{{this.cuisine}}</p>
+            <div class="recent-card-footer">
+              <span class="price">{{this.priceRange}}</span>
+              <button class="btn-book-again" data-id="{{this.id}}">Đặt lại</button>
+            </div>
+          </div>
+        </div>
+      {{/each}}
+    </div>
   </section>
 </main>

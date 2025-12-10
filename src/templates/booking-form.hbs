@@ -1,0 +1,184 @@
+<main class="main-content booking-form-page">
+  <!-- Booking Form Header -->
+  <div class="booking-form-header">
+    <button class="btn-back" id="btnBackFromBooking">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+    <h1>Đặt bàn</h1>
+  </div>
+
+  <!-- Restaurant Info Summary -->
+  <div class="booking-restaurant-summary">
+    <img src="{{restaurant.image}}" alt="{{restaurant.name}}" class="booking-restaurant-image" />
+    <div class="booking-restaurant-info">
+      <h2>{{restaurant.name}}</h2>
+      <div class="booking-restaurant-meta">
+        <span class="rating">⭐ {{restaurant.average_rating}}</span>
+        <span class="cuisine">{{restaurant.cuisine}}</span>
+      </div>
+      <p class="address">{{restaurant.address}}</p>
+    </div>
+  </div>
+
+  <!-- Booking Form -->
+  <form class="booking-form" id="bookingForm">
+    <!-- Date Selection -->
+    <div class="form-group">
+      <label for="bookingDate">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        Ngày đặt bàn
+      </label>
+      <input 
+        type="date" 
+        id="bookingDate" 
+        name="date" 
+        required
+        min="{{minDate}}"
+      />
+    </div>
+
+    <!-- Time Selection -->
+    <div class="form-group">
+      <label for="bookingTime">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        Giờ đặt bàn
+      </label>
+      <select id="bookingTime" name="time" required>
+        <option value="">Chọn giờ</option>
+        <option value="10:00">10:00</option>
+        <option value="10:30">10:30</option>
+        <option value="11:00">11:00</option>
+        <option value="11:30">11:30</option>
+        <option value="12:00">12:00</option>
+        <option value="12:30">12:30</option>
+        <option value="13:00">13:00</option>
+        <option value="13:30">13:30</option>
+        <option value="14:00">14:00</option>
+        <option value="17:00">17:00</option>
+        <option value="17:30">17:30</option>
+        <option value="18:00">18:00</option>
+        <option value="18:30">18:30</option>
+        <option value="19:00">19:00</option>
+        <option value="19:30">19:30</option>
+        <option value="20:00">20:00</option>
+        <option value="20:30">20:30</option>
+        <option value="21:00">21:00</option>
+        <option value="21:30">21:30</option>
+        <option value="22:00">22:00</option>
+      </select>
+    </div>
+
+    <!-- Number of People -->
+    <div class="form-group">
+      <label for="peopleCount">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        Số người
+      </label>
+      <div class="number-input">
+        <button type="button" class="btn-decrease" id="btnDecrease">-</button>
+        <input 
+          type="number" 
+          id="peopleCount" 
+          name="people" 
+          value="2" 
+          min="1" 
+          max="20"
+          required
+          readonly
+        />
+        <button type="button" class="btn-increase" id="btnIncrease">+</button>
+      </div>
+    </div>
+
+    <!-- Customer Name -->
+    <div class="form-group">
+      <label for="customerName">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        Tên khách hàng
+      </label>
+      <input 
+        type="text" 
+        id="customerName" 
+        name="name" 
+        placeholder="Nhập tên của bạn"
+        value="{{userName}}"
+        required
+      />
+    </div>
+
+    <!-- Phone Number -->
+    <div class="form-group">
+      <label for="customerPhone">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+        </svg>
+        Số điện thoại
+      </label>
+      <input 
+        type="tel" 
+        id="customerPhone" 
+        name="phone" 
+        placeholder="Nhập số điện thoại"
+        value="{{userPhone}}"
+        required
+      />
+    </div>
+
+    <!-- Note (Optional) -->
+    <div class="form-group">
+      <label for="bookingNote">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <line x1="10" y1="9" x2="8" y2="9"></line>
+        </svg>
+        Ghi chú (không bắt buộc)
+      </label>
+      <textarea 
+        id="bookingNote" 
+        name="note" 
+        rows="3" 
+        placeholder="Ví dụ: Đặt bàn gần cửa sổ, có ghế em bé..."
+      ></textarea>
+    </div>
+
+    {{#if restaurant.require_deposit}}
+      <!-- Deposit Info -->
+      <div class="deposit-notice">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <div>
+          <strong>Lưu ý:</strong> Nhà hàng yêu cầu đặt cọc <strong>{{formatCurrency restaurant.default_deposit_amount}}</strong> để giữ chỗ.
+        </div>
+      </div>
+    {{/if}}
+
+    <!-- Submit Button -->
+    <button type="submit" class="btn-submit-booking">
+      Xác nhận đặt bàn
+    </button>
+  </form>
+</main>
