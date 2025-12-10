@@ -354,8 +354,40 @@ export const restaurantImages = [
 ];
 
 /**
- * Restaurant tables (restaurant_tables table)
+ * Restaurant tables with better structure for booking
  */
+export const restaurantTablesData = {
+  1: [ // Buffet Poseidon
+    { id: "T1-01", name: "Bàn 01", type: "standard", capacity: 2, isAvailable: true, image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400" },
+    { id: "T1-02", name: "Bàn 02", type: "standard", capacity: 2, isAvailable: true, image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400" },
+    { id: "T1-03", name: "Bàn 03", type: "standard", capacity: 4, isAvailable: true, image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400" },
+    { id: "T1-04", name: "Bàn 04", type: "standard", capacity: 4, isAvailable: true, image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400" },
+    { id: "T1-05", name: "Bàn 05", type: "standard", capacity: 6, isAvailable: false, image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400" },
+    { id: "T1-06", name: "Bàn 06", type: "standard", capacity: 6, isAvailable: true, image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400" },
+    { id: "T1-V1", name: "Bàn VIP 01", type: "vip", capacity: 4, isAvailable: true, image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400" },
+    { id: "T1-V2", name: "Bàn VIP 02", type: "vip", capacity: 6, isAvailable: true, image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400" },
+    { id: "T1-V3", name: "Bàn VIP 03", type: "vip", capacity: 8, isAvailable: true, image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400" },
+    { id: "T1-V4", name: "Bàn VIP 04", type: "vip", capacity: 10, isAvailable: false, image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400" },
+  ],
+  2: [ // Lẩu Thái
+    { id: "T2-01", name: "Bàn 01", type: "standard", capacity: 2, isAvailable: true, image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400" },
+    { id: "T2-02", name: "Bàn 02", type: "standard", capacity: 4, isAvailable: true, image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400" },
+    { id: "T2-03", name: "Bàn 03", type: "standard", capacity: 4, isAvailable: true, image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400" },
+    { id: "T2-V1", name: "Bàn VIP 01", type: "vip", capacity: 6, isAvailable: true, image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400" },
+    { id: "T2-V2", name: "Bàn VIP 02", type: "vip", capacity: 8, isAvailable: true, image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400" },
+  ],
+  3: [ // BBQ Premium House
+    { id: "T3-01", name: "Bàn 01", type: "standard", capacity: 2, isAvailable: true, image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400" },
+    { id: "T3-02", name: "Bàn 02", type: "standard", capacity: 4, isAvailable: true, image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400" },
+    { id: "T3-03", name: "Bàn 03", type: "standard", capacity: 4, isAvailable: true, image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400" },
+    { id: "T3-04", name: "Bàn 04", type: "standard", capacity: 6, isAvailable: true, image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400" },
+    { id: "T3-V1", name: "Bàn VIP 01", type: "vip", capacity: 4, isAvailable: true, image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400" },
+    { id: "T3-V2", name: "Bàn VIP 02", type: "vip", capacity: 6, isAvailable: true, image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400" },
+    { id: "T3-V3", name: "Bàn VIP 03", type: "vip", capacity: 8, isAvailable: true, image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400" },
+  ],
+};
+
+// Old format for compatibility
 export const restaurantTables = [
   // Buffet Poseidon tables
   {
@@ -712,3 +744,25 @@ export function getRestaurantsByTimeOfDay() {
 
   return restaurants.filter((r) => restaurantIds.includes(r.id)).slice(0, 5);
 }
+
+// Get available tables for a restaurant based on people count
+export function getAvailableTables(restaurantId, peopleCount) {
+  const tables = restaurantTablesData[restaurantId] || [];
+  const availableTables = tables.filter(t => t.isAvailable);
+  
+  // Filter tables that can accommodate the people count
+  const suitableTables = availableTables.filter(t => t.capacity >= peopleCount);
+  
+  // Group by type
+  const standardTables = suitableTables.filter(t => t.type === 'standard');
+  const vipTables = suitableTables.filter(t => t.type === 'vip');
+  
+  return {
+    standard: standardTables,
+    vip: vipTables,
+    allAvailable: availableTables,
+    totalCapacity: availableTables.reduce((sum, t) => sum + t.capacity, 0),
+    maxTableCapacity: Math.max(...availableTables.map(t => t.capacity), 0)
+  };
+}
+

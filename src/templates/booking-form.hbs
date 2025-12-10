@@ -1,6 +1,6 @@
 <main class="main-content booking-form-page">
   <!-- Booking Form Header -->
-  <div class="booking-form-header">
+  <div class="booking-form-header booking-form-header-center">
     <button class="btn-back" id="btnBackFromBooking">
       <svg
         width="24"
@@ -13,7 +13,8 @@
         <polyline points="15 18 9 12 15 6"></polyline>
       </svg>
     </button>
-    <h1>Đặt bàn</h1>
+    <h1 class="booking-form-title">Đặt bàn</h1>
+    <div class="header-spacer"></div>
   </div>
 
   <!-- Restaurant Info Summary -->
@@ -35,6 +36,59 @@
 
   <!-- Booking Form -->
   <form class="booking-form" id="bookingForm">
+    <!-- Customer Name -->
+    <div class="form-group">
+      <label for="customerName">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        Tên khách hàng
+      </label>
+      <input
+        type="text"
+        id="customerName"
+        name="name"
+        placeholder="Nhập tên của bạn"
+        value="{{userName}}"
+        required
+      />
+    </div>
+
+    <!-- Phone Number -->
+    <div class="form-group">
+      <label for="customerPhone">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
+          ></path>
+        </svg>
+        Số điện thoại
+      </label>
+      <input
+        type="tel"
+        id="customerPhone"
+        name="phone"
+        placeholder="Nhập số điện thoại"
+        value="{{userPhone}}"
+        required
+      />
+    </div>
+
     <!-- Date Selection -->
     <div class="form-group">
       <label for="bookingDate">
@@ -129,7 +183,7 @@
           name="people"
           value="2"
           min="1"
-          max="20"
+          max="50"
           required
           readonly
         />
@@ -137,9 +191,9 @@
       </div>
     </div>
 
-    <!-- Customer Name -->
-    <div class="form-group">
-      <label for="customerName">
+    <!-- Available Tables Section (shown after selecting people count) -->
+    <div class="form-group" id="tablesSection" style="display: none;">
+      <label>
         <svg
           width="18"
           height="18"
@@ -148,46 +202,36 @@
           stroke="currentColor"
           stroke-width="2"
         >
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-          <circle cx="12" cy="7" r="4"></circle>
+          <rect x="3" y="8" width="18" height="12" rx="1"></rect>
+          <path d="M3 8V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2"></path>
         </svg>
-        Tên khách hàng
+        Chọn bàn
+        <span class="required-badge">*</span>
       </label>
-      <input
-        type="text"
-        id="customerName"
-        name="name"
-        placeholder="Nhập tên của bạn"
-        value="{{userName}}"
-        required
-      />
-    </div>
+      
+      <!-- Over Capacity Warning -->
+      <div id="overCapacityWarning" class="capacity-warning" style="display: none;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        <div>
+          <strong>Số người vượt quá sức chứa!</strong>
+          <p>Vui lòng chọn thêm bàn để ghép hoặc giảm số người.</p>
+        </div>
+      </div>
 
-    <!-- Phone Number -->
-    <div class="form-group">
-      <label for="customerPhone">
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <path
-            d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
-          ></path>
-        </svg>
-        Số điện thoại
-      </label>
-      <input
-        type="tel"
-        id="customerPhone"
-        name="phone"
-        placeholder="Nhập số điện thoại"
-        value="{{userPhone}}"
-        required
-      />
+      <!-- Tables Grid -->
+      <div id="tablesGrid" class="tables-grid">
+        <!-- Tables will be rendered dynamically here -->
+      </div>
+
+      <!-- Selected Tables Summary -->
+      <div id="selectedTablesSummary" class="selected-tables-summary" style="display: none;">
+        <strong>Bàn đã chọn:</strong>
+        <div id="selectedTablesList" class="selected-tables-list"></div>
+      </div>
     </div>
 
     <!-- Note (Optional) -->
@@ -242,10 +286,28 @@
         </div>
       </div>
     {{/if}}
+  </form>
 
-    <!-- Submit Button -->
-    <button type="submit" class="btn-submit-booking">
+  <!-- Fixed Submit Button -->
+  <div class="booking-form-footer">
+    <button type="submit" form="bookingForm" class="btn-submit-booking">
       Xác nhận đặt bàn
     </button>
-  </form>
+  </div>
+
+  <!-- Table Preview Modal -->
+  <div id="tablePreviewModal" class="table-modal" style="display: none;">
+    <div class="table-modal-overlay" id="tableModalOverlay"></div>
+    <div class="table-modal-content">
+      <button class="btn-close-modal" id="btnCloseModal">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div id="tableModalBody">
+        <!-- Table preview content will be inserted here -->
+      </div>
+    </div>
+  </div>
 </main>
