@@ -1,7 +1,11 @@
 // src/views/favoritesView.js
 import { renderTemplate } from "../core/templates.js";
 import { getUserFavoriteIds, restaurants, users } from "../data/mockData.js";
-import { toggleFavorite, isFavorite, getFavoriteRestaurants } from "../utils/favoritesHelper.js";
+import {
+  toggleFavorite,
+  isFavorite,
+  getFavoriteRestaurants,
+} from "../utils/favoritesHelper.js";
 
 const appEl = document.getElementById("app");
 const currentUser = users[0];
@@ -42,7 +46,7 @@ function initFavoritesEventListeners() {
       if (navigator.vibrate) {
         navigator.vibrate(10);
       }
-      
+
       // Remove from favorites
       if (restaurantId) {
         toggleFavorite(restaurantId);

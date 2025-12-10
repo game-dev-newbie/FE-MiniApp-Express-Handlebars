@@ -40,7 +40,9 @@ function initNotificationEventListeners() {
   const btnMarkAllRead = document.getElementById("btnMarkAllRead");
   if (btnMarkAllRead) {
     btnMarkAllRead.addEventListener("click", () => {
-      const unreadItems = document.querySelectorAll(".notification-item.unread");
+      const unreadItems = document.querySelectorAll(
+        ".notification-item.unread"
+      );
       unreadItems.forEach((item) => {
         item.classList.remove("unread");
         const dot = item.querySelector(".unread-dot");

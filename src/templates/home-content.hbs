@@ -109,7 +109,8 @@
           <div class="featured-card-content">
             <h3 class="featured-card-title">{{this.name}}</h3>
             <div class="featured-card-info">
-              <span class="featured-card-rating">⭐ {{this.average_rating}}</span>
+              <span class="featured-card-rating">⭐
+                {{this.average_rating}}</span>
             </div>
             <p class="featured-card-cuisine">{{this.cuisine}}</p>
             <div class="featured-card-footer">
@@ -157,7 +158,8 @@
           <div class="featured-card-content">
             <h3 class="featured-card-title">{{this.name}}</h3>
             <div class="featured-card-info">
-              <span class="featured-card-rating">⭐ {{this.average_rating}}</span>
+              <span class="featured-card-rating">⭐
+                {{this.average_rating}}</span>
             </div>
             <p class="featured-card-cuisine">{{this.cuisine}}</p>
             <div class="featured-card-footer">
@@ -205,7 +207,8 @@
           <div class="featured-card-content">
             <h3 class="featured-card-title">{{this.name}}</h3>
             <div class="featured-card-info">
-              <span class="featured-card-rating">⭐ {{this.average_rating}}</span>
+              <span class="featured-card-rating">⭐
+                {{this.average_rating}}</span>
             </div>
             <p class="featured-card-cuisine">{{this.cuisine}}</p>
             <div class="featured-card-footer">
@@ -228,7 +231,10 @@
     <div class="recent-visited-list">
       {{#each recentRestaurants}}
         <div class="recent-visited-card" data-id="{{this.id}}">
-          <div class="recent-card-image" style="background-image: url('{{this.image}}');">
+          <div
+            class="recent-card-image"
+            style="background-image: url('{{this.image}}');"
+          >
             {{#if this.recommended}}
               <span class="badge-recommended">Được đề xuất</span>
             {{/if}}

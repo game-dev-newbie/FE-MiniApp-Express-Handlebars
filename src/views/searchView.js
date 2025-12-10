@@ -75,14 +75,14 @@ function initSearchEventListeners(currentQuery) {
     searchInput.addEventListener("input", (e) => {
       const currentValue = e.target.value;
       const currentCursor = searchInput.selectionStart;
-      
+
       // Preserve current state
       preserveInputState = {
         value: currentValue,
         cursorPosition: currentCursor,
         shouldRestore: true,
       };
-      
+
       clearTimeout(inputTimeout);
       inputTimeout = setTimeout(() => {
         const trimmedQuery = currentValue.trim();
@@ -234,7 +234,9 @@ function initSearchEventListeners(currentQuery) {
   });
 
   // Result cards - navigate to detail page
-  const resultCards = document.querySelectorAll(".search-result-card, .grid-card");
+  const resultCards = document.querySelectorAll(
+    ".search-result-card, .grid-card"
+  );
   resultCards.forEach((card) => {
     card.addEventListener("click", (e) => {
       if (
@@ -251,22 +253,25 @@ function initSearchEventListeners(currentQuery) {
   });
 
   // Bookmark buttons - toggle favorites
-  const bookmarkButtons = document.querySelectorAll(".btn-bookmark-result, .bookmark-btn");
+  const bookmarkButtons = document.querySelectorAll(
+    ".btn-bookmark-result, .bookmark-btn"
+  );
   bookmarkButtons.forEach((btn) => {
-    const card = btn.closest(".search-result-card") || btn.closest(".grid-card");
+    const card =
+      btn.closest(".search-result-card") || btn.closest(".grid-card");
     const restaurantId = card?.getAttribute("data-id");
-    
+
     // Set initial state based on favorites
     if (restaurantId && isFavorite(restaurantId)) {
       btn.classList.add("active");
     }
-    
+
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
-      
+
       if (restaurantId) {
         const isNowFavorite = toggleFavorite(restaurantId);
-        
+
         if (isNowFavorite) {
           btn.classList.add("active");
         } else {

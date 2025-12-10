@@ -143,7 +143,8 @@ export const restaurants = [
     name: "Phở Hà Nội Truyền Thống",
     address: "555 Cách Mạng Tháng 8, Quận 10, TP.HCM",
     phone: "028 3865 5555",
-    description: "Phở Hà Nội chuẩn vị 30 năm, nước dùng ninh từ xương bò 12 tiếng",
+    description:
+      "Phở Hà Nội chuẩn vị 30 năm, nước dùng ninh từ xương bò 12 tiếng",
     tags: "phở,việt nam,truyền thống,giá rẻ",
     search_name: "pho ha noi truyen thong",
     search_address: "cach mang thang 8 quan 10",
@@ -223,7 +224,8 @@ export const restaurants = [
     name: "Italian Bella",
     address: "777 Nguyễn Thị Minh Khai, Quận 3, TP.HCM",
     phone: "028 3930 7777",
-    description: "Nhà hàng Ý chính thống, pizza lò củi, pasta tươi, rượu vang nhập khẩu",
+    description:
+      "Nhà hàng Ý chính thống, pizza lò củi, pasta tươi, rượu vang nhập khẩu",
     tags: "ý,pizza,pasta,cao cấp,rượu vang",
     search_name: "italian bella",
     search_address: "nguyen thi minh khai quan 3",
@@ -249,7 +251,8 @@ export const restaurants = [
     name: "Dimsum Paradise",
     address: "234 Nam Kỳ Khởi Nghĩa, Quận 3, TP.HCM",
     phone: "028 3829 2345",
-    description: "Dimsum Hồng Kông chuẩn vị, hơn 50 loại dimsum, trà Ô Long thượng hạng",
+    description:
+      "Dimsum Hồng Kông chuẩn vị, hơn 50 loại dimsum, trà Ô Long thượng hạng",
     tags: "dimsum,hồng kông,châu á,trà",
     search_name: "dimsum paradise",
     search_address: "nam ky khoi nghia quan 3",
@@ -319,7 +322,8 @@ export const restaurantImages = [
   {
     id: 1,
     restaurant_id: 1,
-    file_path: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800",
+    file_path:
+      "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800",
     type: "GALLERY",
     caption: "Khu vực buffet hải sản",
     is_primary: true,
@@ -328,7 +332,8 @@ export const restaurantImages = [
   {
     id: 2,
     restaurant_id: 1,
-    file_path: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800",
+    file_path:
+      "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800",
     type: "GALLERY",
     caption: "Không gian nhà hàng",
     is_primary: false,
@@ -338,7 +343,8 @@ export const restaurantImages = [
   {
     id: 3,
     restaurant_id: 2,
-    file_path: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800",
+    file_path:
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800",
     type: "GALLERY",
     caption: "Lẩu Thái tôm sú",
     is_primary: true,
@@ -359,7 +365,8 @@ export const restaurantTables = [
     capacity: 6,
     location: "Tầng 2 - View sông",
     status: "AVAILABLE",
-    view_image_url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400",
+    view_image_url:
+      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400",
     view_note: "Bàn view sông Sài Gòn tuyệt đẹp",
     created_at: "2023-06-01T10:00:00",
     updated_at: "2024-12-09T08:00:00",
@@ -560,10 +567,13 @@ export function getRestaurantsByCategory(category) {
     "chau-au": ["châu âu", "chau au", "ý", "italy", "pizza", "pasta"],
   };
 
-  const keywords = categoryMap[category.toLowerCase()] || [category.toLowerCase()];
+  const keywords = categoryMap[category.toLowerCase()] || [
+    category.toLowerCase(),
+  ];
 
   return restaurants.filter((restaurant) => {
-    const searchText = `${restaurant.search_tags} ${restaurant.search_name} ${restaurant.cuisine}`.toLowerCase();
+    const searchText =
+      `${restaurant.search_tags} ${restaurant.search_name} ${restaurant.cuisine}`.toLowerCase();
     return keywords.some((keyword) => searchText.includes(keyword));
   });
 }
@@ -638,8 +648,8 @@ export function searchRestaurants(searchTerm) {
   if (!term) return [];
 
   // Split search term into words for multi-word search
-  const searchWords = term.split(/\s+/).filter(word => word.length > 0);
-  
+  const searchWords = term.split(/\s+/).filter((word) => word.length > 0);
+
   return restaurants.filter((restaurant) => {
     // Create searchable text from specific fields only
     const searchFields = [
@@ -651,19 +661,19 @@ export function searchRestaurants(searchTerm) {
     ];
 
     const searchText = searchFields
-      .filter(field => field)
-      .map(field => removeVietnameseAccents(String(field)))
+      .filter((field) => field)
+      .map((field) => removeVietnameseAccents(String(field)))
       .join(" ");
 
     // Check if ALL search words are found in the text
-    return searchWords.every(word => searchText.includes(word));
+    return searchWords.every((word) => searchText.includes(word));
   });
 }
 
 // Get time of day
 export function getTimeOfDay() {
   const hour = new Date().getHours();
-  
+
   if (hour >= 6 && hour < 10) {
     return "morning"; // Sáng
   } else if (hour >= 10 && hour < 17) {
@@ -676,22 +686,22 @@ export function getTimeOfDay() {
 // Get time of day title
 export function getTimeOfDayTitle() {
   const timeOfDay = getTimeOfDay();
-  
+
   const titles = {
     morning: "Sáng nay, ăn gì?",
     lunch: "Trưa nay, ăn gì?",
     dinner: "Tối nay, ăn gì?",
   };
-  
+
   return titles[timeOfDay];
 }
 
 // Get restaurants by time of day
 export function getRestaurantsByTimeOfDay() {
   const timeOfDay = getTimeOfDay();
-  
+
   let restaurantIds = [];
-  
+
   if (timeOfDay === "morning") {
     restaurantIds = restaurantMealTimes.breakfast;
   } else if (timeOfDay === "lunch") {
@@ -699,8 +709,6 @@ export function getRestaurantsByTimeOfDay() {
   } else {
     restaurantIds = restaurantMealTimes.dinner;
   }
-  
-  return restaurants
-    .filter((r) => restaurantIds.includes(r.id))
-    .slice(0, 5);
+
+  return restaurants.filter((r) => restaurantIds.includes(r.id)).slice(0, 5);
 }

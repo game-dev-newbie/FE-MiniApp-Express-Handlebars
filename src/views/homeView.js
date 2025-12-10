@@ -47,7 +47,7 @@ export async function renderHome() {
 
 function initHomeEventListeners() {
   console.log("Initializing home event listeners...");
-  
+
   // Category tabs
   const categoryButtons = document.querySelectorAll(".category-btn");
   console.log("Found category buttons:", categoryButtons.length);
@@ -91,7 +91,9 @@ function initHomeEventListeners() {
   });
 
   // Book table buttons - navigate to booking form
-  const bookButtons = document.querySelectorAll(".btn-book-table, .btn-book-again");
+  const bookButtons = document.querySelectorAll(
+    ".btn-book-table, .btn-book-again"
+  );
   console.log("Found book buttons:", bookButtons.length);
   bookButtons.forEach((button) => {
     button.addEventListener("click", (e) => {
@@ -105,19 +107,21 @@ function initHomeEventListeners() {
   // Bookmark buttons - toggle favorites
   const bookmarkButtons = document.querySelectorAll(".bookmark-featured-btn");
   bookmarkButtons.forEach((button) => {
-    const restaurantId = button.closest(".featured-card")?.getAttribute("data-id");
-    
+    const restaurantId = button
+      .closest(".featured-card")
+      ?.getAttribute("data-id");
+
     // Set initial state based on favorites
     if (restaurantId && isFavorite(restaurantId)) {
       button.classList.add("active");
     }
-    
+
     button.addEventListener("click", (e) => {
       e.stopPropagation();
-      
+
       if (restaurantId) {
         const isNowFavorite = toggleFavorite(restaurantId);
-        
+
         if (isNowFavorite) {
           button.classList.add("active");
         } else {
@@ -223,7 +227,11 @@ function updateRestaurantLists(restaurants) {
       <div class="featured-card" data-id="${r.id}">
         <div class="featured-card-image">
           <img src="${r.image}" alt="${r.name}" />
-          ${r.recommended ? '<span class="badge-recommended">Được đề xuất</span>' : ""}
+          ${
+            r.recommended
+              ? '<span class="badge-recommended">Được đề xuất</span>'
+              : ""
+          }
           <button class="bookmark-featured-btn" data-id="${r.id}">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
@@ -264,7 +272,11 @@ function updateRestaurantLists(restaurants) {
       <div class="featured-card" data-id="${r.id}">
         <div class="featured-card-image">
           <img src="${r.image}" alt="${r.name}" />
-          ${r.recommended ? '<span class="badge-recommended">Được đề xuất</span>' : ""}
+          ${
+            r.recommended
+              ? '<span class="badge-recommended">Được đề xuất</span>'
+              : ""
+          }
           <button class="bookmark-featured-btn" data-id="${r.id}">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>

@@ -1,6 +1,9 @@
 // src/views/categoryView.js
 import { renderTemplate } from "../core/templates.js";
-import { getRestaurantsByCategory, searchRestaurants } from "../data/mockData.js";
+import {
+  getRestaurantsByCategory,
+  searchRestaurants,
+} from "../data/mockData.js";
 import { toggleFavorite, isFavorite } from "../utils/favoritesHelper.js";
 
 const appEl = document.getElementById("app");
@@ -48,15 +51,18 @@ function initCategoryEventListeners(category) {
   // Search functionality
   const searchInput = document.getElementById("searchInput");
   if (searchInput) {
-    searchInput.addEventListener("input", debounce((e) => {
-      const searchTerm = e.target.value.toLowerCase();
-      const results = searchRestaurants(searchTerm);
-      const filteredResults = results.filter((r) => {
-        const searchText = `${r.search_tags} ${r.search_name}`.toLowerCase();
-        return searchText.includes(category.replace("-", " "));
-      });
-      updateRestaurantGrid(filteredResults);
-    }, 300));
+    searchInput.addEventListener(
+      "input",
+      debounce((e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const results = searchRestaurants(searchTerm);
+        const filteredResults = results.filter((r) => {
+          const searchText = `${r.search_tags} ${r.search_name}`.toLowerCase();
+          return searchText.includes(category.replace("-", " "));
+        });
+        updateRestaurantGrid(filteredResults);
+      }, 300)
+    );
   }
 
   // Filter button
@@ -71,18 +77,18 @@ function initCategoryEventListeners(category) {
   const bookmarkButtons = document.querySelectorAll(".bookmark-btn");
   bookmarkButtons.forEach((button) => {
     const restaurantId = button.getAttribute("data-id");
-    
+
     // Set initial state based on favorites
     if (restaurantId && isFavorite(restaurantId)) {
       button.classList.add("active");
     }
-    
+
     button.addEventListener("click", (e) => {
       e.stopPropagation();
-      
+
       if (restaurantId) {
         const isNowFavorite = toggleFavorite(restaurantId);
-        
+
         if (isNowFavorite) {
           button.classList.add("active");
         } else {
@@ -151,8 +157,14 @@ function updateRestaurantGrid(restaurants) {
       .map(
         (r) => `
       <div class="grid-card" data-id="${r.id}">
-        <div class="grid-card-image" style="background-image: url('${r.image}');">
-          ${r.recommended ? '<span class="badge-recommended">Được đề xuất</span>' : ""}
+        <div class="grid-card-image" style="background-image: url('${
+          r.image
+        }');">
+          ${
+            r.recommended
+              ? '<span class="badge-recommended">Được đề xuất</span>'
+              : ""
+          }
           <button class="bookmark-btn" data-id="${r.id}" aria-label="Lưu">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
@@ -186,25 +198,25 @@ function reattachGridListeners() {
   const bookmarkButtons = document.querySelectorAll(".bookmark-btn");
   bookmarkButtons.forEach((button) => {
     const restaurantId = button.getAttribute("data-id");
-    
+
     // Set initial state based on favorites
     if (restaurantId && isFavorite(restaurantId)) {
       button.classList.add("active");
     }
-    
+
     button.addEventListener("click", (e) => {
       e.stopPropagation();
-      
+
       if (restaurantId) {
         const isNowFavorite = toggleFavorite(restaurantId);
-        
+
         if (isNowFavorite) {
           button.classList.add("active");
         } else {
           button.classList.remove("active");
         }
       }
-      
+
       if (navigator.vibrate) navigator.vibrate(10);
     });
   });
@@ -221,7 +233,10 @@ function reattachGridListeners() {
   const gridCards = document.querySelectorAll(".grid-card");
   gridCards.forEach((card) => {
     card.addEventListener("click", (e) => {
-      if (e.target.closest(".bookmark-btn") || e.target.closest(".btn-book-small")) {
+      if (
+        e.target.closest(".bookmark-btn") ||
+        e.target.closest(".btn-book-small")
+      ) {
         return;
       }
       const id = card.getAttribute("data-id");

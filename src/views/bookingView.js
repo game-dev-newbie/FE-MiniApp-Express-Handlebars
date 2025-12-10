@@ -1,6 +1,12 @@
 // src/views/bookingView.js
 import { renderTemplate } from "../core/templates.js";
-import { bookings, restaurants, restaurantTables, users, reviews } from "../data/mockData.js";
+import {
+  bookings,
+  restaurants,
+  restaurantTables,
+  users,
+  reviews,
+} from "../data/mockData.js";
 
 const appEl = document.getElementById("app");
 const currentUser = users[0];
