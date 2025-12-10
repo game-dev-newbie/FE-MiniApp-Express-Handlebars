@@ -909,7 +909,8 @@ a {
 }
 
 .favorites-header-center,
-.category-header-center {
+.category-header-center,
+.booking-form-header-center {
   position: sticky !important;
   top: 0;
   z-index: 1000;
@@ -2828,8 +2829,11 @@ a {
 }
 
 .booking-form-header-center {
+  display: flex;
+  align-items: center;
   position: relative;
   justify-content: space-between;
+  width: 100%;
 }
 
 .booking-form-title {
@@ -3155,11 +3159,20 @@ a {
 }
 
 .selected-tables-summary {
-  margin-top: var(--spacing-md);
+  margin: 0;
   padding: var(--spacing-md);
   background: #e8f5e9;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--primary-green);
+  border-radius: 0;
+  border: none;
+  border-top: 1px solid var(--primary-green);
+  border-bottom: 1px solid var(--primary-green);
+  position: fixed;
+  bottom: 70px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 999;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .selected-tables-summary strong {
@@ -3170,18 +3183,25 @@ a {
 
 .selected-tables-list {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: var(--spacing-sm);
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  padding-bottom: var(--spacing-xs);
+  -webkit-overflow-scrolling: touch;
 }
 
 .selected-table-item {
-  display: flex;
-  justify-content: space-between;
+  display: inline-flex;
   align-items: center;
+  gap: var(--spacing-xs);
   padding: var(--spacing-sm);
   background: var(--white);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-full);
   font-size: var(--font-sm);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-remove-table {
@@ -3208,6 +3228,7 @@ a {
   font-weight: 600;
   color: var(--primary-green);
   text-align: right;
+  white-space: normal;
 }
 
 .required-badge {

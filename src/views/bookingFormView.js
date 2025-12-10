@@ -64,6 +64,38 @@ function initBookingFormListeners(restaurant) {
       }
     });
 
+    // Handle manual input
+    peopleInput.addEventListener("input", () => {
+      let value = parseInt(peopleInput.value);
+      
+      // Allow empty input (user is typing)
+      if (peopleInput.value === "" || isNaN(value)) {
+        return;
+      }
+      
+      // Validate and constrain input
+      if (value < 1) {
+        value = 1;
+        peopleInput.value = 1;
+      } else if (value > 50) {
+        value = 50;
+        peopleInput.value = 50;
+      }
+      
+      updateAvailableTables(restaurant.id, value);
+    });
+
+    // Validate on blur (when user leaves the field)
+    peopleInput.addEventListener("blur", () => {
+      let value = parseInt(peopleInput.value);
+      
+      if (peopleInput.value === "" || isNaN(value) || value < 1) {
+        value = 2;
+        peopleInput.value = 2;
+        updateAvailableTables(restaurant.id, 2);
+      }
+    });
+
     // Initial load of tables
     updateAvailableTables(restaurant.id, parseInt(peopleInput.value));
   }
@@ -358,8 +390,9 @@ function initModalListeners() {
 function updateSelectedTablesSummary() {
   const summary = document.getElementById("selectedTablesSummary");
   const list = document.getElementById("selectedTablesList");
+  const totalCapacityDiv = document.getElementById("totalCapacity");
 
-  if (!summary || !list) return;
+  if (!summary || !list || !totalCapacityDiv) return;
 
   if (selectedTables.length === 0) {
     summary.style.display = "none";
@@ -369,10 +402,9 @@ function updateSelectedTablesSummary() {
   summary.style.display = "block";
   const totalCapacity = selectedTables.reduce((sum, t) => sum + t.capacity, 0);
 
-  list.innerHTML =
-    selectedTables
-      .map(
-        (table) => `
+  list.innerHTML = selectedTables
+    .map(
+      (table) => `
     <div class="selected-table-item">
       <span>${table.name} (${table.capacity} người)</span>
       <button class="btn-remove-table" data-table-id="${table.id}">
@@ -383,9 +415,10 @@ function updateSelectedTablesSummary() {
       </button>
     </div>
   `
-      )
-      .join("") +
-    `<div class="total-capacity">Tổng: ${totalCapacity} người</div>`;
+    )
+    .join("");
+  
+  totalCapacityDiv.innerHTML = `Tổng: ${totalCapacity} người`;
 
   // Add remove listeners
   const removeButtons = list.querySelectorAll(".btn-remove-table");
