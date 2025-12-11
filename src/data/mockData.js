@@ -60,7 +60,7 @@ export const restaurants = [
       "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600",
       "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600",
       "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600",
-      "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600"
+      "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600",
     ],
   },
   {
@@ -93,7 +93,7 @@ export const restaurants = [
       "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=600",
       "https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=600",
       "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=600",
-      "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600"
+      "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600",
     ],
   },
   {
@@ -125,7 +125,7 @@ export const restaurants = [
     menuImages: [
       "https://images.unsplash.com/photo-1529042410759-befb1204b468?w=600",
       "https://images.unsplash.com/photo-1558030006-450675393462?w=600",
-      "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=600"
+      "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=600",
     ],
   },
   {
@@ -706,7 +706,8 @@ export const reviews = [
     restaurant_id: 1,
     user_id: 2,
     rating: 5,
-    comment: "Không gian đẹp, view sông tuyệt vời. Hải sản tươi ngon, món ăn đa dạng. Nhân viên phục vụ chuyên nghiệp!",
+    comment:
+      "Không gian đẹp, view sông tuyệt vời. Hải sản tươi ngon, món ăn đa dạng. Nhân viên phục vụ chuyên nghiệp!",
     status: "VISIBLE",
     created_at: "2024-12-10T15:30:00",
     updated_at: "2024-12-10T15:30:00",
@@ -728,7 +729,8 @@ export const reviews = [
     restaurant_id: 3,
     user_id: 1,
     rating: 5,
-    comment: "Thịt nướng hảo hạng, ướp vị rất ngon. Không gian sang trọng, phù hợp cho gia đình.",
+    comment:
+      "Thịt nướng hảo hạng, ướp vị rất ngon. Không gian sang trọng, phù hợp cho gia đình.",
     status: "VISIBLE",
     created_at: "2024-12-09T20:30:00",
     updated_at: "2024-12-09T20:30:00",
@@ -1000,7 +1002,10 @@ export function getAvailableTables(restaurantId, peopleCount) {
 // Get reviews for a restaurant
 export function getRestaurantReviews(restaurantId) {
   return reviews
-    .filter((r) => r.restaurant_id === parseInt(restaurantId) && r.status === "VISIBLE")
+    .filter(
+      (r) =>
+        r.restaurant_id === parseInt(restaurantId) && r.status === "VISIBLE"
+    )
     .map((review) => {
       const user = users.find((u) => u.id === review.user_id);
       return {

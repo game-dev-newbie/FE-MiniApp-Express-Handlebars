@@ -1,15 +1,24 @@
 // src/views/editBookingView.js
 import { renderTemplate } from "../core/templates.js";
-import { restaurants, restaurantTables, getAvailableTables as getAvailableTablesFromData } from "../data/mockData.js";
-import { createBookingNotification, updateNotificationBadge } from "../utils/notificationHelper.js";
+import {
+  restaurants,
+  restaurantTables,
+  getAvailableTables as getAvailableTablesFromData,
+} from "../data/mockData.js";
+import {
+  createBookingNotification,
+  updateNotificationBadge,
+} from "../utils/notificationHelper.js";
 
 const appEl = document.getElementById("app");
 let selectedTables = [];
 
 export async function renderEditBooking(bookingId) {
   // Get booking from localStorage
-  const bookings = JSON.parse(localStorage.getItem("dinelink_bookings") || "[]");
-  const booking = bookings.find(b => b.id === bookingId);
+  const bookings = JSON.parse(
+    localStorage.getItem("dinelink_bookings") || "[]"
+  );
+  const booking = bookings.find((b) => b.id === bookingId);
 
   if (!booking) {
     alert("Không tìm thấy thông tin đặt bàn");
@@ -18,8 +27,8 @@ export async function renderEditBooking(bookingId) {
   }
 
   // Get restaurant info
-  const restaurant = restaurants.find(r => r.id === booking.restaurantId);
-  
+  const restaurant = restaurants.find((r) => r.id === booking.restaurantId);
+
   if (!restaurant) {
     alert("Không tìm thấy thông tin nhà hàng");
     window.location.hash = "#/booking";
@@ -36,9 +45,14 @@ export async function renderEditBooking(bookingId) {
   // Initialize selected tables from booking
   selectedTables = [];
   const bookingTableNames = booking.tables || [];
-  const allTablesData = getAvailableTablesFromData(booking.restaurantId, booking.people);
-  bookingTableNames.forEach(tableName => {
-    const table = [...allTablesData.allAvailable].find(t => t.name === tableName);
+  const allTablesData = getAvailableTablesFromData(
+    booking.restaurantId,
+    booking.people
+  );
+  bookingTableNames.forEach((tableName) => {
+    const table = [...allTablesData.allAvailable].find(
+      (t) => t.name === tableName
+    );
     if (table) {
       selectedTables.push(table);
     }
@@ -95,7 +109,7 @@ function initEditBookingListeners(originalBooking, restaurant) {
       date: document.getElementById("bookingDate").value,
       time: document.getElementById("bookingTime").value,
       people: parseInt(document.getElementById("peopleCount").value),
-      tables: selectedTables.map(t => t.name), // Store as array of table names
+      tables: selectedTables.map((t) => t.name), // Store as array of table names
       customerName: document.getElementById("customerName").value,
       customerPhone: document.getElementById("customerPhone").value,
       notes: document.getElementById("bookingNote").value,
@@ -116,12 +130,16 @@ function initEditBookingListeners(originalBooking, restaurant) {
 
     // Simulate API call to update booking
     console.log("Updating booking:", updatedBookingData);
-    
+
     setTimeout(() => {
       // Update booking in localStorage
-      const bookings = JSON.parse(localStorage.getItem("dinelink_bookings") || "[]");
-      const bookingIndex = bookings.findIndex(b => b.id === originalBooking.id);
-      
+      const bookings = JSON.parse(
+        localStorage.getItem("dinelink_bookings") || "[]"
+      );
+      const bookingIndex = bookings.findIndex(
+        (b) => b.id === originalBooking.id
+      );
+
       if (bookingIndex !== -1) {
         // Update the booking with new data
         bookings[bookingIndex] = {
@@ -129,18 +147,18 @@ function initEditBookingListeners(originalBooking, restaurant) {
           ...updatedBookingData,
           status: "PENDING", // Reset to PENDING for dashboard re-confirmation
         };
-        
+
         localStorage.setItem("dinelink_bookings", JSON.stringify(bookings));
-        
+
         console.log("✅ Booking updated successfully");
         console.log("📤 Sending update request to dashboard...");
-        
+
         // Simulate dashboard re-confirmation
         simulateDashboardUpdate(originalBooking.id);
-        
+
         // Show custom popup
         showSuccessPopup();
-        
+
         // Redirect after popup
         setTimeout(() => {
           window.location.hash = "#/booking";
@@ -159,38 +177,47 @@ function initEditBookingListeners(originalBooking, restaurant) {
 // Simulate dashboard re-confirmation after update
 function simulateDashboardUpdate(bookingId) {
   console.log("🔄 Dashboard processing update for booking:", bookingId);
-  
+
   // After 5 seconds, dashboard confirms the update
   setTimeout(() => {
-    const bookings = JSON.parse(localStorage.getItem("dinelink_bookings") || "[]");
-    const bookingIndex = bookings.findIndex(b => b.id === bookingId);
-    
+    const bookings = JSON.parse(
+      localStorage.getItem("dinelink_bookings") || "[]"
+    );
+    const bookingIndex = bookings.findIndex((b) => b.id === bookingId);
+
     if (bookingIndex !== -1) {
       // Dashboard accepts the update (90% chance)
       const isAccepted = Math.random() > 0.1;
-      
+
       if (isAccepted) {
         bookings[bookingIndex].status = "CONFIRMED";
         console.log("✅ Dashboard CONFIRMED the update");
-        
+
         // Create notification
         createBookingNotification(bookings[bookingIndex], "CONFIRMED");
       } else {
         bookings[bookingIndex].status = "CANCELLED";
-        bookings[bookingIndex].cancelReason = "Nhà hàng không thể đáp ứng yêu cầu thay đổi";
+        bookings[bookingIndex].cancelReason =
+          "Nhà hàng không thể đáp ứng yêu cầu thay đổi";
         console.log("❌ Dashboard REJECTED the update");
-        
+
         // Create notification
-        createBookingNotification(bookings[bookingIndex], "CANCELLED", bookings[bookingIndex].cancelReason);
+        createBookingNotification(
+          bookings[bookingIndex],
+          "CANCELLED",
+          bookings[bookingIndex].cancelReason
+        );
       }
-      
+
       localStorage.setItem("dinelink_bookings", JSON.stringify(bookings));
       updateNotificationBadge();
-      
+
       // Notify if user is on booking page
-      window.dispatchEvent(new CustomEvent('bookingStatusUpdated', {
-        detail: { bookingId, status: bookings[bookingIndex].status }
-      }));
+      window.dispatchEvent(
+        new CustomEvent("bookingStatusUpdated", {
+          detail: { bookingId, status: bookings[bookingIndex].status },
+        })
+      );
     }
   }, 5000);
 }
@@ -214,8 +241,12 @@ function updateAvailableTables(restaurantId, peopleCount) {
   tablesSection.style.display = "block";
 
   // Check if over capacity
-  const totalSelectedCapacity = selectedTables.reduce((sum, t) => sum + t.capacity, 0);
-  const noSuitableSingleTable = tablesData.standard.length === 0 && tablesData.vip.length === 0;
+  const totalSelectedCapacity = selectedTables.reduce(
+    (sum, t) => sum + t.capacity,
+    0
+  );
+  const noSuitableSingleTable =
+    tablesData.standard.length === 0 && tablesData.vip.length === 0;
 
   if (noSuitableSingleTable && tablesData.maxTableCapacity > 0) {
     // Show warning for table combining
@@ -232,7 +263,7 @@ function updateAvailableTables(restaurantId, peopleCount) {
       <div class="table-type-section">
         <h3 class="table-type-title">Bàn thường</h3>
         <div class="table-cards">
-          ${tablesData.standard.map(table => createTableCard(table)).join("")}
+          ${tablesData.standard.map((table) => createTableCard(table)).join("")}
         </div>
       </div>
     `;
@@ -243,7 +274,7 @@ function updateAvailableTables(restaurantId, peopleCount) {
       <div class="table-type-section">
         <h3 class="table-type-title">Bàn VIP</h3>
         <div class="table-cards">
-          ${tablesData.vip.map(table => createTableCard(table)).join("")}
+          ${tablesData.vip.map((table) => createTableCard(table)).join("")}
         </div>
       </div>
     `;
@@ -251,8 +282,10 @@ function updateAvailableTables(restaurantId, peopleCount) {
 
   // Show all available tables if need to combine
   if (noSuitableSingleTable && tablesData.allAvailable.length > 0) {
-    const standardAll = tablesData.allAvailable.filter(t => t.type === "standard");
-    const vipAll = tablesData.allAvailable.filter(t => t.type === "vip");
+    const standardAll = tablesData.allAvailable.filter(
+      (t) => t.type === "standard"
+    );
+    const vipAll = tablesData.allAvailable.filter((t) => t.type === "vip");
 
     tablesHTML = `<p class="combine-tables-hint">Chọn nhiều bàn để ghép (tối đa ${tablesData.totalCapacity} người)</p>`;
 
@@ -261,7 +294,7 @@ function updateAvailableTables(restaurantId, peopleCount) {
         <div class="table-type-section">
           <h3 class="table-type-title">Bàn thường</h3>
           <div class="table-cards">
-            ${standardAll.map(table => createTableCard(table)).join("")}
+            ${standardAll.map((table) => createTableCard(table)).join("")}
           </div>
         </div>
       `;
@@ -272,7 +305,7 @@ function updateAvailableTables(restaurantId, peopleCount) {
         <div class="table-type-section">
           <h3 class="table-type-title">Bàn VIP</h3>
           <div class="table-cards">
-            ${vipAll.map(table => createTableCard(table)).join("")}
+            ${vipAll.map((table) => createTableCard(table)).join("")}
           </div>
         </div>
       `;
@@ -292,9 +325,11 @@ function updateAvailableTables(restaurantId, peopleCount) {
 
 // Create table card HTML
 function createTableCard(table) {
-  const isSelected = selectedTables.some(t => t.id === table.id);
+  const isSelected = selectedTables.some((t) => t.id === table.id);
   return `
-    <div class="table-card ${isSelected ? "selected" : ""}" data-table-id="${table.id}">
+    <div class="table-card ${isSelected ? "selected" : ""}" data-table-id="${
+    table.id
+  }">
       <div class="table-card-header">
         <span class="table-name">${table.name}</span>
         <span class="table-capacity">
@@ -315,7 +350,7 @@ function createTableCard(table) {
 // Attach listeners to table cards
 function attachTableCardListeners(restaurantId) {
   const tableCards = document.querySelectorAll(".table-card");
-  tableCards.forEach(card => {
+  tableCards.forEach((card) => {
     card.addEventListener("click", () => {
       const tableId = card.dataset.tableId;
       handleTableSelection(tableId, restaurantId);
@@ -329,14 +364,19 @@ function handleTableSelection(tableId, restaurantId) {
   const tablesData = getAvailableTables(restaurantId, peopleCount);
 
   // Find the table - tableId is already a string from data-table-id attribute
-  const table = [...tablesData.allAvailable].find(t => t.id === tableId);
+  const table = [...tablesData.allAvailable].find((t) => t.id === tableId);
   if (!table) {
-    console.log("Table not found:", tableId, "Available:", tablesData.allAvailable.map(t => t.id));
+    console.log(
+      "Table not found:",
+      tableId,
+      "Available:",
+      tablesData.allAvailable.map((t) => t.id)
+    );
     return;
   }
 
   // Check if already selected
-  const selectedIndex = selectedTables.findIndex(t => t.id === tableId);
+  const selectedIndex = selectedTables.findIndex((t) => t.id === tableId);
 
   if (selectedIndex >= 0) {
     // Deselect
@@ -359,7 +399,9 @@ function showTablePreviewModal(table, restaurantId) {
 
   modalBody.innerHTML = `
     <div class="table-preview">
-      <img src="${table.image}" alt="${table.name}" class="table-preview-image" />
+      <img src="${table.image}" alt="${
+    table.name
+  }" class="table-preview-image" />
       <div class="table-preview-info">
         <h2>${table.name}</h2>
         <div class="table-preview-meta">
@@ -387,7 +429,9 @@ function showTablePreviewModal(table, restaurantId) {
     btnConfirm.addEventListener("click", () => {
       selectedTables.push(table);
       modal.style.display = "none";
-      const peopleCount = parseInt(document.getElementById("peopleCount").value);
+      const peopleCount = parseInt(
+        document.getElementById("peopleCount").value
+      );
       updateAvailableTables(restaurantId, peopleCount);
     });
   }
@@ -435,11 +479,12 @@ function updateSelectedTablesSummary() {
   if (bookingForm) {
     bookingForm.style.paddingBottom = "200px";
   }
-  
+
   const totalCapacity = selectedTables.reduce((sum, t) => sum + t.capacity, 0);
 
   list.innerHTML = selectedTables
-    .map(table => `
+    .map(
+      (table) => `
       <div class="selected-table-item">
         <span>${table.name} (${table.capacity} người)</span>
         <button class="btn-remove-table" data-table-id="${table.id}">
@@ -449,20 +494,25 @@ function updateSelectedTablesSummary() {
           </svg>
         </button>
       </div>
-    `)
+    `
+    )
     .join("");
 
   totalCapacityDiv.innerHTML = `Tổng: ${totalCapacity} người`;
 
   // Add remove listeners
   const removeButtons = list.querySelectorAll(".btn-remove-table");
-  removeButtons.forEach(btn => {
+  removeButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       const tableId = btn.dataset.tableId;
-      selectedTables = selectedTables.filter(t => t.id !== tableId);
+      selectedTables = selectedTables.filter((t) => t.id !== tableId);
       // Get restaurantId from hidden input
-      const restaurantId = parseInt(document.getElementById("restaurantId").value);
-      const peopleCount = parseInt(document.getElementById("peopleCount").value);
+      const restaurantId = parseInt(
+        document.getElementById("restaurantId").value
+      );
+      const peopleCount = parseInt(
+        document.getElementById("peopleCount").value
+      );
       updateAvailableTables(restaurantId, peopleCount);
     });
   });
@@ -480,12 +530,12 @@ function showSuccessPopup() {
     </div>
   `;
   document.body.appendChild(popup);
-  
+
   // Animate in
   setTimeout(() => {
     popup.classList.add("show");
   }, 100);
-  
+
   // Remove after redirect
   setTimeout(() => {
     popup.classList.remove("show");

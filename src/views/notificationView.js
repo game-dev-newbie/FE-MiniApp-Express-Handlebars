@@ -18,7 +18,9 @@ export async function renderNotifications() {
 }
 
 function loadNotifications() {
-  const notifications = JSON.parse(localStorage.getItem("dinelink_notifications") || "[]");
+  const notifications = JSON.parse(
+    localStorage.getItem("dinelink_notifications") || "[]"
+  );
   const notificationsList = document.getElementById("notificationsList");
 
   if (!notificationsList) return;
@@ -40,43 +42,49 @@ function loadNotifications() {
   // Sort by newest first
   notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-  const notificationsHtml = notifications.map(notification => {
-    const isConfirmed = notification.status === "CONFIRMED";
-    const iconClass = isConfirmed ? "success" : "error";
-    const icon = isConfirmed 
-      ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  const notificationsHtml = notifications
+    .map((notification) => {
+      const isConfirmed = notification.status === "CONFIRMED";
+      const iconClass = isConfirmed ? "success" : "error";
+      const icon = isConfirmed
+        ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
            <polyline points="20 6 9 17 4 12"></polyline>
          </svg>`
-      : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
            <line x1="18" y1="6" x2="6" y2="18"></line>
            <line x1="6" y1="6" x2="18" y2="18"></line>
          </svg>`;
 
-    return `
-      <div class="notification-item ${notification.isRead ? '' : 'unread'}" data-id="${notification.id}">
+      return `
+      <div class="notification-item ${
+        notification.isRead ? "" : "unread"
+      }" data-id="${notification.id}">
         <div class="notification-icon ${iconClass}">
           ${icon}
         </div>
         <div class="notification-content">
           <h3 class="notification-title">${notification.title}</h3>
           <p class="notification-message">${notification.message}</p>
-          <span class="notification-time">${formatTime(notification.createdAt)}</span>
+          <span class="notification-time">${formatTime(
+            notification.createdAt
+          )}</span>
         </div>
-        ${!notification.isRead ? '<div class="unread-dot"></div>' : ''}
+        ${!notification.isRead ? '<div class="unread-dot"></div>' : ""}
       </div>
     `;
-  }).join('');
+    })
+    .join("");
 
   notificationsList.innerHTML = `<div class="notifications-list">${notificationsHtml}</div>`;
 
   // Add click listeners to mark as read
-  const items = notificationsList.querySelectorAll('.notification-item');
-  items.forEach(item => {
-    item.addEventListener('click', () => {
-      const id = item.getAttribute('data-id');
+  const items = notificationsList.querySelectorAll(".notification-item");
+  items.forEach((item) => {
+    item.addEventListener("click", () => {
+      const id = item.getAttribute("data-id");
       markAsRead(id);
-      item.classList.remove('unread');
-      const dot = item.querySelector('.unread-dot');
+      item.classList.remove("unread");
+      const dot = item.querySelector(".unread-dot");
       if (dot) dot.remove();
       updateNotificationBadge();
     });
@@ -84,11 +92,16 @@ function loadNotifications() {
 }
 
 function markAsRead(notificationId) {
-  const notifications = JSON.parse(localStorage.getItem("dinelink_notifications") || "[]");
-  const notification = notifications.find(n => n.id === notificationId);
+  const notifications = JSON.parse(
+    localStorage.getItem("dinelink_notifications") || "[]"
+  );
+  const notification = notifications.find((n) => n.id === notificationId);
   if (notification) {
     notification.isRead = true;
-    localStorage.setItem("dinelink_notifications", JSON.stringify(notifications));
+    localStorage.setItem(
+      "dinelink_notifications",
+      JSON.stringify(notifications)
+    );
   }
 }
 
@@ -138,23 +151,29 @@ function formatTime(dateString) {
   if (minutes < 60) return `${minutes} phút trước`;
   if (hours < 24) return `${hours} giờ trước`;
   if (days < 7) return `${days} ngày trước`;
-  
-  return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+  return date.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
 
 // Update notification badge count
 export function updateNotificationBadge() {
-  const notifications = JSON.parse(localStorage.getItem("dinelink_notifications") || "[]");
-  const unreadCount = notifications.filter(n => !n.isRead).length;
-  
+  const notifications = JSON.parse(
+    localStorage.getItem("dinelink_notifications") || "[]"
+  );
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
   // Update badge in bottom nav if exists
-  const notificationBadges = document.querySelectorAll('.notification-badge');
-  notificationBadges.forEach(badge => {
+  const notificationBadges = document.querySelectorAll(".notification-badge");
+  notificationBadges.forEach((badge) => {
     if (unreadCount > 0) {
-      badge.style.display = 'flex';
-      badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+      badge.style.display = "flex";
+      badge.textContent = unreadCount > 99 ? "99+" : unreadCount;
     } else {
-      badge.style.display = 'none';
+      badge.style.display = "none";
     }
   });
 }

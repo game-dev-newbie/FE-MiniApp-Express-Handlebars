@@ -1,6 +1,9 @@
 // src/views/paymentView.js
 import { renderTemplate } from "../core/templates.js";
-import { createBookingNotification, updateNotificationBadge } from "../utils/notificationHelper.js";
+import {
+  createBookingNotification,
+  updateNotificationBadge,
+} from "../utils/notificationHelper.js";
 
 const appEl = document.getElementById("app");
 let selectedEWallet = null;
@@ -50,17 +53,21 @@ function initPaymentListeners(bookingData) {
       let value = e.target.value.replace(/\s/g, "");
       let formattedValue = value.match(/.{1,4}/g)?.join(" ") || value;
       e.target.value = formattedValue;
-      
+
       // Update preview
       if (value.length === 0) {
         previewCardNumber.textContent = "•••• •••• •••• ••••";
       } else {
         // Mask the card number except last 4 digits
-        let masked = value.split("").map((char, idx) => {
-          if (idx < value.length - 4) return "•";
-          return char;
-        }).join("");
-        previewCardNumber.textContent = masked.match(/.{1,4}/g)?.join(" ") || masked;
+        let masked = value
+          .split("")
+          .map((char, idx) => {
+            if (idx < value.length - 4) return "•";
+            return char;
+          })
+          .join("");
+        previewCardNumber.textContent =
+          masked.match(/.{1,4}/g)?.join(" ") || masked;
       }
     });
   }
@@ -162,7 +169,7 @@ function handleCardPayment(bookingData) {
   setTimeout(() => {
     // Save booking to localStorage
     saveBooking(bookingData);
-    
+
     // Show success popup
     showSuccessPopup();
   }, 1500);
@@ -185,7 +192,7 @@ function handleEWalletPayment(bookingData) {
   setTimeout(() => {
     // Save booking to localStorage
     saveBooking(bookingData);
-    
+
     // Show success popup
     showSuccessPopup();
   }, 1500);
@@ -193,8 +200,10 @@ function handleEWalletPayment(bookingData) {
 
 function saveBooking(bookingData) {
   // Get existing bookings from localStorage
-  const existingBookings = JSON.parse(localStorage.getItem("dinelink_bookings") || "[]");
-  
+  const existingBookings = JSON.parse(
+    localStorage.getItem("dinelink_bookings") || "[]"
+  );
+
   // Create new booking with PENDING status (waiting for dashboard confirmation)
   const newBooking = {
     ...bookingData,
@@ -203,18 +212,18 @@ function saveBooking(bookingData) {
     paymentStatus: "PAID",
     createdAt: new Date().toISOString(),
   };
-  
+
   // Add to bookings array
   existingBookings.unshift(newBooking);
-  
+
   // Save back to localStorage
   localStorage.setItem("dinelink_bookings", JSON.stringify(existingBookings));
-  
+
   // Clear pending booking
   sessionStorage.removeItem("pendingBooking");
-  
+
   console.log("Booking saved with PENDING status:", newBooking);
-  
+
   // Simulate API call to dashboard for confirmation
   sendBookingToDashboard(newBooking.id);
 }
@@ -222,13 +231,13 @@ function saveBooking(bookingData) {
 // Mock API: Send booking to dashboard and simulate response
 function sendBookingToDashboard(bookingId) {
   console.log("Sending booking to dashboard for confirmation:", bookingId);
-  
+
   // Simulate API call to dashboard
   // In reality, this would be: await fetch('/api/bookings', { method: 'POST', ... })
-  
+
   // Simulate dashboard response after 3-5 seconds
   const responseTime = Math.random() * 2000 + 3000; // 3-5 seconds
-  
+
   setTimeout(() => {
     simulateDashboardResponse(bookingId);
   }, responseTime);
@@ -239,86 +248,101 @@ function sendBookingToDashboard(bookingId) {
 let testCaseCounter = 0; // Track which test case to run
 
 function simulateDashboardResponse(bookingId) {
-  const bookings = JSON.parse(localStorage.getItem("dinelink_bookings") || "[]");
-  const bookingIndex = bookings.findIndex(b => b.id === bookingId);
-  
+  const bookings = JSON.parse(
+    localStorage.getItem("dinelink_bookings") || "[]"
+  );
+  const bookingIndex = bookings.findIndex((b) => b.id === bookingId);
+
   if (bookingIndex === -1) {
     console.log("Booking not found:", bookingId);
     return;
   }
-  
+
   // Determine test case based on counter
   const testCase = testCaseCounter % 3;
   testCaseCounter++;
-  
+
   console.log(`\n========== TEST CASE ${testCase + 1} ==========`);
-  
+
   if (testCase === 0) {
     // Test Case 1: Keep PENDING longer (stay at pending for demo)
     console.log("✅ TEST CASE 1: Booking stays PENDING (Chờ xác nhận)");
     console.log("Dashboard chưa phản hồi - Trạng thái: PENDING");
     console.log("⏳ Đợi 8 giây nữa để chuyển sang CONFIRMED...\n");
-    
+
     // After 8 more seconds, auto-confirm
     setTimeout(() => {
-      const updatedBookings = JSON.parse(localStorage.getItem("dinelink_bookings") || "[]");
-      const idx = updatedBookings.findIndex(b => b.id === bookingId);
+      const updatedBookings = JSON.parse(
+        localStorage.getItem("dinelink_bookings") || "[]"
+      );
+      const idx = updatedBookings.findIndex((b) => b.id === bookingId);
       if (idx !== -1) {
         updatedBookings[idx].status = "CONFIRMED";
-        localStorage.setItem("dinelink_bookings", JSON.stringify(updatedBookings));
-        
+        localStorage.setItem(
+          "dinelink_bookings",
+          JSON.stringify(updatedBookings)
+        );
+
         console.log("\n========== AUTO UPDATE ==========");
         console.log("✅ TEST CASE 2: Dashboard ACCEPTED (Đã xác nhận)");
         console.log("Trạng thái chuyển từ PENDING → CONFIRMED");
-        
+
         // Create notification
         createBookingNotification(updatedBookings[idx], "CONFIRMED");
         updateNotificationBadge();
-        
-        window.dispatchEvent(new CustomEvent('bookingStatusUpdated', { 
-          detail: { bookingId, status: "CONFIRMED" } 
-        }));
+
+        window.dispatchEvent(
+          new CustomEvent("bookingStatusUpdated", {
+            detail: { bookingId, status: "CONFIRMED" },
+          })
+        );
       }
     }, 8000);
-    
   } else if (testCase === 1) {
     // Test Case 2: Accept immediately
     bookings[bookingIndex].status = "CONFIRMED";
     console.log("✅ TEST CASE 2: Dashboard ACCEPTED immediately");
     console.log("Nhà hàng đã xác nhận đơn đặt bàn");
     console.log("Trạng thái: CONFIRMED (Đã xác nhận)\n");
-    
+
     localStorage.setItem("dinelink_bookings", JSON.stringify(bookings));
-    
+
     // Create notification
     createBookingNotification(bookings[bookingIndex], "CONFIRMED");
     updateNotificationBadge();
-    
-    window.dispatchEvent(new CustomEvent('bookingStatusUpdated', { 
-      detail: { bookingId, status: "CONFIRMED" } 
-    }));
-    
+
+    window.dispatchEvent(
+      new CustomEvent("bookingStatusUpdated", {
+        detail: { bookingId, status: "CONFIRMED" },
+      })
+    );
   } else {
     // Test Case 3: Reject
     bookings[bookingIndex].status = "CANCELLED";
     bookings[bookingIndex].cancelReason = "Nhà hàng không còn chỗ trống";
     bookings[bookingIndex].refundStatus = "Đã hoàn tiền";
-    
+
     console.log("❌ TEST CASE 3: Dashboard REJECTED");
     console.log("Nhà hàng từ chối đơn đặt bàn");
     console.log("Lý do: Không còn chỗ trống");
     console.log("Trạng thái: CANCELLED (Đã hủy)");
     console.log("✅ Hoàn tiền: Đã xử lý hoàn tiền cho khách hàng\n");
-    
+
     localStorage.setItem("dinelink_bookings", JSON.stringify(bookings));
-    
+
     // Create notification
-    createBookingNotification(bookings[bookingIndex], "CANCELLED", bookings[bookingIndex].cancelReason);
+    createBookingNotification(
+      bookings[bookingIndex],
+      "CANCELLED",
+      bookings[bookingIndex].cancelReason
+    );
     updateNotificationBadge();
-    
-    window.dispatchEvent(new CustomEvent('bookingStatusUpdated', { 
-      detail: { bookingId, status: "CANCELLED" } 
-    }));
+
+    window.dispatchEvent(
+      new CustomEvent("bookingStatusUpdated", {
+        detail: { bookingId, status: "CANCELLED" },
+      })
+    );
   }
 }
 

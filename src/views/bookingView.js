@@ -15,7 +15,9 @@ export async function renderBooking() {
   const bottomNavHtml = renderTemplate("bottomNav", { activePage: "booking" });
 
   // Get bookings ONLY from localStorage (not from mockData)
-  const localBookings = JSON.parse(localStorage.getItem("dinelink_bookings") || "[]");
+  const localBookings = JSON.parse(
+    localStorage.getItem("dinelink_bookings") || "[]"
+  );
 
   // Only use local bookings (user must pay to see bookings here)
   const allBookings = [...localBookings];
@@ -28,15 +30,18 @@ export async function renderBooking() {
       return {
         id: booking.id,
         status: booking.status,
-        restaurant_name: restaurant?.name || booking.restaurantName || "Nhà hàng",
+        restaurant_name:
+          restaurant?.name || booking.restaurantName || "Nhà hàng",
         table_name: booking.tables?.join(", ") || "Chưa chọn bàn",
-        booking_time: formatBookingTime(new Date(booking.date + " " + booking.time)),
+        booking_time: formatBookingTime(
+          new Date(booking.date + " " + booking.time)
+        ),
         has_review: false,
         people: booking.people,
         paymentStatus: booking.paymentStatus,
       };
     }
-    
+
     // For mockData bookings
     const restaurant = restaurants.find((r) => r.id === booking.restaurant_id);
     const table = restaurantTables.find((t) => t.id === booking.table_id);
@@ -68,7 +73,7 @@ export async function renderBooking() {
 
   // Initialize event listeners
   initBookingEventListeners();
-  
+
   // Listen for booking status updates from dashboard
   setupBookingStatusListener();
 }
@@ -110,7 +115,7 @@ function initBookingEventListeners() {
   });
 
   // View detail buttons - redirect to detail page
-  const detailButtons = document.querySelectorAll('.btn-view-detail');
+  const detailButtons = document.querySelectorAll(".btn-view-detail");
   detailButtons.forEach((button) => {
     button.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -126,11 +131,13 @@ function initBookingEventListeners() {
     button.addEventListener("click", (e) => {
       e.stopPropagation();
       const id = button.getAttribute("data-id");
-      
+
       // Get booking info
-      const bookings = JSON.parse(localStorage.getItem("dinelink_bookings") || "[]");
-      const booking = bookings.find(b => b.id === id);
-      
+      const bookings = JSON.parse(
+        localStorage.getItem("dinelink_bookings") || "[]"
+      );
+      const booking = bookings.find((b) => b.id === id);
+
       if (booking) {
         // Redirect to restaurant detail page
         window.location.hash = `#/restaurant/${booking.restaurantId}`;
@@ -169,17 +176,17 @@ function formatBookingTime(dateString) {
 
 // Setup listener for booking status updates from dashboard
 function setupBookingStatusListener() {
-  window.addEventListener('bookingStatusUpdated', (event) => {
+  window.addEventListener("bookingStatusUpdated", (event) => {
     const { bookingId, status } = event.detail;
     console.log(`Booking ${bookingId} status updated to ${status}`);
-    
+
     // Show notification to user
     if (status === "CONFIRMED") {
       showNotification("Đơn đặt bàn đã được xác nhận!", "success");
     } else if (status === "CANCELLED") {
       showNotification("Đơn đặt bàn đã bị từ chối bởi nhà hàng", "error");
     }
-    
+
     // Reload booking view to show updated status
     // Only reload if we're still on the booking page
     if (window.location.hash === "#/booking") {
@@ -201,7 +208,9 @@ function showNotification(message, type = "info") {
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: ${type === "success" ? "#10b981" : type === "error" ? "#ef4444" : "#3b82f6"};
+    background: ${
+      type === "success" ? "#10b981" : type === "error" ? "#ef4444" : "#3b82f6"
+    };
     color: white;
     padding: 16px 24px;
     border-radius: 8px;
@@ -211,9 +220,9 @@ function showNotification(message, type = "info") {
     font-weight: 500;
     animation: slideDown 0.3s ease-out;
   `;
-  
+
   document.body.appendChild(notification);
-  
+
   // Auto remove after 3 seconds
   setTimeout(() => {
     notification.style.animation = "slideUp 0.3s ease-out";
@@ -231,21 +240,21 @@ function showCancelPopup(bookingId) {
   const popup = document.getElementById("cancelBookingPopup");
   if (popup) {
     popup.style.display = "flex";
-    
+
     // Setup popup buttons
     const btnCancel = popup.querySelector(".btn-popup-cancel");
     const btnConfirm = popup.querySelector(".btn-popup-confirm");
     const overlay = popup.querySelector(".booking-popup-overlay");
-    
+
     // Close popup
     const closePopup = () => {
       popup.style.display = "none";
       bookingToCancel = null;
     };
-    
+
     btnCancel.onclick = closePopup;
     overlay.onclick = closePopup;
-    
+
     // Confirm cancel
     btnConfirm.onclick = () => {
       cancelBooking(bookingToCancel);
@@ -255,23 +264,28 @@ function showCancelPopup(bookingId) {
 }
 
 function cancelBooking(bookingId) {
-  const bookings = JSON.parse(localStorage.getItem("dinelink_bookings") || "[]");
-  const updatedBookings = bookings.map(b => {
+  const bookings = JSON.parse(
+    localStorage.getItem("dinelink_bookings") || "[]"
+  );
+  const updatedBookings = bookings.map((b) => {
     if (b.id === bookingId) {
-      return { 
-        ...b, 
+      return {
+        ...b,
         status: "CANCELLED",
         cancelReason: "Khách hàng hủy đơn",
-        refundStatus: "Đang xử lý hoàn tiền"
+        refundStatus: "Đang xử lý hoàn tiền",
       };
     }
     return b;
   });
   localStorage.setItem("dinelink_bookings", JSON.stringify(updatedBookings));
-  
+
   // Show notification
-  showNotification("Đã hủy đặt bàn. Tiền sẽ được hoàn lại trong 3-5 ngày làm việc", "success");
-  
+  showNotification(
+    "Đã hủy đặt bàn. Tiền sẽ được hoàn lại trong 3-5 ngày làm việc",
+    "success"
+  );
+
   // Reload booking view
   setTimeout(() => {
     renderBooking();
