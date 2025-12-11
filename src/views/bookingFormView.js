@@ -147,14 +147,15 @@ function initBookingFormListeners(restaurant) {
 
       console.log("Booking data:", bookingData);
 
-      // Show success message
+      // Store booking data and redirect to payment
       const tablesInfo = selectedTables.map((t) => t.name).join(", ");
-      alert(
-        `Đặt bàn thành công!\n\nNhà hàng: ${bookingData.restaurantName}\nBàn: ${tablesInfo}\nNgày: ${bookingData.date}\nGiờ: ${bookingData.time}\nSố người: ${bookingData.people}\n\nChúng tôi sẽ liên hệ với bạn để xác nhận.`
-      );
+      bookingData.tablesText = tablesInfo;
 
-      // Redirect to booking page
-      window.location.hash = "#/booking";
+      // Store in sessionStorage to pass to payment page
+      sessionStorage.setItem("pendingBooking", JSON.stringify(bookingData));
+
+      // Redirect to payment page
+      window.location.hash = "#/payment";
     });
   }
 
@@ -391,15 +392,24 @@ function updateSelectedTablesSummary() {
   const summary = document.getElementById("selectedTablesSummary");
   const list = document.getElementById("selectedTablesList");
   const totalCapacityDiv = document.getElementById("totalCapacity");
+  const bookingForm = document.getElementById("bookingForm");
 
   if (!summary || !list || !totalCapacityDiv) return;
 
   if (selectedTables.length === 0) {
     summary.style.display = "none";
+    // Remove padding when no tables selected
+    if (bookingForm) {
+      bookingForm.style.paddingBottom = "0";
+    }
     return;
   }
 
   summary.style.display = "block";
+  // Add padding to form to prevent content from being hidden by fixed summary
+  if (bookingForm) {
+    bookingForm.style.paddingBottom = "200px";
+  }
   const totalCapacity = selectedTables.reduce((sum, t) => sum + t.capacity, 0);
 
   list.innerHTML = selectedTables

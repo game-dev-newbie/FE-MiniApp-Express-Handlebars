@@ -56,6 +56,12 @@ export const restaurants = [
     recommended: true,
     opening_hours: "10:00",
     closing_hours: "22:00",
+    menuImages: [
+      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600",
+      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600",
+      "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600"
+    ],
   },
   {
     id: 2,
@@ -83,6 +89,12 @@ export const restaurants = [
     recommended: true,
     opening_hours: "11:00",
     closing_hours: "23:00",
+    menuImages: [
+      "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=600",
+      "https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=600",
+      "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=600",
+      "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600"
+    ],
   },
   {
     id: 3,
@@ -107,9 +119,14 @@ export const restaurants = [
     cuisine: "Nướng Hàn Quốc",
     priceRange: "200k - 350k",
     image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=400",
-    recommended: true,
-    opening_hours: "10:30",
-    closing_hours: "22:30",
+    recommended: false,
+    opening_hours: "17:00",
+    closing_hours: "23:30",
+    menuImages: [
+      "https://images.unsplash.com/photo-1529042410759-befb1204b468?w=600",
+      "https://images.unsplash.com/photo-1558030006-450675393462?w=600",
+      "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=600"
+    ],
   },
   {
     id: 4,
@@ -683,6 +700,39 @@ export const reviews = [
     created_at: "2024-12-16T21:00:00",
     updated_at: "2024-12-16T21:00:00",
   },
+  {
+    id: 3,
+    booking_id: 3,
+    restaurant_id: 1,
+    user_id: 2,
+    rating: 5,
+    comment: "Không gian đẹp, view sông tuyệt vời. Hải sản tươi ngon, món ăn đa dạng. Nhân viên phục vụ chuyên nghiệp!",
+    status: "VISIBLE",
+    created_at: "2024-12-10T15:30:00",
+    updated_at: "2024-12-10T15:30:00",
+  },
+  {
+    id: 4,
+    booking_id: 4,
+    restaurant_id: 1,
+    user_id: 1,
+    rating: 4,
+    comment: "Món ăn ngon, giá cả hợp lý. Chỗ đậu xe hơi xa một chút.",
+    status: "VISIBLE",
+    created_at: "2024-12-08T19:00:00",
+    updated_at: "2024-12-08T19:00:00",
+  },
+  {
+    id: 5,
+    booking_id: 5,
+    restaurant_id: 3,
+    user_id: 1,
+    rating: 5,
+    comment: "Thịt nướng hảo hạng, ướp vị rất ngon. Không gian sang trọng, phù hợp cho gia đình.",
+    status: "VISIBLE",
+    created_at: "2024-12-09T20:30:00",
+    updated_at: "2024-12-09T20:30:00",
+  },
 ];
 
 /**
@@ -945,4 +995,19 @@ export function getAvailableTables(restaurantId, peopleCount) {
     totalCapacity: availableTables.reduce((sum, t) => sum + t.capacity, 0),
     maxTableCapacity: Math.max(...availableTables.map((t) => t.capacity), 0),
   };
+}
+
+// Get reviews for a restaurant
+export function getRestaurantReviews(restaurantId) {
+  return reviews
+    .filter((r) => r.restaurant_id === parseInt(restaurantId) && r.status === "VISIBLE")
+    .map((review) => {
+      const user = users.find((u) => u.id === review.user_id);
+      return {
+        ...review,
+        userName: user?.display_name || "Khách hàng",
+        userAvatar: user?.avatar_url || "https://i.pravatar.cc/150?img=3",
+      };
+    })
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 }

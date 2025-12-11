@@ -1,0 +1,227 @@
+<main class="main-content payment-page">
+  <!-- Payment Header -->
+  <div class="payment-header">
+    <button class="btn-back" id="btnBackFromPayment">
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+    <h1 class="page-title">Thanh toán</h1>
+    <div class="header-spacer"></div>
+  </div>
+
+  <!-- Booking Summary -->
+  <div class="payment-summary-card">
+    <h3>Thông tin đặt bàn</h3>
+    <div class="summary-item">
+      <span class="label">Nhà hàng:</span>
+      <span class="value">{{booking.restaurantName}}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Ngày:</span>
+      <span class="value">{{booking.date}}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Giờ:</span>
+      <span class="value">{{booking.time}}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Số người:</span>
+      <span class="value">{{booking.people}} người</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Bàn đã chọn:</span>
+      <span class="value">{{booking.tablesText}}</span>
+    </div>
+    {{#if booking.depositAmount}}
+      <div class="summary-item total">
+        <span class="label">Tiền đặt cọc:</span>
+        <span class="value amount">{{formatCurrency
+            booking.depositAmount
+          }}</span>
+      </div>
+    {{/if}}
+  </div>
+
+  <!-- Payment Methods -->
+  <div class="payment-methods-section">
+    <h3>Chọn phương thức thanh toán</h3>
+
+    <!-- Card Payment -->
+    <div class="payment-method-option" data-method="card">
+      <div class="method-radio">
+        <input
+          type="radio"
+          name="paymentMethod"
+          id="methodCard"
+          value="card"
+          checked
+        />
+        <label for="methodCard">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+            <line x1="1" y1="10" x2="23" y2="10"></line>
+          </svg>
+          <span>Thẻ tín dụng / Ghi nợ</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- E-wallet Payment Options -->
+    <div class="payment-method-option" data-method="qr">
+      <div class="method-radio">
+        <input type="radio" name="paymentMethod" id="methodQR" value="qr" />
+        <label for="methodQR">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+            <path d="M2 10h20"></path>
+          </svg>
+          <span>Thanh toán bằng ví điện tử</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card Payment Form -->
+  <div id="cardPaymentForm" class="payment-form-container active">
+    <!-- Card Preview -->
+    <div class="card-preview">
+      <div class="card-preview-inner">
+        <div class="card-chip"></div>
+        <div class="card-number" id="previewCardNumber">•••• •••• •••• ••••</div>
+        <div class="card-details">
+          <div class="card-holder">
+            <div class="card-label">Tên chủ thẻ</div>
+            <div class="card-value" id="previewCardName">TÊN CHỦ THẺ</div>
+          </div>
+          <div class="card-expiry">
+            <div class="card-label">Hết hạn</div>
+            <div class="card-value" id="previewCardExpiry">MM/YY</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <form class="card-form" id="cardForm">
+      <div class="form-group">
+        <label for="cardNumber">Số thẻ</label>
+        <input
+          type="text"
+          id="cardNumber"
+          placeholder="1234 5678 9012 3456"
+          maxlength="19"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="cardName">Tên chủ thẻ</label>
+        <input type="text" id="cardName" placeholder="NGUYEN VAN A" required />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="cardExpiry">Ngày hết hạn</label>
+          <input
+            type="text"
+            id="cardExpiry"
+            placeholder="MM/YY"
+            maxlength="5"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="cardCVV">CVV</label>
+          <input
+            type="text"
+            id="cardCVV"
+            placeholder="123"
+            maxlength="3"
+            required
+          />
+        </div>
+      </div>
+      <div class="form-group checkbox-group">
+        <input type="checkbox" id="saveCard" />
+        <label for="saveCard">Lưu thẻ cho lần thanh toán sau</label>
+      </div>
+    </form>
+  </div>
+
+  <!-- E-wallet Payment Options -->
+  <div id="qrPaymentOptions" class="payment-form-container">
+    <p class="ewallet-instruction">Chọn ví điện tử để thanh toán:</p>
+    <div class="qr-providers">
+      <button class="qr-provider-btn" data-provider="momo">
+        <img src="/src/assets/icons/icon momo.png" alt="MoMo" />
+        <span>MoMo</span>
+      </button>
+      <button class="qr-provider-btn" data-provider="vnpay">
+        <img
+          src="https://vinadesign.vn/uploads/images/2023/05/vnpay-logo-vinadesign-25-12-57-55.jpg"
+          alt="VNPay"
+        />
+        <span>VNPay</span>
+      </button>
+      <button class="qr-provider-btn" data-provider="zalopay">
+        <img src="/src/assets/icons/icon zalo pay.png" alt="ZaloPay" />
+        <span>ZaloPay</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Popup -->
+  <div id="paymentSuccessPopup" class="payment-popup" style="display: none;">
+    <div class="payment-popup-overlay"></div>
+    <div class="payment-popup-content">
+      <div class="popup-icon success">
+        <svg
+          width="60"
+          height="60"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9 12l2 2 4-4"></path>
+        </svg>
+      </div>
+      <h2>Thanh toán thành công!</h2>
+      <p class="popup-message">
+        Cảm ơn bạn đã tin tưởng và sử dụng dịch vụ của chúng tôi. Đơn đặt bàn
+        của bạn đã được ghi nhận.
+      </p>
+      <button class="btn-popup-ok" id="btnPopupOk">Về trang chủ</button>
+    </div>
+  </div>
+
+  <!-- Payment Button -->
+  <div class="payment-footer">
+    <button class="btn-confirm-payment" id="btnConfirmPayment">
+      Xác nhận thanh toán
+      {{#if booking.depositAmount}}
+        {{formatCurrency booking.depositAmount}}
+      {{/if}}
+    </button>
+  </div>
+</main>

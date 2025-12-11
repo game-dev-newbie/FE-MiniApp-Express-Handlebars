@@ -15,6 +15,9 @@ import profileTpl from "../templates/profile.hbs?raw";
 import searchTpl from "../templates/search.hbs?raw";
 import restaurantDetailTpl from "../templates/restaurant-detail.hbs?raw";
 import bookingFormTpl from "../templates/booking-form.hbs?raw";
+import paymentTpl from "../templates/payment.hbs?raw";
+import editBookingTpl from "../templates/edit-booking.hbs?raw";
+import bookingDetailTpl from "../templates/booking-detail.hbs?raw";
 
 // compile sẵn
 const templates = {
@@ -32,6 +35,9 @@ const templates = {
   search: Handlebars.compile(searchTpl),
   restaurantDetail: Handlebars.compile(restaurantDetailTpl),
   bookingForm: Handlebars.compile(bookingFormTpl),
+  payment: Handlebars.compile(paymentTpl),
+  editBooking: Handlebars.compile(editBookingTpl),
+  bookingDetail: Handlebars.compile(bookingDetailTpl),
 };
 
 // nếu cần register helpers/partials, làm thêm ở đây
@@ -53,6 +59,27 @@ export function registerHelpers() {
   Handlebars.registerHelper("formatCurrency", (amount) => {
     if (!amount) return "0đ";
     return new Intl.NumberFormat("vi-VN").format(amount) + "đ";
+  });
+
+  // Helper để tạo range cho rating stars
+  Handlebars.registerHelper("range", (n) => {
+    return Array.from({ length: n }, (_, i) => i);
+  });
+
+  // Helper để subtract
+  Handlebars.registerHelper("subtract", (a, b) => {
+    return a - b;
+  });
+
+  // Helper để format date
+  Handlebars.registerHelper("formatDate", (dateStr) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    return new Intl.DateTimeFormat("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(date);
   });
 }
 

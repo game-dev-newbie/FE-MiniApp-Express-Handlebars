@@ -136,6 +136,75 @@
       </div>
     {{/if}}
 
+    <!-- Menu Images -->
+    {{#if restaurant.menuImages}}
+      <div class="restaurant-menu-section">
+        <h3>Menu nhà hàng</h3>
+        <div class="menu-images-grid">
+          {{#each restaurant.menuImages}}
+            <div class="menu-image-item">
+              <img src="{{this}}" alt="Menu {{@index}}" loading="lazy" />
+            </div>
+          {{/each}}
+        </div>
+      </div>
+    {{/if}}
+
+    <!-- Reviews Section -->
+    {{#if reviews}}
+      <div class="restaurant-reviews-section">
+        <h3>Đánh giá từ khách hàng</h3>
+        <div class="reviews-list">
+          {{#each reviews}}
+            <div class="review-item">
+              <div class="review-header">
+                <img
+                  src="{{this.userAvatar}}"
+                  alt="{{this.userName}}"
+                  class="review-avatar"
+                />
+                <div class="review-user-info">
+                  <h4 class="review-user-name">{{this.userName}}</h4>
+                  <div class="review-rating">
+                    {{#each (range this.rating)}}
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        class="star-icon"
+                      >
+                        <polygon
+                          points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                        ></polygon>
+                      </svg>
+                    {{/each}}
+                    {{#each (range (subtract 5 this.rating))}}
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        class="star-icon empty"
+                      >
+                        <polygon
+                          points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                        ></polygon>
+                      </svg>
+                    {{/each}}
+                  </div>
+                </div>
+              </div>
+              <p class="review-comment">{{this.comment}}</p>
+              <span class="review-date">{{formatDate this.created_at}}</span>
+            </div>
+          {{/each}}
+        </div>
+      </div>
+    {{/if}}
+
     <!-- Deposit Info -->
     {{#if restaurant.require_deposit}}
       <div class="deposit-info-section">

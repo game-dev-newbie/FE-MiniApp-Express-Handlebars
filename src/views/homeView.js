@@ -11,6 +11,7 @@ import {
   users,
 } from "../data/mockData.js";
 import { toggleFavorite, isFavorite } from "../utils/favoritesHelper.js";
+import { updateNotificationBadge } from "../utils/notificationHelper.js";
 
 const appEl = document.getElementById("app");
 const currentUser = users[0]; // Simulate logged in user
@@ -40,6 +41,9 @@ export async function renderHome() {
   });
 
   appEl.innerHTML = headerHtml + contentHtml + bottomNavHtml;
+
+  // Update notification badge
+  updateNotificationBadge();
 
   // Initialize event listeners
   initHomeEventListeners();

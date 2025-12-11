@@ -1,6 +1,6 @@
 // src/views/restaurantDetailView.js
 import { renderTemplate } from "../core/templates.js";
-import { restaurants } from "../data/mockData.js";
+import { restaurants, getRestaurantReviews } from "../data/mockData.js";
 import { toggleFavorite, isFavorite } from "../utils/favoritesHelper.js";
 
 const appEl = document.getElementById("app");
@@ -15,8 +15,12 @@ export function renderRestaurantDetail(restaurantId) {
     return;
   }
 
+  // Get reviews for this restaurant
+  const reviews = getRestaurantReviews(restaurantId);
+
   const restaurantDetailContent = renderTemplate("restaurantDetail", {
     restaurant,
+    reviews,
   });
 
   appEl.innerHTML = restaurantDetailContent;

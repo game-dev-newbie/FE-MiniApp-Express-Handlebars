@@ -1,7 +1,7 @@
 <main class="main-content booking-form-page">
   <!-- Booking Form Header -->
   <div class="booking-form-header booking-form-header-center">
-    <button class="btn-back" id="btnBackFromBooking">
+    <button class="btn-back" onclick="window.location.hash='#/booking'">
       <svg
         width="24"
         height="24"
@@ -13,7 +13,7 @@
         <polyline points="15 18 9 12 15 6"></polyline>
       </svg>
     </button>
-    <h1 class="booking-form-title">Đặt bàn</h1>
+    <h1 class="booking-form-title">Chỉnh sửa đặt bàn</h1>
     <div class="header-spacer"></div>
   </div>
 
@@ -35,7 +35,10 @@
   </div>
 
   <!-- Booking Form -->
-  <form class="booking-form" id="bookingForm">
+  <form class="booking-form" id="editBookingForm">
+    <input type="hidden" id="bookingId" value="{{booking.id}}">
+    <input type="hidden" id="restaurantId" value="{{booking.restaurantId}}">
+
     <!-- Customer Name -->
     <div class="form-group">
       <label for="customerName">
@@ -57,7 +60,7 @@
         id="customerName"
         name="name"
         placeholder="Nhập tên của bạn"
-        value="{{userName}}"
+        value="{{booking.customerName}}"
         required
       />
     </div>
@@ -84,7 +87,7 @@
         id="customerPhone"
         name="phone"
         placeholder="Nhập số điện thoại"
-        value="{{userPhone}}"
+        value="{{booking.customerPhone}}"
         required
       />
     </div>
@@ -111,8 +114,8 @@
         type="date"
         id="bookingDate"
         name="date"
+        value="{{booking.date}}"
         required
-        min="{{minDate}}"
       />
     </div>
 
@@ -136,6 +139,7 @@
         type="time"
         id="bookingTime"
         name="time"
+        value="{{booking.time}}"
         min="10:00"
         max="22:00"
         required
@@ -166,7 +170,7 @@
           type="number"
           id="peopleCount"
           name="people"
-          value="2"
+          value="{{booking.people}}"
           min="1"
           max="50"
           required
@@ -175,8 +179,8 @@
       </div>
     </div>
 
-    <!-- Available Tables Section (shown after selecting people count) -->
-    <div class="form-group" id="tablesSection" style="display: none;">
+    <!-- Available Tables Section -->
+    <div class="form-group" id="tablesSection">
       <label>
         <svg
           width="18"
@@ -194,29 +198,13 @@
       </label>
 
       <!-- Over Capacity Warning -->
-      <div
-        id="overCapacityWarning"
-        class="capacity-warning"
-        style="display: none;"
-      >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <path
-            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
-          ></path>
+      <div class="over-capacity-warning" id="overCapacityWarning" style="display: none;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
           <line x1="12" y1="9" x2="12" y2="13"></line>
           <line x1="12" y1="17" x2="12.01" y2="17"></line>
         </svg>
-        <div>
-          <strong>Số người vượt quá sức chứa!</strong>
-          <p>Vui lòng chọn thêm bàn để ghép hoặc giảm số người.</p>
-        </div>
+        <p>Không có bàn đơn phù hợp. Vui lòng chọn nhiều bàn để ghép.</p>
       </div>
 
       <!-- Tables Grid -->
@@ -251,32 +239,8 @@
         name="note"
         rows="3"
         placeholder="Ví dụ: Đặt bàn gần cửa sổ, có ghế em bé..."
-      ></textarea>
+      >{{booking.notes}}</textarea>
     </div>
-
-    {{#if restaurant.require_deposit}}
-      <!-- Deposit Info -->
-      <div class="deposit-notice">
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="12"></line>
-          <line x1="12" y1="16" x2="12.01" y2="16"></line>
-        </svg>
-        <div>
-          <strong>Lưu ý:</strong>
-          Nhà hàng yêu cầu đặt cọc
-          <strong>{{formatCurrency restaurant.default_deposit_amount}}</strong>
-          để giữ chỗ.
-        </div>
-      </div>
-    {{/if}}
   </form>
 
   <!-- Selected Tables Summary (Fixed above footer) -->
@@ -292,8 +256,8 @@
 
   <!-- Fixed Submit Button -->
   <div class="booking-form-footer">
-    <button type="submit" form="bookingForm" class="btn-submit-booking">
-      Xác nhận đặt bàn
+    <button type="submit" form="editBookingForm" class="btn-submit-booking">
+      Xác nhận chỉnh sửa
     </button>
   </div>
 
@@ -302,20 +266,13 @@
     <div class="table-modal-overlay" id="tableModalOverlay"></div>
     <div class="table-modal-content">
       <button class="btn-close-modal" id="btnCloseModal">
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="18" y1="6" x2="6" y2="18"></line>
           <line x1="6" y1="6" x2="18" y2="18"></line>
         </svg>
       </button>
       <div id="tableModalBody">
-        <!-- Table preview content will be inserted here -->
+        <!-- Modal content will be injected here -->
       </div>
     </div>
   </div>

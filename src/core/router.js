@@ -11,6 +11,9 @@ import { renderBooking } from "../views/bookingView.js";
 import { renderProfile } from "../views/profileView.js";
 import { renderRestaurantDetail } from "../views/restaurantDetailView.js";
 import { renderBookingForm } from "../views/bookingFormView.js";
+import { renderPayment } from "../views/paymentView.js";
+import { renderEditBooking } from "../views/editBookingView.js";
+import { renderBookingDetail } from "../views/bookingDetailView.js";
 
 export function initRouter() {
   window.addEventListener("hashchange", handleRouteChange);
@@ -44,6 +47,20 @@ function handleRouteChange() {
     return;
   }
 
+  // Check for booking detail routes
+  if (route.startsWith("booking/detail/")) {
+    const bookingId = route.split("/")[2];
+    renderBookingDetail(bookingId);
+    return;
+  }
+
+  // Check for edit booking routes
+  if (route.startsWith("booking/edit/")) {
+    const bookingId = route.split("/")[2];
+    renderEditBooking(bookingId);
+    return;
+  }
+
   // Route handling
   switch (route) {
     case "splash":
@@ -67,6 +84,16 @@ function handleRouteChange() {
       break;
     case "booking":
       renderBooking();
+      break;
+    case "payment":
+      const bookingData = JSON.parse(
+        sessionStorage.getItem("pendingBooking") || "{}"
+      );
+      if (bookingData.restaurantId) {
+        renderPayment(bookingData);
+      } else {
+        window.location.hash = "#/home";
+      }
       break;
     case "profile":
       renderProfile();
