@@ -3,8 +3,8 @@
 import { reviews, users } from "../data/mockData.js";
 
 export function getMockRestaurantReviews(restaurantId, params = {}) {
-  const { sort = 'created_at', order = 'desc', limit = 20 } = params;
-  
+  const { sort = "created_at", order = "desc", limit = 20 } = params;
+
   // Filter reviews by restaurant ID
   let restaurantReviews = reviews
     .filter((r) => r.restaurant_id === parseInt(restaurantId))
@@ -21,11 +21,11 @@ export function getMockRestaurantReviews(restaurantId, params = {}) {
     });
 
   // Sort by created_at (newest first)
-  if (sort === 'created_at') {
+  if (sort === "created_at") {
     restaurantReviews.sort((a, b) => {
       const dateA = new Date(a.created_at);
       const dateB = new Date(b.created_at);
-      return order === 'desc' ? dateB - dateA : dateA - dateB;
+      return order === "desc" ? dateB - dateA : dateA - dateB;
     });
   }
 
@@ -39,6 +39,6 @@ export function getMockRestaurantReviews(restaurantId, params = {}) {
     data: restaurantReviews,
     total: restaurantReviews.length,
     page: 1,
-    limit: limit
+    limit: limit,
   });
 }

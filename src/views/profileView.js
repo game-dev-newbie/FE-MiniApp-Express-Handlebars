@@ -13,24 +13,30 @@ const currentUser = users[0];
 // Function to get real-time statistics
 function getProfileStats() {
   // Get checked-in bookings from localStorage (matching history page logic)
-  const allBookings = JSON.parse(localStorage.getItem("dinelink_bookings") || "[]");
-  
+  const allBookings = JSON.parse(
+    localStorage.getItem("dinelink_bookings") || "[]"
+  );
+
   // Debug: log to see what's in bookings
   console.log("All bookings:", allBookings);
   console.log("Current user ID:", currentUser.id);
-  
+
   const historyBookings = allBookings.filter(
-    (b) => (b.status === "CHECKED_IN" || b.status === "COMPLETED")
+    (b) => b.status === "CHECKED_IN" || b.status === "COMPLETED"
   );
-  
+
   console.log("History bookings (CHECKED_IN or COMPLETED):", historyBookings);
 
   // Get reviews from localStorage (matching my-reviews page logic)
-  const allReviews = JSON.parse(localStorage.getItem("dinelink_user_reviews") || "[]");
+  const allReviews = JSON.parse(
+    localStorage.getItem("dinelink_user_reviews") || "[]"
+  );
   const userReviews = allReviews.filter((r) => r.userId === currentUser.id);
 
   // Get favorites from localStorage (matching favorites page logic - array of IDs)
-  const favorites = JSON.parse(localStorage.getItem("dinelink_favorites") || "[]");
+  const favorites = JSON.parse(
+    localStorage.getItem("dinelink_favorites") || "[]"
+  );
 
   return {
     bookings: historyBookings.length,
@@ -44,21 +50,21 @@ export async function renderProfile() {
 
   // Get real-time statistics
   const stats = getProfileStats();
-  
+
   // Get current theme
   const currentTheme = localStorage.getItem("dinelink_theme") || "light";
 
   const contentHtml = renderTemplate("profile", {
     user: currentUser,
     stats,
-    isLightMode: currentTheme === "light"
+    isLightMode: currentTheme === "light",
   });
 
   appEl.innerHTML = contentHtml + bottomNavHtml;
 
   // Initialize event listeners
   initProfileEventListeners();
-  
+
   // Setup real-time update listeners
   setupProfileUpdateListeners();
 }
@@ -66,7 +72,7 @@ export async function renderProfile() {
 // Function to update stats in DOM without full re-render
 function updateStatsInDOM() {
   const stats = getProfileStats();
-  
+
   const statItems = document.querySelectorAll(".stat-item");
   if (statItems.length >= 3) {
     statItems[0].querySelector(".stat-value").textContent = stats.bookings;
@@ -114,14 +120,18 @@ function setupProfileUpdateListeners() {
   window.addEventListener("bookingStatusUpdated", statusListener);
 
   // Cleanup on page change
-  window.addEventListener("hashchange", () => {
-    window.removeEventListener("reviewSubmitted", reviewListener);
-    window.removeEventListener("reviewUpdated", reviewUpdateListener);
-    window.removeEventListener("reviewDeleted", reviewDeleteListener);
-    window.removeEventListener("bookingCheckedIn", checkinListener);
-    window.removeEventListener("favoriteToggled", favoriteListener);
-    window.removeEventListener("bookingStatusUpdated", statusListener);
-  }, { once: true });
+  window.addEventListener(
+    "hashchange",
+    () => {
+      window.removeEventListener("reviewSubmitted", reviewListener);
+      window.removeEventListener("reviewUpdated", reviewUpdateListener);
+      window.removeEventListener("reviewDeleted", reviewDeleteListener);
+      window.removeEventListener("bookingCheckedIn", checkinListener);
+      window.removeEventListener("favoriteToggled", favoriteListener);
+      window.removeEventListener("bookingStatusUpdated", statusListener);
+    },
+    { once: true }
+  );
 }
 
 function initProfileEventListeners() {
@@ -186,11 +196,11 @@ function initProfileEventListeners() {
   themeBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       const theme = btn.getAttribute("data-theme");
-      
+
       // Update active state
       themeBtns.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
-      
+
       // Apply theme
       if (theme === "dark") {
         document.body.classList.add("dark-mode");
@@ -198,7 +208,7 @@ function initProfileEventListeners() {
         document.body.classList.remove("dark-mode");
       }
       localStorage.setItem("dinelink_theme", theme);
-      
+
       // Vibrate if supported
       if (navigator.vibrate) {
         navigator.vibrate(10);

@@ -27,23 +27,25 @@ export async function renderBooking() {
     // For localStorage bookings, structure is different
     if (booking.restaurantId) {
       const restaurant = restaurants.find((r) => r.id === booking.restaurantId);
-      
+
       // Format table names properly
       let tableNames = "Chưa chọn bàn";
       if (booking.tables) {
         if (Array.isArray(booking.tables)) {
           // If tables is array of objects
-          if (typeof booking.tables[0] === 'object') {
-            tableNames = booking.tables.map(t => `${t.name} (${t.type || t.capacity + ' người'})`).join(", ");
+          if (typeof booking.tables[0] === "object") {
+            tableNames = booking.tables
+              .map((t) => `${t.name} (${t.type || t.capacity + " người"})`)
+              .join(", ");
           } else {
             // If tables is array of strings
             tableNames = booking.tables.join(", ");
           }
-        } else if (typeof booking.tables === 'string') {
+        } else if (typeof booking.tables === "string") {
           tableNames = booking.tables;
         }
       }
-      
+
       return {
         id: booking.id,
         status: booking.status,

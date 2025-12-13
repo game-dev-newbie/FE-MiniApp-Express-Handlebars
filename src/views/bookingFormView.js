@@ -9,7 +9,7 @@ let selectedTables = []; // Track selected tables
 export function renderBookingForm(restaurantId) {
   // Reset selected tables when entering the page
   selectedTables = [];
-  
+
   // Find restaurant by ID
   const restaurant = restaurants.find((r) => r.id === parseInt(restaurantId));
 
@@ -37,7 +37,7 @@ export function renderBookingForm(restaurantId) {
   if (savedBookingData) {
     try {
       const bookingData = JSON.parse(savedBookingData);
-      
+
       // Only restore if it's for the same restaurant
       if (bookingData.restaurantId === restaurant.id) {
         // Restore form fields
@@ -47,14 +47,17 @@ export function renderBookingForm(restaurantId) {
         const nameInput = document.getElementById("customerName");
         const phoneInput = document.getElementById("customerPhone");
         const noteInput = document.getElementById("specialRequest");
-        
+
         if (dateInput && bookingData.date) dateInput.value = bookingData.date;
         if (timeInput && bookingData.time) timeInput.value = bookingData.time;
-        if (peopleInput && bookingData.people) peopleInput.value = bookingData.people;
-        if (nameInput && bookingData.customerName) nameInput.value = bookingData.customerName;
-        if (phoneInput && bookingData.customerPhone) phoneInput.value = bookingData.customerPhone;
+        if (peopleInput && bookingData.people)
+          peopleInput.value = bookingData.people;
+        if (nameInput && bookingData.customerName)
+          nameInput.value = bookingData.customerName;
+        if (phoneInput && bookingData.customerPhone)
+          phoneInput.value = bookingData.customerPhone;
         if (noteInput && bookingData.note) noteInput.value = bookingData.note;
-        
+
         // Restore selected tables
         if (bookingData.tables && bookingData.tables.length > 0) {
           selectedTables = bookingData.tables;
@@ -67,14 +70,14 @@ export function renderBookingForm(restaurantId) {
 
   // Initialize event listeners
   initBookingFormListeners(restaurant);
-  
+
   // Setup cleanup when leaving page (except when going to payment)
   setupPageLeaveCleanup();
 }
 
 function setupPageLeaveCleanup() {
   let isGoingToPayment = false;
-  
+
   // Mark when going to payment
   const bookingForm = document.getElementById("bookingForm");
   if (bookingForm) {
@@ -82,21 +85,21 @@ function setupPageLeaveCleanup() {
       isGoingToPayment = true;
     });
   }
-  
+
   // Cleanup on hash change if not going to payment
   const cleanupHandler = () => {
     const currentHash = window.location.hash;
-    
+
     // If not going to payment page, clear sessionStorage
     if (!isGoingToPayment && !currentHash.includes("#/payment")) {
       sessionStorage.removeItem("pendingBooking");
       console.log("Cleared booking form data");
     }
-    
+
     // Remove this listener after it fires once
     window.removeEventListener("hashchange", cleanupHandler);
   };
-  
+
   window.addEventListener("hashchange", cleanupHandler);
 }
 
@@ -145,13 +148,13 @@ function initBookingFormListeners(restaurant) {
         value = 2;
         peopleInput.value = 2;
       }
-      
+
       updateAvailableTables(restaurant.id, value);
     });
 
     // Initial load of tables
     updateAvailableTables(restaurant.id, parseInt(peopleInput.value));
-    
+
     // After loading tables, restore selected tables if any
     setTimeout(() => {
       if (selectedTables.length > 0) {
@@ -242,11 +245,14 @@ function updateAvailableTables(restaurantId, peopleCount) {
   }
 
   // Check if people count exceeds max table capacity
-  if (peopleCount > tablesData.maxTableCapacity && tablesData.maxTableCapacity > 0) {
+  if (
+    peopleCount > tablesData.maxTableCapacity &&
+    tablesData.maxTableCapacity > 0
+  ) {
     // Show popup to call restaurant
-    const restaurant = restaurants.find(r => r.id === restaurantId);
+    const restaurant = restaurants.find((r) => r.id === restaurantId);
     showOverCapacityPopup(restaurant);
-    
+
     // Clear tables grid
     tablesGrid.innerHTML = `<p class="no-tables-message">Số lượng người vượt quá sức chứa. Vui lòng liên hệ nhà hàng.</p>`;
     return;
@@ -471,8 +477,8 @@ function updateSelectedTablesSummary() {
 
 // Show popup when people count exceeds restaurant capacity
 function showOverCapacityPopup(restaurant) {
-  const popup = document.createElement('div');
-  popup.className = 'over-capacity-popup';
+  const popup = document.createElement("div");
+  popup.className = "over-capacity-popup";
   popup.innerHTML = `
     <div class="popup-overlay"></div>
     <div class="popup-content">
@@ -480,28 +486,30 @@ function showOverCapacityPopup(restaurant) {
       <h3>Số lượng người đã vượt quá giới hạn</h3>
       <p>Nhà hàng hiện tại chỉ hỗ trợ đặt bàn qua hệ thống với số lượng giới hạn.</p>
       <p>Vui lòng liên hệ trực tiếp nhà hàng để được hỗ trợ:</p>
-      <a href="tel:${restaurant?.phone || '0123456789'}" class="phone-link">
-        📞 ${restaurant?.phone || '0123 456 789'}
+      <a href="tel:${restaurant?.phone || "0123456789"}" class="phone-link">
+        📞 ${restaurant?.phone || "0123 456 789"}
       </a>
       <button class="btn-close-popup">Đóng</button>
     </div>
   `;
-  
+
   document.body.appendChild(popup);
-  
+
   // Animate in
   setTimeout(() => {
-    popup.querySelector('.popup-content').style.animation = 'popupSlideIn 0.3s ease-out';
+    popup.querySelector(".popup-content").style.animation =
+      "popupSlideIn 0.3s ease-out";
   }, 10);
-  
+
   // Close handlers
   const closePopup = () => {
-    popup.querySelector('.popup-content').style.animation = 'popupSlideOut 0.3s ease-out';
+    popup.querySelector(".popup-content").style.animation =
+      "popupSlideOut 0.3s ease-out";
     setTimeout(() => {
       popup.remove();
     }, 300);
   };
-  
-  popup.querySelector('.btn-close-popup').addEventListener('click', closePopup);
-  popup.querySelector('.popup-overlay').addEventListener('click', closePopup);
+
+  popup.querySelector(".btn-close-popup").addEventListener("click", closePopup);
+  popup.querySelector(".popup-overlay").addEventListener("click", closePopup);
 }

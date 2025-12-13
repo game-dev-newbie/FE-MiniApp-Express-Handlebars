@@ -20,9 +20,9 @@ function applyTheme(theme) {
 
 export async function renderSettings() {
   const currentTheme = localStorage.getItem("dinelink_theme") || "light";
-  
+
   const contentHtml = renderTemplate("settings", {
-    isLightMode: currentTheme === "light"
+    isLightMode: currentTheme === "light",
   });
 
   appEl.innerHTML = contentHtml;
@@ -48,14 +48,14 @@ function initSettingsEventListeners() {
   themeBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       const theme = btn.getAttribute("data-theme");
-      
+
       // Update active state
       themeBtns.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
-      
+
       // Apply theme
       applyTheme(theme);
-      
+
       // Vibrate if supported
       if (navigator.vibrate) {
         navigator.vibrate(10);
@@ -74,7 +74,7 @@ function initSettingsEventListeners() {
         navigator.vibrate(10);
       }
     });
-    
+
     // Load saved preference
     const savedPushPref = localStorage.getItem("dinelink_push_notification");
     if (savedPushPref !== null) {
@@ -89,7 +89,7 @@ function initSettingsEventListeners() {
         navigator.vibrate(10);
       }
     });
-    
+
     // Load saved preference
     const savedEmailPref = localStorage.getItem("dinelink_email_notification");
     if (savedEmailPref !== null) {
@@ -98,7 +98,9 @@ function initSettingsEventListeners() {
   }
 
   // Privacy button
-  const privacyBtn = document.querySelector('.settings-item-button:has(.settings-item-title:contains("Quyền riêng tư"))');
+  const privacyBtn = document.querySelector(
+    '.settings-item-button:has(.settings-item-title:contains("Quyền riêng tư"))'
+  );
   if (privacyBtn) {
     privacyBtn.addEventListener("click", () => {
       alert("Chức năng Quyền riêng tư đang được phát triển!");
@@ -106,7 +108,7 @@ function initSettingsEventListeners() {
   }
 
   // Terms button
-  const termsBtn = document.querySelector('.settings-item-button:last-of-type');
+  const termsBtn = document.querySelector(".settings-item-button:last-of-type");
   if (termsBtn) {
     termsBtn.addEventListener("click", () => {
       alert("Chức năng Điều khoản sử dụng đang được phát triển!");

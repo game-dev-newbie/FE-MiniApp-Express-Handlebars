@@ -23,16 +23,16 @@ export async function renderRestaurantDetail(restaurantId) {
   try {
     // Fetch reviews from API with sort by latest
     let reviews = await fetchRestaurantReviews(restaurantId, {
-      sort: 'created_at',
-      order: 'desc',
-      limit: 20
+      sort: "created_at",
+      order: "desc",
+      limit: 20,
     });
 
     // Get user reviews from localStorage and add to reviews list
     const userReviews = JSON.parse(
       localStorage.getItem("dinelink_user_reviews") || "[]"
     );
-    
+
     const userReviewsForRestaurant = userReviews
       .filter((r) => r.restaurantId === parseInt(restaurantId))
       .map((review) => {
@@ -71,7 +71,7 @@ export async function renderRestaurantDetail(restaurantId) {
     setupReviewUpdateListeners(restaurantId);
   } catch (error) {
     console.error("Error fetching restaurant reviews:", error);
-    
+
     // Fallback to mockData if API fails
     let reviews = getRestaurantReviews(restaurantId);
 
@@ -79,7 +79,7 @@ export async function renderRestaurantDetail(restaurantId) {
     const userReviews = JSON.parse(
       localStorage.getItem("dinelink_user_reviews") || "[]"
     );
-    
+
     const userReviewsForRestaurant = userReviews
       .filter((r) => r.restaurantId === parseInt(restaurantId))
       .map((review) => {
@@ -246,13 +246,20 @@ function setupReviewListener(restaurantId) {
   // Define handler function
   currentReviewListener = (event) => {
     const { restaurantId: reviewRestaurantId } = event.detail;
-    
-    console.log("Review submitted event received:", reviewRestaurantId, "current:", restaurantId);
-    
+
+    console.log(
+      "Review submitted event received:",
+      reviewRestaurantId,
+      "current:",
+      restaurantId
+    );
+
     // Only reload if review is for current restaurant and we're still on this page
     if (parseInt(reviewRestaurantId) === parseInt(restaurantId)) {
-      console.log("✅ New review for current restaurant detected, reloading...");
-      
+      console.log(
+        "✅ New review for current restaurant detected, reloading..."
+      );
+
       // Reload restaurant detail to show new review
       setTimeout(() => {
         if (window.location.hash.includes(`restaurant/${restaurantId}`)) {
@@ -271,10 +278,10 @@ function setupReviewUpdateListeners(restaurantId) {
   // Handler for review updates
   const updateHandler = (event) => {
     const { reviewId, restaurantId: reviewRestaurantId } = event.detail;
-    
+
     if (parseInt(reviewRestaurantId) === parseInt(restaurantId)) {
       console.log("✅ Review updated for current restaurant, reloading...");
-      
+
       setTimeout(() => {
         if (window.location.hash.includes(`restaurant/${restaurantId}`)) {
           renderRestaurantDetail(restaurantId);
@@ -282,14 +289,14 @@ function setupReviewUpdateListeners(restaurantId) {
       }, 300);
     }
   };
-  
+
   // Handler for review deletes
   const deleteHandler = (event) => {
     const { reviewId, restaurantId: reviewRestaurantId } = event.detail;
-    
+
     if (parseInt(reviewRestaurantId) === parseInt(restaurantId)) {
       console.log("✅ Review deleted for current restaurant, reloading...");
-      
+
       setTimeout(() => {
         if (window.location.hash.includes(`restaurant/${restaurantId}`)) {
           renderRestaurantDetail(restaurantId);
@@ -297,15 +304,19 @@ function setupReviewUpdateListeners(restaurantId) {
       }, 300);
     }
   };
-  
+
   window.addEventListener("reviewUpdated", updateHandler);
   window.addEventListener("reviewDeleted", deleteHandler);
-  
+
   // Cleanup on page unload
-  window.addEventListener("hashchange", () => {
-    window.removeEventListener("reviewUpdated", updateHandler);
-    window.removeEventListener("reviewDeleted", deleteHandler);
-  }, { once: true });
+  window.addEventListener(
+    "hashchange",
+    () => {
+      window.removeEventListener("reviewUpdated", updateHandler);
+      window.removeEventListener("reviewDeleted", deleteHandler);
+    },
+    { once: true }
+  );
 }
 
 // Format review date time

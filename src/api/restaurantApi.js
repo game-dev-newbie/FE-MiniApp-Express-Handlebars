@@ -18,9 +18,11 @@ export function fetchRestaurantDetail(id) {
 export function fetchRestaurantReviews(restaurantId, params = {}) {
   // Use mock API in development
   if (USE_MOCK_API) {
-    return getMockRestaurantReviews(restaurantId, params).then(response => response.data);
+    return getMockRestaurantReviews(restaurantId, params).then(
+      (response) => response.data
+    );
   }
-  
+
   // Real API call
   const query = new URLSearchParams(params).toString();
   const q = query ? `?${query}` : "";

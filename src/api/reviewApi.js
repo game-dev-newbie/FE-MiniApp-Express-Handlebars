@@ -14,7 +14,7 @@ export async function submitReview(reviewData) {
   if (USE_MOCK_API) {
     return mockSubmitReview(reviewData);
   }
-  
+
   // Real API call
   return httpPost(`/reviews`, reviewData);
 }
@@ -38,7 +38,7 @@ function mockSubmitReview(reviewData) {
       resolve({
         success: true,
         data: review,
-        message: "Đánh giá của bạn đã được gửi thành công!"
+        message: "Đánh giá của bạn đã được gửi thành công!",
       });
     }, 500); // Simulate network delay
   });

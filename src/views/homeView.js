@@ -47,8 +47,8 @@ export async function renderHome() {
 
   // Reset scroll position for all horizontal scroll sections
   setTimeout(() => {
-    const horizontalScrolls = document.querySelectorAll('.horizontal-scroll');
-    horizontalScrolls.forEach(scroll => {
+    const horizontalScrolls = document.querySelectorAll(".horizontal-scroll");
+    horizontalScrolls.forEach((scroll) => {
       scroll.scrollLeft = 0;
     });
   }, 0);

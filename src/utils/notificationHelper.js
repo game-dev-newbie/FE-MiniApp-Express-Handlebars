@@ -29,7 +29,9 @@ export function createBookingNotification(
       break;
     case "CANCELLED":
       title = "❌ Đặt bàn bị hủy";
-      message = `Đặt bàn tại ${booking.restaurantName || "nhà hàng"} đã bị hủy. ${
+      message = `Đặt bàn tại ${
+        booking.restaurantName || "nhà hàng"
+      } đã bị hủy. ${
         cancelReason
           ? `Lý do: ${cancelReason}`
           : "Vui lòng liên hệ nhà hàng để biết thêm chi tiết."

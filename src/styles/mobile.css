@@ -4827,7 +4827,7 @@ a {
 
 .star-rating .star.hover,
 .star-rating .star.selected {
-  color: #FFB800;
+  color: #ffb800;
   transform: scale(1.1);
 }
 
@@ -4918,7 +4918,7 @@ a {
 }
 
 .review-rating .star.filled {
-  color: #FFB800;
+  color: #ffb800;
 }
 
 .review-date {
@@ -4990,13 +4990,13 @@ a {
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  background: #FFF3CD;
+  background: #fff3cd;
   border-radius: var(--radius-md);
   margin-top: var(--spacing-sm);
 }
 
 .review-status svg {
-  color: #FFB800;
+  color: #ffb800;
 }
 
 .review-status span {
@@ -5114,7 +5114,7 @@ a {
 }
 
 .star-btn.active {
-  color: #FFB800;
+  color: #ffb800;
 }
 
 .star-btn:active {

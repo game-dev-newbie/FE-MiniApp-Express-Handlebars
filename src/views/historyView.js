@@ -14,41 +14,47 @@ export async function renderHistory() {
   );
 
   // Process bookings with restaurant info
-  const processedBookings = localBookings.map((booking) => {
-    if (booking.restaurantId) {
-      const restaurant = restaurants.find((r) => r.id === booking.restaurantId);
-      
-      // Format table names properly
-      let tableNames = "Chưa chọn bàn";
-      if (booking.tables) {
-        if (Array.isArray(booking.tables)) {
-          // If tables is array of objects
-          if (typeof booking.tables[0] === 'object') {
-            tableNames = booking.tables.map(t => `${t.name} (${t.type || t.capacity + ' người'})`).join(", ");
-          } else {
-            // If tables is array of strings
-            tableNames = booking.tables.join(", ");
+  const processedBookings = localBookings
+    .map((booking) => {
+      if (booking.restaurantId) {
+        const restaurant = restaurants.find(
+          (r) => r.id === booking.restaurantId
+        );
+
+        // Format table names properly
+        let tableNames = "Chưa chọn bàn";
+        if (booking.tables) {
+          if (Array.isArray(booking.tables)) {
+            // If tables is array of objects
+            if (typeof booking.tables[0] === "object") {
+              tableNames = booking.tables
+                .map((t) => `${t.name} (${t.type || t.capacity + " người"})`)
+                .join(", ");
+            } else {
+              // If tables is array of strings
+              tableNames = booking.tables.join(", ");
+            }
+          } else if (typeof booking.tables === "string") {
+            tableNames = booking.tables;
           }
-        } else if (typeof booking.tables === 'string') {
-          tableNames = booking.tables;
         }
+
+        return {
+          id: booking.id,
+          status: booking.status,
+          restaurantId: booking.restaurantId,
+          restaurant_name:
+            restaurant?.name || booking.restaurantName || "Nhà hàng",
+          table_name: tableNames,
+          booking_time: formatBookingTime(
+            new Date(booking.date + " " + booking.time)
+          ),
+          people: booking.people,
+        };
       }
-      
-      return {
-        id: booking.id,
-        status: booking.status,
-        restaurantId: booking.restaurantId,
-        restaurant_name:
-          restaurant?.name || booking.restaurantName || "Nhà hàng",
-        table_name: tableNames,
-        booking_time: formatBookingTime(
-          new Date(booking.date + " " + booking.time)
-        ),
-        people: booking.people,
-      };
-    }
-    return null;
-  }).filter(Boolean);
+      return null;
+    })
+    .filter(Boolean);
 
   // Filter history bookings (CHECKED_IN or COMPLETED)
   const historyBookings = processedBookings.filter(
@@ -89,7 +95,9 @@ export async function renderHistory() {
 
 function initHistoryEventListeners() {
   // View booking detail buttons
-  const viewDetailButtons = document.querySelectorAll(".btn-view-booking-detail");
+  const viewDetailButtons = document.querySelectorAll(
+    ".btn-view-booking-detail"
+  );
   viewDetailButtons.forEach((button) => {
     button.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -168,7 +176,7 @@ function setupCheckInListener() {
   // Listen for review deletions to show review button again
   window.addEventListener("reviewDeleted", (event) => {
     console.log("Review deleted, reloading history view");
-    
+
     if (window.location.hash === "#/history") {
       setTimeout(() => {
         renderHistory();
@@ -273,7 +281,7 @@ async function submitReview() {
   console.log("📝 Starting submitReview...");
   console.log("⭐ Selected Rating:", selectedRating);
   console.log("📊 Current Review Data:", currentReviewData);
-  
+
   if (selectedRating === 0) {
     alert("Vui lòng chọn số sao đánh giá!");
     return;
@@ -290,9 +298,10 @@ async function submitReview() {
     localStorage.getItem("dinelink_user_reviews") || "[]"
   );
   const alreadyReviewed = existingReviews.find(
-    (r) => r.bookingId === currentReviewData.bookingId && r.userId === currentUser.id
+    (r) =>
+      r.bookingId === currentReviewData.bookingId && r.userId === currentUser.id
   );
-  
+
   if (alreadyReviewed) {
     alert("Bạn đã đánh giá đơn đặt bàn này rồi!");
     return;
@@ -311,7 +320,7 @@ async function submitReview() {
   try {
     // Call API to submit review
     const response = await submitReviewAPI(reviewData);
-    
+
     console.log("Review API response:", response);
 
     // Save to localStorage for offline access
@@ -334,17 +343,24 @@ async function submitReview() {
 
     console.log("✅ Review saved:", newReview);
     console.log("📊 All reviews:", reviews);
-    console.log("🏪 Restaurant ID:", newReview.restaurantId, "Type:", typeof newReview.restaurantId);
+    console.log(
+      "🏪 Restaurant ID:",
+      newReview.restaurantId,
+      "Type:",
+      typeof newReview.restaurantId
+    );
 
     // Show success message
-    alert(`Cảm ơn bạn đã đánh giá ${selectedRating} sao! Đánh giá của bạn đã được gửi thành công.`);
+    alert(
+      `Cảm ơn bạn đã đánh giá ${selectedRating} sao! Đánh giá của bạn đã được gửi thành công.`
+    );
 
     // Dispatch event to notify other views
     window.dispatchEvent(
       new CustomEvent("reviewSubmitted", {
-        detail: { 
+        detail: {
           restaurantId: parseInt(currentReviewData.restaurantId),
-          review: newReview 
+          review: newReview,
         },
       })
     );

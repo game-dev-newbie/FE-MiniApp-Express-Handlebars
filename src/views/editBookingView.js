@@ -98,7 +98,7 @@ function initEditBookingListeners(originalBooking, restaurant) {
       value = originalBooking.people;
       peopleCountInput.value = value;
     }
-    
+
     updateAvailableTables(originalBooking.restaurantId, value);
   });
 
@@ -259,7 +259,7 @@ function updateAvailableTables(restaurantId, peopleCount) {
 
   // Check if people count exceeds max capacity
   if (peopleCount > tablesData.maxTableCapacity) {
-    const restaurant = restaurants.find(r => r.id === restaurantId);
+    const restaurant = restaurants.find((r) => r.id === restaurantId);
     showOverCapacityPopup(restaurant);
     return;
   }

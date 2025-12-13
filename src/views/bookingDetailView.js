@@ -30,13 +30,13 @@ export async function renderBookingDetail(bookingId) {
   let formattedTables = [];
   if (booking.tables) {
     if (Array.isArray(booking.tables)) {
-      formattedTables = booking.tables.map(t => {
-        if (typeof t === 'object') {
-          return `${t.name} (${t.type || t.capacity + ' người'})`;
+      formattedTables = booking.tables.map((t) => {
+        if (typeof t === "object") {
+          return `${t.name} (${t.type || t.capacity + " người"})`;
         }
         return t;
       });
-    } else if (typeof booking.tables === 'string') {
+    } else if (typeof booking.tables === "string") {
       formattedTables = [booking.tables];
     }
   }

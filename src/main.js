@@ -4,7 +4,7 @@ import { registerHelpers } from "./core/templates.js";
 
 function bootstrap() {
   registerHelpers();
-  
+
   // Apply saved theme on startup
   const savedTheme = localStorage.getItem("dinelink_theme") || "light";
   if (savedTheme === "dark") {

@@ -47,7 +47,7 @@ function loadNotifications() {
       // Determine icon based on status
       let iconClass = "success";
       let icon = "";
-      
+
       switch (notification.status) {
         case "CONFIRMED":
           iconClass = "success";
