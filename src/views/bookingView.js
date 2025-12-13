@@ -27,12 +27,30 @@ export async function renderBooking() {
     // For localStorage bookings, structure is different
     if (booking.restaurantId) {
       const restaurant = restaurants.find((r) => r.id === booking.restaurantId);
+      
+      // Format table names properly
+      let tableNames = "Chưa chọn bàn";
+      if (booking.tables) {
+        if (Array.isArray(booking.tables)) {
+          // If tables is array of objects
+          if (typeof booking.tables[0] === 'object') {
+            tableNames = booking.tables.map(t => `${t.name} (${t.type || t.capacity + ' người'})`).join(", ");
+          } else {
+            // If tables is array of strings
+            tableNames = booking.tables.join(", ");
+          }
+        } else if (typeof booking.tables === 'string') {
+          tableNames = booking.tables;
+        }
+      }
+      
       return {
         id: booking.id,
         status: booking.status,
+        restaurantId: booking.restaurantId,
         restaurant_name:
           restaurant?.name || booking.restaurantName || "Nhà hàng",
-        table_name: booking.tables?.join(", ") || "Chưa chọn bàn",
+        table_name: tableNames,
         booking_time: formatBookingTime(
           new Date(booking.date + " " + booking.time)
         ),
@@ -130,17 +148,11 @@ function initBookingEventListeners() {
   rebookButtons.forEach((button) => {
     button.addEventListener("click", (e) => {
       e.stopPropagation();
-      const id = button.getAttribute("data-id");
+      const restaurantId = button.getAttribute("data-restaurant-id");
 
-      // Get booking info
-      const bookings = JSON.parse(
-        localStorage.getItem("dinelink_bookings") || "[]"
-      );
-      const booking = bookings.find((b) => b.id === id);
-
-      if (booking) {
-        // Redirect to restaurant detail page
-        window.location.hash = `#/restaurant/${booking.restaurantId}`;
+      if (restaurantId) {
+        // Redirect to booking form for this restaurant
+        window.location.hash = `#/booking/new/${restaurantId}`;
       }
     });
   });
@@ -180,56 +192,27 @@ function setupBookingStatusListener() {
     const { bookingId, status } = event.detail;
     console.log(`Booking ${bookingId} status updated to ${status}`);
 
-    // Show notification to user
-    if (status === "CONFIRMED") {
-      showNotification("Đơn đặt bàn đã được xác nhận!", "success");
-    } else if (status === "CANCELLED") {
-      showNotification("Đơn đặt bàn đã bị từ chối bởi nhà hàng", "error");
-    }
-
     // Reload booking view to show updated status
     // Only reload if we're still on the booking page
     if (window.location.hash === "#/booking") {
       setTimeout(() => {
         renderBooking();
-      }, 1000); // Delay 1s to show notification first
+      }, 500);
     }
   });
-}
 
-// Show notification to user
-function showNotification(message, type = "info") {
-  // Create notification element
-  const notification = document.createElement("div");
-  notification.className = `booking-notification ${type}`;
-  notification.textContent = message;
-  notification.style.cssText = `
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: ${
-      type === "success" ? "#10b981" : type === "error" ? "#ef4444" : "#3b82f6"
-    };
-    color: white;
-    padding: 16px 24px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 10000;
-    font-size: 14px;
-    font-weight: 500;
-    animation: slideDown 0.3s ease-out;
-  `;
+  // Listen for check-in events - booking moves from booking page to history page
+  window.addEventListener("bookingCheckedIn", (event) => {
+    const { bookingId, status } = event.detail;
+    console.log(`Booking ${bookingId} checked in - moving to history page`);
 
-  document.body.appendChild(notification);
-
-  // Auto remove after 3 seconds
-  setTimeout(() => {
-    notification.style.animation = "slideUp 0.3s ease-out";
-    setTimeout(() => {
-      notification.remove();
-    }, 300);
-  }, 3000);
+    // Reload booking view to remove checked-in booking
+    if (window.location.hash === "#/booking") {
+      setTimeout(() => {
+        renderBooking();
+      }, 500);
+    }
+  });
 }
 
 // Show cancel booking popup
@@ -280,16 +263,8 @@ function cancelBooking(bookingId) {
   });
   localStorage.setItem("dinelink_bookings", JSON.stringify(updatedBookings));
 
-  // Show notification
-  showNotification(
-    "Đã hủy đặt bàn. Tiền sẽ được hoàn lại trong 3-5 ngày làm việc",
-    "success"
-  );
-
   // Reload booking view
   setTimeout(() => {
     renderBooking();
-  }, 1000);
+  }, 500);
 }
-
-// Modal functions removed - now using separate edit page at #/booking/edit/{id}

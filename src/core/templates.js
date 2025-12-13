@@ -18,6 +18,9 @@ import bookingFormTpl from "../templates/booking-form.hbs?raw";
 import paymentTpl from "../templates/payment.hbs?raw";
 import editBookingTpl from "../templates/edit-booking.hbs?raw";
 import bookingDetailTpl from "../templates/booking-detail.hbs?raw";
+import historyTpl from "../templates/history.hbs?raw";
+import myReviewsTpl from "../templates/my-reviews.hbs?raw";
+import helpTpl from "../templates/help.hbs?raw";
 
 // compile sẵn
 const templates = {
@@ -38,6 +41,9 @@ const templates = {
   payment: Handlebars.compile(paymentTpl),
   editBooking: Handlebars.compile(editBookingTpl),
   bookingDetail: Handlebars.compile(bookingDetailTpl),
+  history: Handlebars.compile(historyTpl),
+  myReviews: Handlebars.compile(myReviewsTpl),
+  help: Handlebars.compile(helpTpl),
 };
 
 // nếu cần register helpers/partials, làm thêm ở đây

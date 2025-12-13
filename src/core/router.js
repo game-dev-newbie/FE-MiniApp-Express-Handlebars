@@ -14,6 +14,9 @@ import { renderBookingForm } from "../views/bookingFormView.js";
 import { renderPayment } from "../views/paymentView.js";
 import { renderEditBooking } from "../views/editBookingView.js";
 import { renderBookingDetail } from "../views/bookingDetailView.js";
+import { renderMyReviews } from "../views/myReviewsView.js";
+import { renderHistory } from "../views/historyView.js";
+import { renderHelp } from "../views/helpView.js";
 
 export function initRouter() {
   window.addEventListener("hashchange", handleRouteChange);
@@ -22,6 +25,9 @@ export function initRouter() {
 
 function handleRouteChange() {
   const hash = window.location.hash || "#/splash";
+
+  // Scroll to top on route change
+  window.scrollTo(0, 0);
 
   // Parse route
   const route = hash.slice(2); // Remove "#/"
@@ -85,6 +91,9 @@ function handleRouteChange() {
     case "booking":
       renderBooking();
       break;
+    case "history":
+      renderHistory();
+      break;
     case "payment":
       const bookingData = JSON.parse(
         sessionStorage.getItem("pendingBooking") || "{}"
@@ -97,6 +106,12 @@ function handleRouteChange() {
       break;
     case "profile":
       renderProfile();
+      break;
+    case "my-reviews":
+      renderMyReviews();
+      break;
+    case "help":
+      renderHelp();
       break;
     default:
       // Check if onboarding completed

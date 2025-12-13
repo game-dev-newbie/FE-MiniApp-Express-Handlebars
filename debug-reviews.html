@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Reviews</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        pre { background: #f5f5f5; padding: 10px; overflow: auto; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Debug Reviews & Bookings</h1>
+    
+    <h2>Actions</h2>
+    <button onclick="showBookings()">Show Bookings</button>
+    <button onclick="showReviews()">Show Reviews</button>
+    <button onclick="clearReviews()">Clear Reviews</button>
+    <button onclick="createTestBooking()">Create Test CHECKED_IN Booking</button>
+    
+    <h2>Bookings</h2>
+    <pre id="bookings"></pre>
+    
+    <h2>Reviews</h2>
+    <pre id="reviews"></pre>
+    
+    <script>
+        function showBookings() {
+            const bookings = JSON.parse(localStorage.getItem("dinelink_bookings") || "[]");
+            document.getElementById("bookings").textContent = JSON.stringify(bookings, null, 2);
+            console.log("Bookings:", bookings);
+        }
+        
+        function showReviews() {
+            const reviews = JSON.parse(localStorage.getItem("dinelink_user_reviews") || "[]");
+            document.getElementById("reviews").textContent = JSON.stringify(reviews, null, 2);
+            console.log("Reviews:", reviews);
+        }
+        
+        function clearReviews() {
+            if (confirm("Clear all reviews?")) {
+                localStorage.setItem("dinelink_user_reviews", "[]");
+                showReviews();
+                alert("Reviews cleared!");
+            }
+        }
+        
+        function createTestBooking() {
+            const bookings = JSON.parse(localStorage.getItem("dinelink_bookings") || "[]");
+            
+            const testBooking = {
+                id: "test_" + Date.now(),
+                restaurantId: 1,
+                restaurantName: "The Golden Spoon",
+                date: "2025-12-14",
+                time: "19:00",
+                people: 2,
+                tables: ["Bàn 5"],
+                status: "CHECKED_IN",
+                checkedInAt: new Date().toISOString(),
+                paymentStatus: "PAID",
+                depositAmount: 200000
+            };
+            
+            bookings.push(testBooking);
+            localStorage.setItem("dinelink_bookings", JSON.stringify(bookings));
+            
+            alert("Test CHECKED_IN booking created! Refresh the app.");
+            showBookings();
+        }
+        
+        // Auto load on page load
+        window.onload = () => {
+            showBookings();
+            showReviews();
+        };
+    </script>
+</body>
+</html>

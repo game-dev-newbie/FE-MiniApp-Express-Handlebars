@@ -45,6 +45,14 @@ export async function renderHome() {
   // Update notification badge
   updateNotificationBadge();
 
+  // Reset scroll position for all horizontal scroll sections
+  setTimeout(() => {
+    const horizontalScrolls = document.querySelectorAll('.horizontal-scroll');
+    horizontalScrolls.forEach(scroll => {
+      scroll.scrollLeft = 0;
+    });
+  }, 0);
+
   // Initialize event listeners
   initHomeEventListeners();
 }

@@ -1,11 +1,13 @@
 // src/views/restaurantDetailView.js
 import { renderTemplate } from "../core/templates.js";
-import { restaurants, getRestaurantReviews } from "../data/mockData.js";
+import { restaurants, getRestaurantReviews, users } from "../data/mockData.js";
 import { toggleFavorite, isFavorite } from "../utils/favoritesHelper.js";
+import { fetchRestaurantReviews } from "../api/restaurantApi.js";
 
 const appEl = document.getElementById("app");
+const currentUser = users[0];
 
-export function renderRestaurantDetail(restaurantId) {
+export async function renderRestaurantDetail(restaurantId) {
   // Find restaurant by ID
   const restaurant = restaurants.find((r) => r.id === parseInt(restaurantId));
 
@@ -15,19 +17,107 @@ export function renderRestaurantDetail(restaurantId) {
     return;
   }
 
-  // Get reviews for this restaurant
-  const reviews = getRestaurantReviews(restaurantId);
+  // Show loading state
+  appEl.innerHTML = '<div class="loading-spinner">Đang tải...</div>';
 
-  const restaurantDetailContent = renderTemplate("restaurantDetail", {
-    restaurant,
-    reviews,
-  });
+  try {
+    // Fetch reviews from API with sort by latest
+    let reviews = await fetchRestaurantReviews(restaurantId, {
+      sort: 'created_at',
+      order: 'desc',
+      limit: 20
+    });
 
-  appEl.innerHTML = restaurantDetailContent;
+    // Get user reviews from localStorage and add to reviews list
+    const userReviews = JSON.parse(
+      localStorage.getItem("dinelink_user_reviews") || "[]"
+    );
+    
+    const userReviewsForRestaurant = userReviews
+      .filter((r) => r.restaurantId === parseInt(restaurantId))
+      .map((review) => {
+        const user = users.find((u) => u.id === review.userId);
+        return {
+          id: review.id,
+          userName: user?.display_name || "Khách hàng",
+          userAvatar: user?.avatar_url || "https://i.pravatar.cc/150?img=3",
+          rating: review.rating,
+          comment: review.comment,
+          created_at: review.createdAt,
+          formattedTime: formatReviewDateTime(review.createdAt),
+        };
+      });
 
-  // Initialize event listeners
-  initRestaurantDetailListeners(restaurant);
-  initCarousel();
+    // Combine and sort by date (newest first)
+    reviews = [...userReviewsForRestaurant, ...reviews].sort(
+      (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    );
+
+    const restaurantDetailContent = renderTemplate("restaurantDetail", {
+      restaurant,
+      reviews,
+    });
+
+    appEl.innerHTML = restaurantDetailContent;
+
+    // Ensure scroll to top after DOM is rendered
+    requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+    });
+
+    // Initialize event listeners
+    initRestaurantDetailListeners(restaurant);
+    initCarousel();
+    setupReviewUpdateListeners(restaurantId);
+  } catch (error) {
+    console.error("Error fetching restaurant reviews:", error);
+    
+    // Fallback to mockData if API fails
+    let reviews = getRestaurantReviews(restaurantId);
+
+    // Get user reviews from localStorage
+    const userReviews = JSON.parse(
+      localStorage.getItem("dinelink_user_reviews") || "[]"
+    );
+    
+    const userReviewsForRestaurant = userReviews
+      .filter((r) => r.restaurantId === parseInt(restaurantId))
+      .map((review) => {
+        const user = users.find((u) => u.id === review.userId);
+        return {
+          id: review.id,
+          userName: user?.display_name || "Khách hàng",
+          userAvatar: user?.avatar_url || "https://i.pravatar.cc/150?img=3",
+          rating: review.rating,
+          comment: review.comment,
+          created_at: review.createdAt,
+          formattedTime: formatReviewDateTime(review.createdAt),
+        };
+      });
+
+    // Combine and sort by date (newest first)
+    reviews = [...userReviewsForRestaurant, ...reviews].sort(
+      (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    );
+
+    const restaurantDetailContent = renderTemplate("restaurantDetail", {
+      restaurant,
+      reviews,
+    });
+
+    appEl.innerHTML = restaurantDetailContent;
+
+    // Ensure scroll to top after DOM is rendered
+    requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+    });
+
+    // Initialize event listeners
+    initRestaurantDetailListeners(restaurant);
+    initCarousel();
+    setupReviewListener(restaurantId);
+    setupReviewUpdateListeners(restaurantId);
+  }
 }
 
 function initRestaurantDetailListeners(restaurant) {
@@ -142,4 +232,112 @@ function initCarousel() {
   // Pause on hover (for desktop)
   carousel.addEventListener("mouseenter", stopAutoPlay);
   carousel.addEventListener("mouseleave", startAutoPlay);
+}
+
+// Setup listener for new reviews
+let currentReviewListener = null;
+
+function setupReviewListener(restaurantId) {
+  // Remove existing listener if any
+  if (currentReviewListener) {
+    window.removeEventListener("reviewSubmitted", currentReviewListener);
+  }
+
+  // Define handler function
+  currentReviewListener = (event) => {
+    const { restaurantId: reviewRestaurantId } = event.detail;
+    
+    console.log("Review submitted event received:", reviewRestaurantId, "current:", restaurantId);
+    
+    // Only reload if review is for current restaurant and we're still on this page
+    if (parseInt(reviewRestaurantId) === parseInt(restaurantId)) {
+      console.log("✅ New review for current restaurant detected, reloading...");
+      
+      // Reload restaurant detail to show new review
+      setTimeout(() => {
+        if (window.location.hash.includes(`restaurant/${restaurantId}`)) {
+          renderRestaurantDetail(restaurantId);
+        }
+      }, 800);
+    }
+  };
+
+  // Attach listener
+  window.addEventListener("reviewSubmitted", currentReviewListener);
+}
+
+// Setup listener for review updates and deletes
+function setupReviewUpdateListeners(restaurantId) {
+  // Handler for review updates
+  const updateHandler = (event) => {
+    const { reviewId, restaurantId: reviewRestaurantId } = event.detail;
+    
+    if (parseInt(reviewRestaurantId) === parseInt(restaurantId)) {
+      console.log("✅ Review updated for current restaurant, reloading...");
+      
+      setTimeout(() => {
+        if (window.location.hash.includes(`restaurant/${restaurantId}`)) {
+          renderRestaurantDetail(restaurantId);
+        }
+      }, 300);
+    }
+  };
+  
+  // Handler for review deletes
+  const deleteHandler = (event) => {
+    const { reviewId, restaurantId: reviewRestaurantId } = event.detail;
+    
+    if (parseInt(reviewRestaurantId) === parseInt(restaurantId)) {
+      console.log("✅ Review deleted for current restaurant, reloading...");
+      
+      setTimeout(() => {
+        if (window.location.hash.includes(`restaurant/${restaurantId}`)) {
+          renderRestaurantDetail(restaurantId);
+        }
+      }, 300);
+    }
+  };
+  
+  window.addEventListener("reviewUpdated", updateHandler);
+  window.addEventListener("reviewDeleted", deleteHandler);
+  
+  // Cleanup on page unload
+  window.addEventListener("hashchange", () => {
+    window.removeEventListener("reviewUpdated", updateHandler);
+    window.removeEventListener("reviewDeleted", deleteHandler);
+  }, { once: true });
+}
+
+// Format review date time
+function formatReviewDateTime(dateString) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  // Less than 1 hour: show "X phút trước"
+  if (diffMins < 60) {
+    return diffMins <= 1 ? "Vừa xong" : `${diffMins} phút trước`;
+  }
+  // Less than 24 hours: show "X giờ trước"
+  if (diffHours < 24) {
+    return `${diffHours} giờ trước`;
+  }
+  // Less than 7 days: show "X ngày trước"
+  if (diffDays < 7) {
+    return `${diffDays} ngày trước`;
+  }
+  // Older: show full date and time
+  const dateStr = date.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+  const timeStr = date.toLocaleTimeString("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return `${dateStr} lúc ${timeStr}`;
 }

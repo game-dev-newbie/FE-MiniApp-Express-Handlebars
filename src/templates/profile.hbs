@@ -77,36 +77,6 @@
           <polyline points="9 18 15 12 9 6"></polyline>
         </svg>
       </button>
-
-      <button class="menu-item" id="changePasswordBtn">
-        <div class="menu-item-icon">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-          </svg>
-        </div>
-        <div class="menu-item-content">
-          <span class="menu-item-title">Đổi mật khẩu</span>
-        </div>
-        <svg
-          class="menu-item-arrow"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <polyline points="9 18 15 12 9 6"></polyline>
-        </svg>
-      </button>
     </div>
 
     <div class="menu-group">
@@ -125,6 +95,36 @@
             <line x1="16" y1="2" x2="16" y2="6"></line>
             <line x1="8" y1="2" x2="8" y2="6"></line>
             <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+        </div>
+        <div class="menu-item-content">
+          <span class="menu-item-title">Đặt bàn của tôi</span>
+        </div>
+        <svg
+          class="menu-item-arrow"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+
+      <button class="menu-item" id="myHistoryBtn">
+        <div class="menu-item-icon">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
           </svg>
         </div>
         <div class="menu-item-content">
@@ -239,7 +239,7 @@
         </svg>
       </button>
 
-      <button class="menu-item" id="settingsBtn">
+      <div class="menu-item theme-selector-item">
         <div class="menu-item-icon">
           <svg
             width="20"
@@ -249,27 +249,35 @@
             stroke="currentColor"
             stroke-width="2"
           >
-            <circle cx="12" cy="12" r="3"></circle>
-            <path
-              d="M12 1v6m0 6v6m0-13a2 2 0 0 0-2 2v8a2 2 0 0 0 4 0V4a2 2 0 0 0-2-2z"
-            ></path>
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
           </svg>
         </div>
         <div class="menu-item-content">
-          <span class="menu-item-title">Cài đặt</span>
+          <span class="menu-item-title">Giao diện</span>
         </div>
-        <svg
-          class="menu-item-arrow"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <polyline points="9 18 15 12 9 6"></polyline>
-        </svg>
-      </button>
+        <div class="theme-toggle-inline">
+          <button class="theme-btn-inline {{#if isLightMode}}active{{/if}}" data-theme="light">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+            </svg>
+          </button>
+          <button class="theme-btn-inline {{#unless isLightMode}}active{{/unless}}" data-theme="dark">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="menu-group">
@@ -295,3 +303,115 @@
     </div>
   </section>
 </main>
+
+<style>
+/* Theme selector inline styles */
+.theme-selector-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-primary, white);
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.theme-toggle-inline {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-secondary, #f5f5f5);
+  padding: 3px;
+  border-radius: 8px;
+}
+
+.theme-btn-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary, #666);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.theme-btn-inline:hover {
+  background: var(--bg-hover, rgba(0, 0, 0, 0.05));
+}
+
+.theme-btn-inline.active {
+  background: var(--bg-primary, white);
+  color: var(--primary-color, #ff6b6b);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark Mode Styles */
+body.dark-mode {
+  --bg-primary: #1e1e1e;
+  --bg-secondary: #121212;
+  --bg-hover: #2a2a2a;
+  --text-primary: #ffffff;
+  --text-secondary: #b3b3b3;
+  --text-tertiary: #666666;
+  --icon-bg: #2a2a2a;
+  --border-color: #333333;
+  background-color: #121212;
+  color: #ffffff;
+}
+
+body.dark-mode .profile-page {
+  background: #121212;
+}
+
+body.dark-mode .profile-header {
+  background: #1e1e1e;
+}
+
+body.dark-mode .profile-stats {
+  background: #1e1e1e;
+}
+
+body.dark-mode .stat-item {
+  background: #2a2a2a;
+}
+
+body.dark-mode .menu-item {
+  background: #1e1e1e;
+  color: #ffffff;
+}
+
+body.dark-mode .menu-item:hover {
+  background: #2a2a2a;
+}
+
+body.dark-mode .menu-item-title {
+  color: #ffffff;
+}
+
+body.dark-mode .menu-item-subtitle {
+  color: #b3b3b3;
+}
+
+body.dark-mode .theme-selector-item {
+  background: #1e1e1e;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .theme-toggle-inline {
+  background: #2a2a2a;
+}
+
+body.dark-mode .theme-btn-inline.active {
+  background: #333333;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .bottom-nav {
+  background: #1e1e1e;
+  border-top: 1px solid #333333;
+}
+</style>

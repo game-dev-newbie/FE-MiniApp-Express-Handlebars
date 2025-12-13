@@ -78,7 +78,6 @@
   <section class="featured-section">
     <div class="section-header">
       <h2 class="section-title-large">Top nhà hàng có đánh giá tốt</h2>
-      <a href="#" class="see-all-link">Xem tất cả</a>
     </div>
 
     <div class="horizontal-scroll">
@@ -113,6 +112,20 @@
                 {{this.average_rating}}</span>
             </div>
             <p class="featured-card-cuisine">{{this.cuisine}}</p>
+            <div class="featured-card-hours">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span>{{this.opening_hours}} - {{this.closing_hours}}</span>
+            </div>
             <div class="featured-card-footer">
               <span class="featured-card-price">{{this.priceRange}}</span>
               <button class="btn-book-table" data-id="{{this.id}}">Đặt bàn</button>
@@ -127,7 +140,6 @@
   <section class="featured-section">
     <div class="section-header">
       <h2 class="section-title-large">Được yêu thích nhất</h2>
-      <a href="#" class="see-all-link">Xem tất cả</a>
     </div>
 
     <div class="horizontal-scroll">
@@ -162,6 +174,20 @@
                 {{this.average_rating}}</span>
             </div>
             <p class="featured-card-cuisine">{{this.cuisine}}</p>
+            <div class="featured-card-hours">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span>{{this.opening_hours}} - {{this.closing_hours}}</span>
+            </div>
             <div class="featured-card-footer">
               <span class="featured-card-price">{{this.priceRange}}</span>
               <button class="btn-book-table" data-id="{{this.id}}">Đặt bàn</button>
@@ -176,7 +202,6 @@
   <section class="time-based-section">
     <div class="section-header">
       <h2 class="section-title-large">{{timeOfDayTitle}}</h2>
-      <a href="#" class="see-all-link">Xem tất cả</a>
     </div>
 
     <div class="horizontal-scroll">
@@ -211,43 +236,23 @@
                 {{this.average_rating}}</span>
             </div>
             <p class="featured-card-cuisine">{{this.cuisine}}</p>
+            <div class="featured-card-hours">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span>{{this.opening_hours}} - {{this.closing_hours}}</span>
+            </div>
             <div class="featured-card-footer">
               <span class="featured-card-price">{{this.priceRange}}</span>
               <button class="btn-book-table" data-id="{{this.id}}">Đặt bàn</button>
-            </div>
-          </div>
-        </div>
-      {{/each}}
-    </div>
-  </section>
-
-  <!-- Recently Viewed Section -->
-  <section class="recent-visited-section">
-    <div class="section-header">
-      <h2 class="section-title-large">Nhà hàng đã ghé thăm</h2>
-      <a href="#" class="see-all-link">Xem tất cả</a>
-    </div>
-
-    <div class="recent-visited-list">
-      {{#each recentRestaurants}}
-        <div class="recent-visited-card" data-id="{{this.id}}">
-          <div
-            class="recent-card-image"
-            style="background-image: url('{{this.image}}');"
-          >
-            {{#if this.recommended}}
-              <span class="badge-recommended">Được đề xuất</span>
-            {{/if}}
-          </div>
-          <div class="recent-card-content">
-            <h3 class="recent-card-title">{{this.name}}</h3>
-            <div class="recent-card-info">
-              <span class="rating">⭐ {{this.average_rating}}</span>
-            </div>
-            <p class="recent-card-cuisine">{{this.cuisine}}</p>
-            <div class="recent-card-footer">
-              <span class="price">{{this.priceRange}}</span>
-              <button class="btn-book-again" data-id="{{this.id}}">Đặt lại</button>
             </div>
           </div>
         </div>

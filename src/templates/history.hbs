@@ -1,0 +1,191 @@
+<main class="main-content history-page">
+  <!-- Header -->
+  <div class="page-header">
+    <button class="btn-back" onclick="window.location.hash='#/profile'">
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+    <h1 class="page-title">Lịch sử đặt bàn</h1>
+    <div class="header-spacer"></div>
+  </div>
+
+  <!-- History Bookings List -->
+  <section class="history-content">
+    {{#if historyBookings.length}}
+      <div class="bookings-list">
+        {{#each historyBookings}}
+          <div class="booking-card CHECKED_IN" data-id="{{this.id}}">
+            <div class="booking-header">
+              <div class="booking-status-badge {{this.status}}">
+                {{#if (eq this.status "CHECKED_IN")}}✓ Đã check-in{{/if}}
+                {{#if (eq this.status "COMPLETED")}}✓ Đã hoàn thành{{/if}}
+              </div>
+              <span class="booking-date">{{this.booking_time}}</span>
+            </div>
+            <div class="booking-content">
+              <h3 class="booking-restaurant">{{this.restaurant_name}}</h3>
+              <div class="booking-details">
+                <div class="booking-detail-item">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                  <span>{{this.people}} người</span>
+                </div>
+                <div class="booking-detail-item">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <rect
+                      x="3"
+                      y="4"
+                      width="18"
+                      height="18"
+                      rx="2"
+                      ry="2"
+                    ></rect>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                  <span>{{this.table_name}}</span>
+                </div>
+              </div>
+              {{#if this.hasReview}}
+                <div class="review-status">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <polygon
+                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                    ></polygon>
+                  </svg>
+                  <span>Đã đánh giá {{this.userRating}} sao</span>
+                </div>
+              {{/if}}
+            </div>
+            <div class="booking-actions">
+              <button
+                class="btn-booking-action btn-outline btn-view-booking-detail"
+                data-booking-id="{{this.id}}"
+              >Xem chi tiết</button>
+              <button
+                class="btn-booking-action btn-outline btn-view-my-reviews"
+              >Xem đánh giá</button>
+              <button
+                class="btn-booking-action btn-outline btn-rebook"
+                data-restaurant-id="{{this.restaurantId}}"
+              >Đặt lại</button>
+              {{#unless this.hasReview}}
+                <button
+                  class="btn-booking-action btn-primary btn-write-review"
+                  data-booking-id="{{this.id}}"
+                  data-restaurant-id="{{this.restaurantId}}"
+                  data-restaurant-name="{{this.restaurant_name}}"
+                >Viết đánh giá</button>
+              {{/unless}}
+            </div>
+          </div>
+        {{/each}}
+      </div>
+    {{else}}
+      <div class="empty-state">
+        <svg
+          width="64"
+          height="64"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+        >
+          <path
+            d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+          ></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        <h3>Chưa có lịch sử đặt bàn</h3>
+        <p>Các đặt bàn đã check-in sẽ hiển thị ở đây</p>
+      </div>
+    {{/if}}
+  </section>
+</main>
+
+<!-- Write Review Popup -->
+<div id="writeReviewPopup" class="booking-popup" style="display: none;">
+  <div class="booking-popup-overlay"></div>
+  <div class="booking-popup-content review-popup">
+    <button class="btn-close-popup" id="btnCloseReviewPopup">
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    <div class="popup-icon success">
+      <svg
+        width="48"
+        height="48"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <polygon
+          points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+        ></polygon>
+      </svg>
+    </div>
+    <h3 id="reviewRestaurantName">Đánh giá nhà hàng</h3>
+    <div class="review-rating-input">
+      <p>Đánh giá của bạn:</p>
+      <div class="star-rating" id="starRating">
+        <span class="star" data-rating="1">★</span>
+        <span class="star" data-rating="2">★</span>
+        <span class="star" data-rating="3">★</span>
+        <span class="star" data-rating="4">★</span>
+        <span class="star" data-rating="5">★</span>
+      </div>
+    </div>
+    <div class="review-comment-input">
+      <label for="reviewComment">Nhận xét (không bắt buộc):</label>
+      <textarea
+        id="reviewComment"
+        rows="4"
+        placeholder="Chia sẻ trải nghiệm của bạn về nhà hàng..."
+      ></textarea>
+    </div>
+    <div class="popup-actions">
+      <button class="btn-popup-cancel" id="btnCancelReview">Hủy</button>
+      <button class="btn-popup-confirm" id="btnSubmitReview">Gửi đánh giá</button>
+    </div>
+  </div>
+</div>

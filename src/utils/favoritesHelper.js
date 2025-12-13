@@ -32,6 +32,9 @@ export function addFavorite(restaurantId) {
   if (!favorites.includes(id)) {
     favorites.push(id);
     localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+    
+    // Dispatch event for real-time updates
+    window.dispatchEvent(new CustomEvent("favoriteToggled", { detail: { restaurantId: id, isFavorite: true } }));
   }
 
   return favorites;
@@ -48,6 +51,9 @@ export function removeFavorite(restaurantId) {
 
   favorites = favorites.filter((fav) => fav !== id);
   localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+  
+  // Dispatch event for real-time updates
+  window.dispatchEvent(new CustomEvent("favoriteToggled", { detail: { restaurantId: id, isFavorite: false } }));
 
   return favorites;
 }

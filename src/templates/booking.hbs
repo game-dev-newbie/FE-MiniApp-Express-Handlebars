@@ -120,8 +120,7 @@
         </svg>
         <h3>Chưa có lịch đặt bàn</h3>
         <p>Đặt bàn ngay để nhận ưu đãi tốt nhất</p>
-        <button class="btn-primary" onclick="window.location.hash='#/'">Khám phá
-          nhà hàng</button>
+        <button class="btn-primary btn-explore-booking" onclick="window.location.hash='#/'">Đặt bàn ngay</button>
       </div>
     {{/if}}
   </section>
@@ -187,6 +186,7 @@
               <button
                 class="btn-booking-action btn-outline btn-rebook"
                 data-id="{{this.id}}"
+                data-restaurant-id="{{this.restaurantId}}"
               >Đặt lại</button>
             </div>
           </div>

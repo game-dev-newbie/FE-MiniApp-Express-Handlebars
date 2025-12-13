@@ -26,9 +26,25 @@ export async function renderBookingDetail(bookingId) {
     return;
   }
 
+  // Format tables for display
+  let formattedTables = [];
+  if (booking.tables) {
+    if (Array.isArray(booking.tables)) {
+      formattedTables = booking.tables.map(t => {
+        if (typeof t === 'object') {
+          return `${t.name} (${t.type || t.capacity + ' người'})`;
+        }
+        return t;
+      });
+    } else if (typeof booking.tables === 'string') {
+      formattedTables = [booking.tables];
+    }
+  }
+
   // Add deposit amount from restaurant if not in booking
   const bookingWithDeposit = {
     ...booking,
+    tables: formattedTables,
     depositAmount: booking.depositAmount || restaurant.default_deposit_amount,
   };
 

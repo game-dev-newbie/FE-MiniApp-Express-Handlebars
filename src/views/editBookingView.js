@@ -78,10 +78,28 @@ function initEditBookingListeners(originalBooking, restaurant) {
 
   btnIncrease?.addEventListener("click", () => {
     const current = parseInt(peopleCountInput.value);
-    if (current < 50) {
-      peopleCountInput.value = current + 1;
-      updateAvailableTables(originalBooking.restaurantId, current + 1);
+    peopleCountInput.value = current + 1;
+    updateAvailableTables(originalBooking.restaurantId, current + 1);
+  });
+
+  // Handle Enter key
+  peopleCountInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      peopleCountInput.blur(); // Trigger blur to validate
     }
+  });
+
+  // Validate on blur (when user leaves the field or presses Enter)
+  peopleCountInput?.addEventListener("blur", () => {
+    let value = parseInt(peopleCountInput.value);
+
+    if (peopleCountInput.value === "" || isNaN(value) || value < 1) {
+      value = originalBooking.people;
+      peopleCountInput.value = value;
+    }
+    
+    updateAvailableTables(originalBooking.restaurantId, value);
   });
 
   // Initialize with current people count
@@ -186,8 +204,8 @@ function simulateDashboardUpdate(bookingId) {
     const bookingIndex = bookings.findIndex((b) => b.id === bookingId);
 
     if (bookingIndex !== -1) {
-      // Dashboard accepts the update (90% chance)
-      const isAccepted = Math.random() > 0.1;
+      // Dashboard accepts the update (95% chance)
+      const isAccepted = Math.random() > 0.05;
 
       if (isAccepted) {
         bookings[bookingIndex].status = "CONFIRMED";
@@ -233,29 +251,23 @@ function updateAvailableTables(restaurantId, peopleCount) {
   const tablesData = getAvailableTables(restaurantId, peopleCount);
   const tablesSection = document.getElementById("tablesSection");
   const tablesGrid = document.getElementById("tablesGrid");
-  const overCapacityWarning = document.getElementById("overCapacityWarning");
 
   if (!tablesSection || !tablesGrid) return;
 
   // Show tables section
   tablesSection.style.display = "block";
 
-  // Check if over capacity
-  const totalSelectedCapacity = selectedTables.reduce(
-    (sum, t) => sum + t.capacity,
-    0
-  );
+  // Check if people count exceeds max capacity
+  if (peopleCount > tablesData.maxTableCapacity) {
+    const restaurant = restaurants.find(r => r.id === restaurantId);
+    showOverCapacityPopup(restaurant);
+    return;
+  }
+
   const noSuitableSingleTable =
     tablesData.standard.length === 0 && tablesData.vip.length === 0;
 
-  if (noSuitableSingleTable && tablesData.maxTableCapacity > 0) {
-    // Show warning for table combining
-    overCapacityWarning.style.display = "flex";
-  } else {
-    overCapacityWarning.style.display = "none";
-  }
-
-  // Render tables
+  // Render tables - only exact matches
   let tablesHTML = "";
 
   if (tablesData.standard.length > 0) {
@@ -278,38 +290,6 @@ function updateAvailableTables(restaurantId, peopleCount) {
         </div>
       </div>
     `;
-  }
-
-  // Show all available tables if need to combine
-  if (noSuitableSingleTable && tablesData.allAvailable.length > 0) {
-    const standardAll = tablesData.allAvailable.filter(
-      (t) => t.type === "standard"
-    );
-    const vipAll = tablesData.allAvailable.filter((t) => t.type === "vip");
-
-    tablesHTML = `<p class="combine-tables-hint">Chọn nhiều bàn để ghép (tối đa ${tablesData.totalCapacity} người)</p>`;
-
-    if (standardAll.length > 0) {
-      tablesHTML += `
-        <div class="table-type-section">
-          <h3 class="table-type-title">Bàn thường</h3>
-          <div class="table-cards">
-            ${standardAll.map((table) => createTableCard(table)).join("")}
-          </div>
-        </div>
-      `;
-    }
-
-    if (vipAll.length > 0) {
-      tablesHTML += `
-        <div class="table-type-section">
-          <h3 class="table-type-title">Bàn VIP</h3>
-          <div class="table-cards">
-            ${vipAll.map((table) => createTableCard(table)).join("")}
-          </div>
-        </div>
-      `;
-    }
   }
 
   if (tablesHTML === "") {
@@ -376,22 +356,21 @@ function handleTableSelection(tableId, restaurantId) {
   }
 
   // Check if already selected
-  const selectedIndex = selectedTables.findIndex((t) => t.id === tableId);
+  const isAlreadySelected = selectedTables.some((t) => t.id === tableId);
 
-  if (selectedIndex >= 0) {
-    // Deselect
-    selectedTables.splice(selectedIndex, 1);
+  if (isAlreadySelected) {
+    // Deselect - remove the table
+    selectedTables = [];
+    // Update UI
+    updateAvailableTables(restaurantId, peopleCount);
   } else {
-    // Select - show modal first
-    showTablePreviewModal(table, restaurantId);
+    // Show modal first
+    showTablePreviewModal(table, restaurantId, peopleCount);
   }
-
-  // Update UI
-  updateAvailableTables(restaurantId, peopleCount);
 }
 
 // Show table preview modal
-function showTablePreviewModal(table, restaurantId) {
+function showTablePreviewModal(table, restaurantId, peopleCount) {
   const modal = document.getElementById("tablePreviewModal");
   const modalBody = document.getElementById("tableModalBody");
 
@@ -427,11 +406,9 @@ function showTablePreviewModal(table, restaurantId) {
   const btnConfirm = document.getElementById("btnConfirmTable");
   if (btnConfirm) {
     btnConfirm.addEventListener("click", () => {
-      selectedTables.push(table);
+      // Replace with new selection - only allow 1 table
+      selectedTables = [table];
       modal.style.display = "none";
-      const peopleCount = parseInt(
-        document.getElementById("peopleCount").value
-      );
       updateAvailableTables(restaurantId, peopleCount);
     });
   }
@@ -445,13 +422,13 @@ function initModalListeners(restaurantId) {
 
   if (overlay) {
     overlay.addEventListener("click", () => {
-      modal.style.display = "none";
+      if (modal) modal.style.display = "none";
     });
   }
 
   if (btnClose) {
     btnClose.addEventListener("click", () => {
-      modal.style.display = "none";
+      if (modal) modal.style.display = "none";
     });
   }
 }
@@ -467,17 +444,17 @@ function updateSelectedTablesSummary() {
 
   if (selectedTables.length === 0) {
     summary.style.display = "none";
-    // Remove padding when no tables selected
+    // Keep padding when no tables selected to show note field
     if (bookingForm) {
-      bookingForm.style.paddingBottom = "0";
+      bookingForm.style.paddingBottom = "100px";
     }
     return;
   }
 
   summary.style.display = "block";
-  // Add padding to form to prevent content from being hidden by fixed summary
+  // Add more padding to form to prevent content from being hidden by fixed summary
   if (bookingForm) {
-    bookingForm.style.paddingBottom = "200px";
+    bookingForm.style.paddingBottom = "250px";
   }
 
   const totalCapacity = selectedTables.reduce((sum, t) => sum + t.capacity, 0);
@@ -543,4 +520,40 @@ function showSuccessPopup() {
       popup.remove();
     }, 300);
   }, 1800);
+}
+
+// Show over capacity popup
+function showOverCapacityPopup(restaurant) {
+  const popup = document.createElement("div");
+  popup.className = "over-capacity-popup";
+  popup.innerHTML = `
+    <div class="popup-overlay"></div>
+    <div class="popup-content">
+      <div class="popup-icon">⚠️</div>
+      <h3>Số lượng người đã vượt quá sức chứa</h3>
+      <p>Rất tiếc, số lượng người bạn nhập đã vượt quá sức chứa tối đa của nhà hàng.</p>
+      <p>Vui lòng liên hệ trực tiếp với nhà hàng để được tư vấn:</p>
+      <a href="tel:${restaurant.phone}" class="phone-link">${restaurant.phone}</a>
+      <button class="btn-close-popup">Đóng</button>
+    </div>
+  `;
+  document.body.appendChild(popup);
+
+  // Animate in
+  const content = popup.querySelector(".popup-content");
+  content.style.animation = "popupSlideIn 0.3s ease";
+
+  // Close handlers
+  const overlay = popup.querySelector(".popup-overlay");
+  const btnClose = popup.querySelector(".btn-close-popup");
+
+  const closePopup = () => {
+    content.style.animation = "popupSlideOut 0.3s ease";
+    setTimeout(() => {
+      popup.remove();
+    }, 300);
+  };
+
+  overlay.addEventListener("click", closePopup);
+  btnClose.addEventListener("click", closePopup);
 }

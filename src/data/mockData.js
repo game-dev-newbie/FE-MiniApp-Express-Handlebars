@@ -981,21 +981,24 @@ export function getAvailableTables(restaurantId, peopleCount) {
   const tables = restaurantTablesData[restaurantId] || [];
   const availableTables = tables.filter((t) => t.isAvailable);
 
-  // Filter tables that can accommodate the people count
-  const suitableTables = availableTables.filter(
-    (t) => t.capacity >= peopleCount
+  // Filter tables that EXACTLY match the people count (not >=)
+  const exactMatchTables = availableTables.filter(
+    (t) => t.capacity === peopleCount
   );
 
   // Group by type
-  const standardTables = suitableTables.filter((t) => t.type === "standard");
-  const vipTables = suitableTables.filter((t) => t.type === "vip");
+  const standardTables = exactMatchTables.filter((t) => t.type === "standard");
+  const vipTables = exactMatchTables.filter((t) => t.type === "vip");
+
+  // Calculate max capacity of the restaurant
+  const maxCapacity = Math.max(...availableTables.map((t) => t.capacity), 0);
 
   return {
     standard: standardTables,
     vip: vipTables,
     allAvailable: availableTables,
     totalCapacity: availableTables.reduce((sum, t) => sum + t.capacity, 0),
-    maxTableCapacity: Math.max(...availableTables.map((t) => t.capacity), 0),
+    maxTableCapacity: maxCapacity,
   };
 }
 

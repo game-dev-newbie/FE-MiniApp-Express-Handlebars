@@ -145,6 +145,20 @@
                   </div>
                   <div class="result-tags">{{this.tags}}</div>
                 </div>
+                <div class="result-hours">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  <span>{{this.opening_hours}} - {{this.closing_hours}}</span>
+                </div>
                 <div class="result-footer">
                   <span class="result-price">{{this.priceRange}}</span>
                   <button class="btn-book-small" data-id="{{this.id}}">Đặt bàn</button>

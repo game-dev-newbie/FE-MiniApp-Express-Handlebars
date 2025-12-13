@@ -31,6 +31,13 @@
         <span class="cuisine">{{restaurant.cuisine}}</span>
       </div>
       <p class="address">{{restaurant.address}}</p>
+      <div class="restaurant-hours-info">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span>Giờ mở cửa: {{restaurant.opening_hours}} - {{restaurant.closing_hours}}</span>
+      </div>
     </div>
   </div>
 
@@ -168,15 +175,14 @@
           name="people"
           value="2"
           min="1"
-          max="50"
           required
         />
         <button type="button" class="btn-increase" id="btnIncrease">+</button>
       </div>
     </div>
 
-    <!-- Available Tables Section (shown after selecting people count) -->
-    <div class="form-group" id="tablesSection" style="display: none;">
+    <!-- Available Tables Section -->
+    <div class="form-group" id="tablesSection">
       <label>
         <svg
           width="18"
@@ -195,8 +201,8 @@
 
       <!-- Over Capacity Warning -->
       <div
+        class="over-capacity-warning"
         id="overCapacityWarning"
-        class="capacity-warning"
         style="display: none;"
       >
         <svg
@@ -213,10 +219,7 @@
           <line x1="12" y1="9" x2="12" y2="13"></line>
           <line x1="12" y1="17" x2="12.01" y2="17"></line>
         </svg>
-        <div>
-          <strong>Số người vượt quá sức chứa!</strong>
-          <p>Vui lòng chọn thêm bàn để ghép hoặc giảm số người.</p>
-        </div>
+        <p>Không có bàn đơn phù hợp. Vui lòng chọn nhiều bàn để ghép.</p>
       </div>
 
       <!-- Tables Grid -->

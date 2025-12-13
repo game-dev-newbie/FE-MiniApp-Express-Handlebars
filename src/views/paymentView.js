@@ -243,10 +243,7 @@ function sendBookingToDashboard(bookingId) {
   }, responseTime);
 }
 
-// Mock dashboard response: Sequential test cases to demonstrate all scenarios
-// Test case cycle: PENDING (5s) → CONFIRMED (after 8s from payment) → CANCELLED (after 15s from payment)
-let testCaseCounter = 0; // Track which test case to run
-
+// Mock dashboard response: 95% accept, 5% reject
 function simulateDashboardResponse(bookingId) {
   const bookings = JSON.parse(
     localStorage.getItem("dinelink_bookings") || "[]"
@@ -258,50 +255,13 @@ function simulateDashboardResponse(bookingId) {
     return;
   }
 
-  // Determine test case based on counter
-  const testCase = testCaseCounter % 3;
-  testCaseCounter++;
+  // 95% chance of acceptance
+  const isAccepted = Math.random() > 0.05;
 
-  console.log(`\n========== TEST CASE ${testCase + 1} ==========`);
-
-  if (testCase === 0) {
-    // Test Case 1: Keep PENDING longer (stay at pending for demo)
-    console.log("✅ TEST CASE 1: Booking stays PENDING (Chờ xác nhận)");
-    console.log("Dashboard chưa phản hồi - Trạng thái: PENDING");
-    console.log("⏳ Đợi 8 giây nữa để chuyển sang CONFIRMED...\n");
-
-    // After 8 more seconds, auto-confirm
-    setTimeout(() => {
-      const updatedBookings = JSON.parse(
-        localStorage.getItem("dinelink_bookings") || "[]"
-      );
-      const idx = updatedBookings.findIndex((b) => b.id === bookingId);
-      if (idx !== -1) {
-        updatedBookings[idx].status = "CONFIRMED";
-        localStorage.setItem(
-          "dinelink_bookings",
-          JSON.stringify(updatedBookings)
-        );
-
-        console.log("\n========== AUTO UPDATE ==========");
-        console.log("✅ TEST CASE 2: Dashboard ACCEPTED (Đã xác nhận)");
-        console.log("Trạng thái chuyển từ PENDING → CONFIRMED");
-
-        // Create notification
-        createBookingNotification(updatedBookings[idx], "CONFIRMED");
-        updateNotificationBadge();
-
-        window.dispatchEvent(
-          new CustomEvent("bookingStatusUpdated", {
-            detail: { bookingId, status: "CONFIRMED" },
-          })
-        );
-      }
-    }, 8000);
-  } else if (testCase === 1) {
-    // Test Case 2: Accept immediately
+  if (isAccepted) {
+    // Accept booking
     bookings[bookingIndex].status = "CONFIRMED";
-    console.log("✅ TEST CASE 2: Dashboard ACCEPTED immediately");
+    console.log("\u2705 Dashboard ACCEPTED booking:", bookingId);
     console.log("Nhà hàng đã xác nhận đơn đặt bàn");
     console.log("Trạng thái: CONFIRMED (Đã xác nhận)\n");
 
@@ -316,13 +276,18 @@ function simulateDashboardResponse(bookingId) {
         detail: { bookingId, status: "CONFIRMED" },
       })
     );
+
+    // Simulate dashboard check-in after 15 seconds
+    setTimeout(() => {
+      simulateDashboardCheckIn(bookingId);
+    }, 15000); // 15 seconds after confirmation
   } else {
-    // Test Case 3: Reject
+    // Reject booking
     bookings[bookingIndex].status = "CANCELLED";
     bookings[bookingIndex].cancelReason = "Nhà hàng không còn chỗ trống";
     bookings[bookingIndex].refundStatus = "Đã hoàn tiền";
 
-    console.log("❌ TEST CASE 3: Dashboard REJECTED");
+    console.log("❌ Dashboard REJECTED booking:", bookingId);
     console.log("Nhà hàng từ chối đơn đặt bàn");
     console.log("Lý do: Không còn chỗ trống");
     console.log("Trạng thái: CANCELLED (Đã hủy)");
@@ -344,6 +309,47 @@ function simulateDashboardResponse(bookingId) {
       })
     );
   }
+}
+
+// Simulate dashboard check-in (after confirmation)
+function simulateDashboardCheckIn(bookingId) {
+  const bookings = JSON.parse(
+    localStorage.getItem("dinelink_bookings") || "[]"
+  );
+  const bookingIndex = bookings.findIndex((b) => b.id === bookingId);
+
+  if (bookingIndex === -1 || bookings[bookingIndex].status !== "CONFIRMED") {
+    return;
+  }
+
+  // Change status to CHECKED_IN
+  bookings[bookingIndex].status = "CHECKED_IN";
+  bookings[bookingIndex].checkedInAt = new Date().toISOString();
+
+  console.log("✅ Dashboard CHECK-IN completed:", bookingId);
+  console.log("Khách hàng đã check-in tại nhà hàng");
+  console.log("Trạng thái: CHECKED_IN (Đã check-in)");
+  console.log("Booking chuyển sang trang lịch sử để đánh giá\n");
+
+  localStorage.setItem("dinelink_bookings", JSON.stringify(bookings));
+
+  // Create notification
+  createBookingNotification(bookings[bookingIndex], "CHECKED_IN");
+  updateNotificationBadge();
+
+  // Dispatch check-in event
+  window.dispatchEvent(
+    new CustomEvent("bookingCheckedIn", {
+      detail: { bookingId, status: "CHECKED_IN" },
+    })
+  );
+
+  // Also dispatch status update event
+  window.dispatchEvent(
+    new CustomEvent("bookingStatusUpdated", {
+      detail: { bookingId, status: "CHECKED_IN" },
+    })
+  );
 }
 
 function showSuccessPopup() {

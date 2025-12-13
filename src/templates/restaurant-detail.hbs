@@ -122,6 +122,20 @@
         </svg>
         <a href="tel:{{restaurant.phone}}">{{restaurant.phone}}</a>
       </div>
+      <div class="contact-item">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span>{{restaurant.opening_hours}} - {{restaurant.closing_hours}}</span>
+      </div>
     </div>
 
     <!-- Tags -->
@@ -198,7 +212,7 @@
                 </div>
               </div>
               <p class="review-comment">{{this.comment}}</p>
-              <span class="review-date">{{formatDate this.created_at}}</span>
+              <span class="review-date">{{this.formattedTime}}</span>
             </div>
           {{/each}}
         </div>
