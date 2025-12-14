@@ -1,6 +1,11 @@
 // src/utils/authService.js
 // Authentication Service - Manages tokens and auth state
-import { getUserInfo, getStorage, setStorage, removeStorage } from "zmp-sdk/apis";
+import {
+  getUserInfo,
+  getStorage,
+  setStorage,
+  removeStorage,
+} from "zmp-sdk/apis";
 
 const ACCESS_TOKEN_KEY = "dinelink_access_token";
 const REFRESH_TOKEN_KEY = "dinelink_refresh_token";
@@ -14,14 +19,14 @@ class AuthService {
   }
 
   // ===== ZALO STORAGE HELPERS =====
-  
+
   // Use zmp-sdk storage methods
   async getStorageData(key) {
     try {
       const { data } = await getStorage({ keys: [key] });
       return data[key] || null;
     } catch (error) {
-      console.warn('Zalo storage not available, using localStorage:', error);
+      console.warn("Zalo storage not available, using localStorage:", error);
       return localStorage.getItem(key);
     }
   }
@@ -31,7 +36,7 @@ class AuthService {
       await setStorage({ [key]: value });
       return true;
     } catch (error) {
-      console.warn('Zalo storage not available, using localStorage:', error);
+      console.warn("Zalo storage not available, using localStorage:", error);
       localStorage.setItem(key, value);
       return true;
     }
@@ -42,14 +47,14 @@ class AuthService {
       await removeStorage({ keys: [key] });
       return true;
     } catch (error) {
-      console.warn('Zalo storage not available, using localStorage:', error);
+      console.warn("Zalo storage not available, using localStorage:", error);
       localStorage.removeItem(key);
       return true;
     }
   }
 
   // ===== TOKEN MANAGEMENT =====
-  
+
   async getAccessToken() {
     return await this.getStorageData(ACCESS_TOKEN_KEY);
   }
@@ -89,7 +94,7 @@ class AuthService {
   }
 
   // ===== USER DATA MANAGEMENT =====
-  
+
   async getUser() {
     const userData = await this.getStorageData(USER_KEY);
     return userData ? JSON.parse(userData) : null;
@@ -104,7 +109,7 @@ class AuthService {
   }
 
   // ===== AUTH STATE =====
-  
+
   async isAuthenticated() {
     const token = await this.getAccessToken();
     return !!token;
@@ -115,12 +120,12 @@ class AuthService {
   }
 
   // ===== ZALO SSO LOGIN =====
-  
+
   async loginWithZalo() {
     try {
       // Get Zalo user info from Zalo SDK
       const zaloUser = await this.getZaloUserInfo();
-      
+
       if (!zaloUser) {
         throw new Error("Không thể lấy thông tin từ Zalo");
       }
@@ -143,7 +148,7 @@ class AuthService {
       }
 
       const data = await response.json();
-      
+
       // Save tokens and user data
       await this.setAccessToken(data.accessToken);
       await this.setRefreshToken(data.refreshToken);
@@ -163,9 +168,9 @@ class AuthService {
       // avatarType: "normal" để lấy ảnh avatar kích thước vừa
       const { userInfo } = await getUserInfo({
         autoRequestPermission: true,
-        avatarType: "normal"
+        avatarType: "normal",
       });
-      
+
       return {
         id: userInfo.id,
         name: userInfo.name,
@@ -173,12 +178,12 @@ class AuthService {
       };
     } catch (error) {
       console.warn("Not running in Zalo Mini App - using mock data:", error);
-      
+
       // Xử lý lỗi -1401: người dùng từ chối cung cấp thông tin
       if (error.code === -1401) {
         throw new Error("Bạn cần cho phép truy cập thông tin để đăng nhập");
       }
-      
+
       // Return mock data for development
       return {
         id: "mock_zalo_" + Date.now(),
@@ -189,7 +194,7 @@ class AuthService {
   }
 
   // ===== EMAIL LOGIN =====
-  
+
   async loginWithEmail(email, password) {
     try {
       const response = await fetch(`${this.apiBaseUrl}/auth/login`, {
@@ -210,7 +215,7 @@ class AuthService {
       }
 
       const data = await response.json();
-      
+
       // Save tokens and user data
       await this.setAccessToken(data.accessToken);
       await this.setRefreshToken(data.refreshToken);
@@ -224,7 +229,7 @@ class AuthService {
   }
 
   // ===== EMAIL REGISTER =====
-  
+
   async registerWithEmail(email, password, displayName) {
     try {
       const response = await fetch(`${this.apiBaseUrl}/auth/register`, {
@@ -246,7 +251,7 @@ class AuthService {
       }
 
       const data = await response.json();
-      
+
       // Save tokens and user data
       await this.setAccessToken(data.accessToken);
       await this.setRefreshToken(data.refreshToken);
@@ -260,7 +265,7 @@ class AuthService {
   }
 
   // ===== REFRESH TOKEN =====
-  
+
   async refreshAccessToken() {
     // Prevent multiple refresh requests
     if (this.isRefreshing) {
@@ -275,7 +280,7 @@ class AuthService {
 
     try {
       const refreshToken = await this.getRefreshToken();
-      
+
       if (!refreshToken) {
         throw new Error("No refresh token available");
       }
@@ -293,10 +298,10 @@ class AuthService {
       }
 
       const data = await response.json();
-      
+
       // Save new tokens
       await this.setAccessToken(data.accessToken);
-      
+
       // Optionally update refresh token if backend rotates it
       if (data.refreshToken) {
         await this.setRefreshToken(data.refreshToken);
@@ -320,17 +325,17 @@ class AuthService {
   }
 
   // ===== LOGOUT =====
-  
+
   async logout() {
     try {
       const token = await this.getAccessToken();
-      
+
       if (token) {
         // Call backend to invalidate tokens
         await fetch(`${this.apiBaseUrl}/auth/logout`, {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         });
@@ -345,7 +350,7 @@ class AuthService {
   }
 
   // ===== AUTH GUARD =====
-  
+
   async requireAuth(intendedPath = null) {
     const isAuth = await this.isAuthenticated();
     if (!isAuth) {
@@ -370,17 +375,17 @@ class AuthService {
   }
 
   // ===== API HELPER WITH AUTH & AUTO REFRESH =====
-  
+
   async fetchWithAuth(url, options = {}) {
     let token = await this.getAccessToken();
-    
+
     if (!token) {
       throw new Error("Not authenticated");
     }
 
     const headers = {
       ...options.headers,
-      "Authorization": `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     };
 
@@ -394,11 +399,11 @@ class AuthService {
       try {
         // Attempt to refresh the access token
         token = await this.refreshAccessToken();
-        
+
         // Retry the original request with new token
         const newHeaders = {
           ...options.headers,
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         };
 

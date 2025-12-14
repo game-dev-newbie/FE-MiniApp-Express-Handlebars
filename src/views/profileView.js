@@ -251,7 +251,7 @@ function initProfileEventListeners() {
     logoutBtn.addEventListener("click", async () => {
       // Check if user is logged in
       const isLoggedIn = authService.getToken() !== null;
-      
+
       if (isLoggedIn) {
         // User is logged in, perform logout
         if (confirm("Bạn có chắc chắn muốn đăng xuất?")) {

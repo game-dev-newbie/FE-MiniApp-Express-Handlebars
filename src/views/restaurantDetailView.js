@@ -144,7 +144,7 @@ function initRestaurantDetailListeners(restaurant) {
         authService.requireAuth(`#/restaurant/${restaurant.id}`);
         return;
       }
-      
+
       toggleFavorite(restaurant.id);
       btnBookmark.classList.toggle("active");
     });

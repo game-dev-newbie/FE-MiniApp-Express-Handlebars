@@ -20,7 +20,7 @@ export async function renderHome() {
   // Check if user is logged in (await since it's async)
   const isLoggedIn = await authService.isAuthenticated();
   const user = isLoggedIn ? await authService.getUser() : null;
-  
+
   // Use logged in user data or guest data
   const displayName = user ? user.display_name : "Quý khách";
   const avatarUrl = user ? user.avatar_url : "/src/assets/icons/cá nhân.jpg";

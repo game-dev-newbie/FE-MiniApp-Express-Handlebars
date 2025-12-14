@@ -36,7 +36,7 @@ function initLoginEventListeners() {
 async function handleZaloLogin() {
   const button = document.getElementById("btnZaloLogin");
   const originalText = button.innerHTML;
-  
+
   try {
     // Show loading state
     button.disabled = true;
@@ -52,10 +52,10 @@ async function handleZaloLogin() {
 
     if (result.success) {
       console.log("✅ Zalo login successful:", result.user);
-      
+
       // Show success message
       showNotification("Đăng nhập thành công!", "success");
-      
+
       // Vibrate if supported
       if (navigator.vibrate) {
         navigator.vibrate([50, 100, 50]);
@@ -79,11 +79,11 @@ async function handleZaloLogin() {
 
 async function handleEmailLogin(event) {
   event.preventDefault();
-  
+
   const form = event.target;
   const button = document.getElementById("btnSubmitLogin");
   const originalText = button.textContent;
-  
+
   const email = form.email.value.trim();
   const password = form.password.value;
 
@@ -102,10 +102,10 @@ async function handleEmailLogin(event) {
 
     if (result.success) {
       console.log("✅ Email login successful:", result.user);
-      
+
       // Show success message
       showNotification("Đăng nhập thành công!", "success");
-      
+
       // Vibrate if supported
       if (navigator.vibrate) {
         navigator.vibrate([50, 100, 50]);

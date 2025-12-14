@@ -36,7 +36,7 @@ function initRegisterEventListeners() {
 async function handleZaloRegister() {
   const button = document.getElementById("btnZaloRegister");
   const originalText = button.innerHTML;
-  
+
   try {
     // Show loading state
     button.disabled = true;
@@ -53,10 +53,10 @@ async function handleZaloRegister() {
 
     if (result.success) {
       console.log("✅ Zalo registration/login successful:", result.user);
-      
+
       // Show success message
       showNotification("Đăng ký thành công!", "success");
-      
+
       // Vibrate if supported
       if (navigator.vibrate) {
         navigator.vibrate([50, 100, 50]);
@@ -80,11 +80,11 @@ async function handleZaloRegister() {
 
 async function handleEmailRegister(event) {
   event.preventDefault();
-  
+
   const form = event.target;
   const button = document.getElementById("btnSubmitRegister");
   const originalText = button.textContent;
-  
+
   const displayName = form.displayName.value.trim();
   const email = form.email.value.trim();
   const password = form.password.value;
@@ -118,14 +118,18 @@ async function handleEmailRegister(event) {
     button.disabled = true;
     button.textContent = "Đang đăng ký...";
 
-    const result = await authService.registerWithEmail(email, password, displayName);
+    const result = await authService.registerWithEmail(
+      email,
+      password,
+      displayName
+    );
 
     if (result.success) {
       console.log("✅ Email registration successful:", result.user);
-      
+
       // Show success message
       showNotification("Đăng ký thành công!", "success");
-      
+
       // Vibrate if supported
       if (navigator.vibrate) {
         navigator.vibrate([50, 100, 50]);
