@@ -306,9 +306,9 @@ function updateAvailableTables(restaurantId, peopleCount) {
 function createTableCard(table) {
   const isSelected = selectedTables.some((t) => t.id === table.id);
   return `
-    <div class="table-card ${table.type} ${isSelected ? "selected" : ""}" data-table-id="${
-    table.id
-  }">
+    <div class="table-card ${table.type} ${
+    isSelected ? "selected" : ""
+  }" data-table-id="${table.id}">
       <div class="table-card-header">
         <span class="table-name">${table.name}</span>
         <span class="table-capacity">
