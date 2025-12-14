@@ -14,6 +14,9 @@ export async function renderMyReviews() {
   console.log("📝 User reviews:", userReviews);
   console.log("🍽️ Available restaurants:", restaurants);
 
+  // Sort by date descending BEFORE enriching
+  userReviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
   // Enrich reviews with restaurant data
   const enrichedReviews = userReviews.map((review) => {
     const restaurant = restaurants.find(
@@ -36,9 +39,6 @@ export async function renderMyReviews() {
       createdAt: formatDateTime(review.createdAt),
     };
   });
-
-  // Sort by date descending
-  enrichedReviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const contentHtml = renderTemplate("myReviews", {
     reviews: enrichedReviews,

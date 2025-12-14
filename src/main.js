@@ -7,9 +7,7 @@ function bootstrap() {
 
   // Apply saved theme on startup
   const savedTheme = localStorage.getItem("dinelink_theme") || "light";
-  if (savedTheme === "dark") {
-    document.body.classList.add("dark-mode");
-  }
+  document.documentElement.setAttribute("data-theme", savedTheme);
 
   // Check if first time visit - show splash
   const currentHash = window.location.hash;

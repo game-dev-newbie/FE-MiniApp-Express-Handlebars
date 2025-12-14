@@ -78,8 +78,12 @@ function initBookingDetailEventListeners(bookingId) {
   // Listen for booking status updates
   const statusUpdateHandler = (event) => {
     if (event.detail.bookingId === bookingId) {
-      // Reload the booking detail to show updated status
-      renderBookingDetail(bookingId);
+      // Only reload if we're still on the booking detail page
+      const currentHash = window.location.hash;
+      if (currentHash === `#/booking/${bookingId}`) {
+        // Reload the booking detail to show updated status
+        renderBookingDetail(bookingId);
+      }
     }
   };
 

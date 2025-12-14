@@ -135,6 +135,25 @@ function setupProfileUpdateListeners() {
 }
 
 function initProfileEventListeners() {
+  // Dark Mode Toggle
+  const darkModeToggle = document.getElementById("darkModeToggle");
+  if (darkModeToggle) {
+    // Set initial state
+    const currentTheme = localStorage.getItem("dinelink_theme") || "light";
+    darkModeToggle.checked = currentTheme === "dark";
+    document.documentElement.setAttribute("data-theme", currentTheme);
+
+    // Handle toggle
+    darkModeToggle.addEventListener("change", (e) => {
+      const theme = e.target.checked ? "dark" : "light";
+      localStorage.setItem("dinelink_theme", theme);
+      document.documentElement.setAttribute("data-theme", theme);
+      
+      // Add smooth transition
+      if (navigator.vibrate) navigator.vibrate(10);
+    });
+  }
+
   // Edit avatar
   const editAvatarBtn = document.querySelector(".btn-edit-avatar");
   if (editAvatarBtn) {

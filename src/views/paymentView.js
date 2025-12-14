@@ -206,19 +206,26 @@ function handleCardPayment(bookingData) {
   const cardExpiry = document.getElementById("cardExpiry").value;
   const cardCVV = document.getElementById("cardCVV").value;
 
-  // Mock payment API call
-  console.log("Processing card payment:", {
+  // Mock payment API call with payload
+  const paymentPayload = {
+    provider: 1, // Card payment
+    mock_result: paymentTestMode === "success" ? "SUCCESS" : "FAILED",
     cardNumber,
     cardName,
     cardExpiry,
     cardCVV,
     amount: bookingData.depositAmount,
     bookingData,
-  });
+  };
+
+  console.log("Processing card payment with payload:", paymentPayload);
 
   // Simulate API call
   setTimeout(() => {
     if (paymentTestMode === "success") {
+      // SUCCESS flow: Allow booking creation
+      console.log("✅ Payment SUCCESS - Creating booking");
+
       // Save card info if checkbox is checked
       const saveCardCheckbox = document.getElementById("saveCard");
       if (saveCardCheckbox && saveCardCheckbox.checked) {
@@ -231,12 +238,14 @@ function handleCardPayment(bookingData) {
         console.log("Card saved for future use");
       }
 
-      // Save booking to localStorage
+      // Save booking with PAID status
       saveBooking(bookingData);
-      // Show success popup
+      // Show success popup and redirect to booking page
       showSuccessPopup();
     } else {
-      // Show failure popup
+      // FAILED flow: Don't create booking, show error
+      console.log("❌ Payment FAILED - Not creating booking");
+      // Show failure popup and stay on payment page
       showFailurePopup();
     }
   }, 1500);
@@ -248,22 +257,29 @@ function handleEWalletPayment(bookingData) {
     return;
   }
 
-  // Mock e-wallet payment API call
-  console.log("Processing e-wallet payment:", {
-    provider: selectedEWallet,
+  // Mock e-wallet payment API call with payload
+  const paymentPayload = {
+    provider: selectedEWallet, // momo, vnpay, or zalopay
+    mock_result: paymentTestMode === "success" ? "SUCCESS" : "FAILED",
     amount: bookingData.depositAmount,
     bookingData,
-  });
+  };
+
+  console.log("Processing e-wallet payment with payload:", paymentPayload);
 
   // Simulate API call
   setTimeout(() => {
     if (paymentTestMode === "success") {
-      // Save booking to localStorage
+      // SUCCESS flow: Allow booking creation
+      console.log("✅ Payment SUCCESS - Creating booking");
+      // Save booking with PAID status
       saveBooking(bookingData);
-      // Show success popup
+      // Show success popup and redirect to booking page
       showSuccessPopup();
     } else {
-      // Show failure popup
+      // FAILED flow: Don't create booking, show error
+      console.log("❌ Payment FAILED - Not creating booking");
+      // Show failure popup and stay on payment page
       showFailurePopup();
     }
   }, 1500);
@@ -454,10 +470,12 @@ function showFailurePopup() {
 
   document.body.appendChild(popup);
 
-  // Retry button
+  // Retry button - close popup and stay on payment page
   const btnRetry = popup.querySelector("#btnPopupRetry");
   btnRetry.addEventListener("click", () => {
-    document.body.removeChild(popup);
+    popup.remove();
+    // User stays on payment page to try again
+    console.log("User will retry payment");
   });
 }
 
