@@ -2,12 +2,18 @@
 import { renderTemplate } from "../core/templates.js";
 import { restaurants, users, getAvailableTables } from "../data/mockData.js";
 import { updateNotificationBadge } from "./notificationView.js";
+import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
 const currentUser = users[0]; // Simulate logged in user
 let selectedTables = []; // Track selected tables
 
 export function renderBookingForm(restaurantId) {
+  // Check authentication before allowing booking
+  if (!authService.requireAuth(`#/booking/new/${restaurantId}`)) {
+    return;
+  }
+
   // Reset selected tables when entering the page
   selectedTables = [];
 

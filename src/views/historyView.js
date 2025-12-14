@@ -3,11 +3,17 @@
 import { renderTemplate } from "../core/templates.js";
 import { restaurants, users } from "../data/mockData.js";
 import { submitReview as submitReviewAPI } from "../api/reviewApi.js";
+import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
 const currentUser = users[0];
 
 export async function renderHistory() {
+  // Check authentication before showing history
+  if (!authService.requireAuth("#/history")) {
+    return;
+  }
+
   // Get bookings from localStorage
   const localBookings = JSON.parse(
     localStorage.getItem("dinelink_bookings") || "[]"

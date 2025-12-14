@@ -21,6 +21,8 @@ import bookingDetailTpl from "../templates/booking-detail.hbs?raw";
 import historyTpl from "../templates/history.hbs?raw";
 import myReviewsTpl from "../templates/my-reviews.hbs?raw";
 import helpTpl from "../templates/help.hbs?raw";
+import loginTpl from "../templates/login.hbs?raw";
+import registerTpl from "../templates/register.hbs?raw";
 
 // compile sẵn
 const templates = {
@@ -44,6 +46,8 @@ const templates = {
   history: Handlebars.compile(historyTpl),
   myReviews: Handlebars.compile(myReviewsTpl),
   help: Handlebars.compile(helpTpl),
+  login: Handlebars.compile(loginTpl),
+  register: Handlebars.compile(registerTpl),
 };
 
 // nếu cần register helpers/partials, làm thêm ở đây

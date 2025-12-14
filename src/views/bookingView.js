@@ -7,11 +7,17 @@ import {
   users,
   reviews,
 } from "../data/mockData.js";
+import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
 const currentUser = users[0];
 
 export async function renderBooking() {
+  // Check authentication before showing bookings
+  if (!authService.requireAuth("#/booking")) {
+    return;
+  }
+
   const bottomNavHtml = renderTemplate("bottomNav", { activePage: "booking" });
 
   // Get bookings ONLY from localStorage (not from mockData)

@@ -3,6 +3,7 @@ import { renderTemplate } from "../core/templates.js";
 import { restaurants, getRestaurantReviews, users } from "../data/mockData.js";
 import { toggleFavorite, isFavorite } from "../utils/favoritesHelper.js";
 import { fetchRestaurantReviews } from "../api/restaurantApi.js";
+import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
 const currentUser = users[0];
@@ -138,6 +139,12 @@ function initRestaurantDetailListeners(restaurant) {
     }
 
     btnBookmark.addEventListener("click", () => {
+      // Check if user is logged in before allowing favorite
+      if (!authService.isAuthenticated()) {
+        authService.requireAuth(`#/restaurant/${restaurant.id}`);
+        return;
+      }
+      
       toggleFavorite(restaurant.id);
       btnBookmark.classList.toggle("active");
     });

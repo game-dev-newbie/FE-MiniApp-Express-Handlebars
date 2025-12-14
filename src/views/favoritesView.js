@@ -6,11 +6,17 @@ import {
   isFavorite,
   getFavoriteRestaurants,
 } from "../utils/favoritesHelper.js";
+import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
 const currentUser = users[0];
 
 export async function renderFavorites() {
+  // Check authentication before allowing access to favorites
+  if (!authService.requireAuth("#/favorites")) {
+    return;
+  }
+
   const bottomNavHtml = renderTemplate("bottomNav", { activePage: "home" });
 
   // Get user's favorite restaurants from localStorage

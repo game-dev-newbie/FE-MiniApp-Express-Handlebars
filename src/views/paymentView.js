@@ -4,12 +4,18 @@ import {
   createBookingNotification,
   updateNotificationBadge,
 } from "../utils/notificationHelper.js";
+import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
 let selectedEWallet = null;
 let paymentTestMode = "success"; // success or failure
 
 export function renderPayment(bookingData) {
+  // Check authentication before allowing payment
+  if (!authService.requireAuth("#/payment")) {
+    return;
+  }
+
   const paymentContent = renderTemplate("payment", {
     booking: bookingData,
   });

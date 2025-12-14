@@ -2,6 +2,7 @@
 import { renderTemplate } from "../core/templates.js";
 import { searchRestaurants } from "../data/mockData.js";
 import { toggleFavorite, isFavorite } from "../utils/favoritesHelper.js";
+import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
 const RECENT_SEARCHES_KEY = "recentSearches";
@@ -268,6 +269,12 @@ function initSearchEventListeners(currentQuery) {
 
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
+
+      // Check if user is logged in before allowing favorite
+      if (!authService.isAuthenticated()) {
+        authService.requireAuth(window.location.hash || "#/search");
+        return;
+      }
 
       if (restaurantId) {
         const isNowFavorite = toggleFavorite(restaurantId);

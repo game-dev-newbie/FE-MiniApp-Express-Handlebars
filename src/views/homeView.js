@@ -12,27 +12,36 @@ import {
 } from "../data/mockData.js";
 import { toggleFavorite, isFavorite } from "../utils/favoritesHelper.js";
 import { updateNotificationBadge } from "../utils/notificationHelper.js";
+import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
-const currentUser = users[0]; // Simulate logged in user
 
 export async function renderHome() {
+  // Check if user is logged in (await since it's async)
+  const isLoggedIn = await authService.isAuthenticated();
+  const user = isLoggedIn ? await authService.getUser() : null;
+  
+  // Use logged in user data or guest data
+  const displayName = user ? user.display_name : "Quý khách";
+  const avatarUrl = user ? user.avatar_url : "/src/assets/icons/cá nhân.jpg";
+  const userId = user ? user.id : null;
+
   // Render header and bottom nav
   const headerHtml = renderTemplate("header", {
-    userAvatar: currentUser.avatar_url,
-    userName: currentUser.display_name,
+    userAvatar: avatarUrl,
+    userName: displayName,
   });
   const bottomNavHtml = renderTemplate("bottomNav", { activePage: "home" });
 
   // Get data from mockData
   const featuredRestaurants = getFeaturedRestaurants();
   const popularRestaurants = getPopularRestaurants();
-  const recentRestaurants = getRecentlyVisitedRestaurants(currentUser.id);
+  const recentRestaurants = userId ? getRecentlyVisitedRestaurants(userId) : [];
   const timeBasedRestaurants = getRestaurantsByTimeOfDay();
   const timeOfDayTitle = getTimeOfDayTitle();
 
   const contentHtml = renderTemplate("homeContent", {
-    userName: currentUser.display_name,
+    userName: displayName,
     featuredRestaurants,
     popularRestaurants,
     recentRestaurants,
@@ -128,8 +137,15 @@ function initHomeEventListeners() {
       button.classList.add("active");
     }
 
-    button.addEventListener("click", (e) => {
+    button.addEventListener("click", async (e) => {
       e.stopPropagation();
+
+      // Check if user is logged in before allowing favorite
+      if (!(await authService.isAuthenticated())) {
+        // Store current page and redirect to login
+        await authService.requireAuth(window.location.hash || "#/home");
+        return;
+      }
 
       if (restaurantId) {
         const isNowFavorite = toggleFavorite(restaurantId);
@@ -195,14 +211,24 @@ function initHomeEventListeners() {
   }
 
   if (bookmarkBtn) {
-    bookmarkBtn.addEventListener("click", () => {
+    bookmarkBtn.addEventListener("click", async () => {
+      // Check if user is logged in before allowing access to favorites
+      if (!(await authService.isAuthenticated())) {
+        await authService.requireAuth("#/favorites");
+        return;
+      }
       sessionStorage.setItem("favoritesReferrer", "home");
       window.location.hash = "#/favorites";
     });
   }
 
   if (profileBtn) {
-    profileBtn.addEventListener("click", () => {
+    profileBtn.addEventListener("click", async () => {
+      // Check if user is logged in before allowing access to profile
+      if (!(await authService.isAuthenticated())) {
+        await authService.requireAuth("#/profile");
+        return;
+      }
       window.location.hash = "#/profile";
     });
   }

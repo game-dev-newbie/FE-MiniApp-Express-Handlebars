@@ -1,11 +1,17 @@
 // src/views/myReviewsView.js
 import { renderTemplate } from "../core/templates.js";
 import { users, restaurants } from "../data/mockData.js";
+import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
 const currentUser = users[0];
 
 export async function renderMyReviews() {
+  // Check authentication before showing reviews
+  if (!authService.requireAuth("#/my-reviews")) {
+    return;
+  }
+
   // Get user reviews from localStorage
   const userReviews = JSON.parse(
     localStorage.getItem("dinelink_user_reviews") || "[]"

@@ -17,6 +17,8 @@ import { renderBookingDetail } from "../views/bookingDetailView.js";
 import { renderMyReviews } from "../views/myReviewsView.js";
 import { renderHistory } from "../views/historyView.js";
 import { renderHelp } from "../views/helpView.js";
+import { renderLogin } from "../views/loginView.js";
+import { renderRegister } from "../views/registerView.js";
 
 export function initRouter() {
   window.addEventListener("hashchange", handleRouteChange);
@@ -124,6 +126,12 @@ function handleRouteChange() {
       break;
     case "help":
       renderHelp();
+      break;
+    case "login":
+      renderLogin();
+      break;
+    case "register":
+      renderRegister();
       break;
     default:
       // Check if onboarding completed

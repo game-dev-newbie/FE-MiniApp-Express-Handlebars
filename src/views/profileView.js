@@ -6,6 +6,7 @@ import {
   reviews,
   getUserFavoriteIds,
 } from "../data/mockData.js";
+import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
 const currentUser = users[0];
@@ -46,6 +47,11 @@ function getProfileStats() {
 }
 
 export async function renderProfile() {
+  // Check authentication before allowing access to profile
+  if (!authService.requireAuth("#/profile")) {
+    return;
+  }
+
   const bottomNavHtml = renderTemplate("bottomNav", { activePage: "profile" });
 
   // Get real-time statistics
@@ -242,11 +248,29 @@ function initProfileEventListeners() {
   // Logout
   const logoutBtn = document.getElementById("logoutBtn");
   if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      if (confirm("Bạn có chắc chắn muốn đăng xuất?")) {
-        localStorage.removeItem("onboardingCompleted");
-        window.location.hash = "#/splash";
-        location.reload();
+    logoutBtn.addEventListener("click", async () => {
+      // Check if user is logged in
+      const isLoggedIn = authService.getToken() !== null;
+      
+      if (isLoggedIn) {
+        // User is logged in, perform logout
+        if (confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+          try {
+            await authService.logout();
+            if (navigator.vibrate) navigator.vibrate(10);
+            window.location.hash = "#/login";
+          } catch (error) {
+            console.error("Logout error:", error);
+            alert("Có lỗi xảy ra khi đăng xuất. Vui lòng thử lại.");
+          }
+        }
+      } else {
+        // User is in guest mode, just clear onboarding
+        if (confirm("Bạn có chắc chắn muốn đặt lại ứng dụng?")) {
+          localStorage.removeItem("onboardingCompleted");
+          window.location.hash = "#/splash";
+          location.reload();
+        }
       }
     });
   }
