@@ -148,7 +148,7 @@ function initProfileEventListeners() {
       const theme = e.target.checked ? "dark" : "light";
       localStorage.setItem("dinelink_theme", theme);
       document.documentElement.setAttribute("data-theme", theme);
-      
+
       // Add smooth transition
       if (navigator.vibrate) navigator.vibrate(10);
     });

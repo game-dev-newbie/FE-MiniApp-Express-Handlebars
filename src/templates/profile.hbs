@@ -208,7 +208,7 @@
 
     <div class="menu-group">
       <h3 class="menu-group-title">Cài đặt</h3>
-      
+
       <!-- Dark Mode Toggle -->
       <div class="menu-item dark-mode-toggle">
         <div class="menu-item-icon">
@@ -228,7 +228,7 @@
           <span class="menu-item-subtitle">Giảm ánh sáng màn hình</span>
         </div>
         <label class="toggle-switch">
-          <input type="checkbox" id="darkModeToggle">
+          <input type="checkbox" id="darkModeToggle" />
           <span class="toggle-slider"></span>
         </label>
       </div>
@@ -293,113 +293,32 @@
 </main>
 
 <style>
-/* Theme selector inline styles */
-.theme-selector-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--bg-primary, white);
-  padding: 12px 16px;
-  border-radius: 12px;
-  margin-bottom: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.theme-toggle-inline {
-  display: flex;
-  gap: 4px;
-  background: var(--bg-secondary, #f5f5f5);
-  padding: 3px;
-  border-radius: 8px;
-}
-
-.theme-btn-inline {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: transparent;
-  color: var(--text-secondary, #666);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.theme-btn-inline:hover {
-  background: var(--bg-hover, rgba(0, 0, 0, 0.05));
-}
-
-.theme-btn-inline.active {
-  background: var(--bg-primary, white);
-  color: var(--primary-color, #ff6b6b);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Dark Mode Styles */
-body.dark-mode {
-  --bg-primary: #1e1e1e;
-  --bg-secondary: #121212;
-  --bg-hover: #2a2a2a;
-  --text-primary: #ffffff;
-  --text-secondary: #b3b3b3;
-  --text-tertiary: #666666;
-  --icon-bg: #2a2a2a;
-  --border-color: #333333;
-  background-color: #121212;
-  color: #ffffff;
-}
-
-body.dark-mode .profile-page {
-  background: #121212;
-}
-
-body.dark-mode .profile-header {
-  background: #1e1e1e;
-}
-
-body.dark-mode .profile-stats {
-  background: #1e1e1e;
-}
-
-body.dark-mode .stat-item {
-  background: #2a2a2a;
-}
-
-body.dark-mode .menu-item {
-  background: #1e1e1e;
-  color: #ffffff;
-}
-
-body.dark-mode .menu-item:hover {
-  background: #2a2a2a;
-}
-
-body.dark-mode .menu-item-title {
-  color: #ffffff;
-}
-
-body.dark-mode .menu-item-subtitle {
-  color: #b3b3b3;
-}
-
-body.dark-mode .theme-selector-item {
-  background: #1e1e1e;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-body.dark-mode .theme-toggle-inline {
-  background: #2a2a2a;
-}
-
-body.dark-mode .theme-btn-inline.active {
-  background: #333333;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-body.dark-mode .bottom-nav {
-  background: #1e1e1e;
-  border-top: 1px solid #333333;
-}
+  /* Theme selector inline styles */ .theme-selector-item { display: flex;
+  justify-content: space-between; align-items: center; background:
+  var(--bg-primary, white); padding: 12px 16px; border-radius: 12px;
+  margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+  .theme-toggle-inline { display: flex; gap: 4px; background:
+  var(--bg-secondary, #f5f5f5); padding: 3px; border-radius: 8px; }
+  .theme-btn-inline { display: flex; align-items: center; justify-content:
+  center; width: 36px; height: 36px; border: none; background: transparent;
+  color: var(--text-secondary, #666); border-radius: 6px; cursor: pointer;
+  transition: all 0.2s; } .theme-btn-inline:hover { background: var(--bg-hover,
+  rgba(0, 0, 0, 0.05)); } .theme-btn-inline.active { background:
+  var(--bg-primary, white); color: var(--primary-color, #ff6b6b); box-shadow: 0
+  2px 4px rgba(0, 0, 0, 0.1); } /* Dark Mode Styles */ body.dark-mode {
+  --bg-primary: #1e1e1e; --bg-secondary: #121212; --bg-hover: #2a2a2a;
+  --text-primary: #ffffff; --text-secondary: #b3b3b3; --text-tertiary: #666666;
+  --icon-bg: #2a2a2a; --border-color: #333333; background-color: #121212; color:
+  #ffffff; } body.dark-mode .profile-page { background: #121212; }
+  body.dark-mode .profile-header { background: #1e1e1e; } body.dark-mode
+  .profile-stats { background: #1e1e1e; } body.dark-mode .stat-item {
+  background: #2a2a2a; } body.dark-mode .menu-item { background: #1e1e1e; color:
+  #ffffff; } body.dark-mode .menu-item:hover { background: #2a2a2a; }
+  body.dark-mode .menu-item-title { color: #ffffff; } body.dark-mode
+  .menu-item-subtitle { color: #b3b3b3; } body.dark-mode .theme-selector-item {
+  background: #1e1e1e; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); }
+  body.dark-mode .theme-toggle-inline { background: #2a2a2a; } body.dark-mode
+  .theme-btn-inline.active { background: #333333; box-shadow: 0 2px 4px rgba(0,
+  0, 0, 0.3); } body.dark-mode .bottom-nav { background: #1e1e1e; border-top:
+  1px solid #333333; }
 </style>
