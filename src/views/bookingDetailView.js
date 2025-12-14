@@ -56,10 +56,10 @@ export async function renderBookingDetail(bookingId) {
   appEl.innerHTML = contentHtml;
 
   // Initialize event listeners
-  initBookingDetailEventListeners();
+  initBookingDetailEventListeners(bookingId);
 }
 
-function initBookingDetailEventListeners() {
+function initBookingDetailEventListeners(bookingId) {
   // Back button - check referrer
   const btnBack = document.getElementById("btnBackFromDetail");
   if (btnBack) {
@@ -74,4 +74,24 @@ function initBookingDetailEventListeners() {
       }
     });
   }
+
+  // Listen for booking status updates
+  const statusUpdateHandler = (event) => {
+    if (event.detail.bookingId === bookingId) {
+      // Reload the booking detail to show updated status
+      renderBookingDetail(bookingId);
+    }
+  };
+
+  window.addEventListener("bookingStatusUpdated", statusUpdateHandler);
+  window.addEventListener("bookingCheckedIn", statusUpdateHandler);
+
+  // Cleanup on route change
+  const cleanupHandler = () => {
+    window.removeEventListener("bookingStatusUpdated", statusUpdateHandler);
+    window.removeEventListener("bookingCheckedIn", statusUpdateHandler);
+    window.removeEventListener("hashchange", cleanupHandler);
+  };
+
+  window.addEventListener("hashchange", cleanupHandler, { once: true });
 }

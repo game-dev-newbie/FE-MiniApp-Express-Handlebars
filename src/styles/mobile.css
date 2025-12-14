@@ -4398,12 +4398,28 @@ a {
 
 .table-type-title {
   font-size: var(--font-lg);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--gray-900);
   margin-bottom: var(--spacing-md);
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  background: var(--gray-50);
+  border-left: 4px solid var(--gray-400);
+}
+
+.table-type-section:nth-child(1) .table-type-title {
+  border-left-color: #2196f3;
+  color: #1976d2;
+  background: linear-gradient(90deg, #e3f2fd 0%, transparent 100%);
+}
+
+.table-type-section:nth-child(2) .table-type-title {
+  border-left-color: #ff9800;
+  color: #e65100;
+  background: linear-gradient(90deg, #fff3e0 0%, transparent 100%);
 }
 
 .table-cards {
@@ -4416,9 +4432,22 @@ a {
   padding: var(--spacing-md);
   background: var(--white);
   border: 2px solid var(--gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   cursor: pointer;
   transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Color coding for table types */
+.table-card.standard {
+  border-left: 4px solid #2196f3;
+  background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
+}
+
+.table-card.vip {
+  border-left: 4px solid #ff9800;
+  background: linear-gradient(135deg, #ffffff 0%, #fff3e0 100%);
 }
 
 .table-card:active {
@@ -4427,18 +4456,27 @@ a {
 
 .table-card.selected {
   border-color: var(--primary-green);
-  background: #e8f5e9;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.table-card.standard.selected {
+  border-left-color: var(--primary-green);
+}
+
+.table-card.vip.selected {
+  border-left-color: var(--primary-green);
 }
 
 .table-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--spacing-sm);
+  align-items: center;
 }
 
 .table-name {
-  font-weight: 600;
+  font-weight: 700;
+  font-size: var(--font-lg);
   color: var(--gray-900);
 }
 
@@ -4446,8 +4484,12 @@ a {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: var(--font-xs);
-  color: var(--gray-600);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: var(--gray-700);
+  background: rgba(255, 255, 255, 0.8);
+  padding: 4px 8px;
+  border-radius: var(--radius-full);
 }
 
 .table-capacity svg {
@@ -4455,21 +4497,7 @@ a {
 }
 
 .table-card-type {
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  font-size: var(--font-xs);
-  font-weight: 600;
-}
-
-.table-card-type.standard {
-  background: var(--gray-100);
-  color: var(--gray-700);
-}
-
-.table-card-type.vip {
-  background: #fff3e0;
-  color: #e65100;
+  display: none;
 }
 
 .combine-tables-hint {
