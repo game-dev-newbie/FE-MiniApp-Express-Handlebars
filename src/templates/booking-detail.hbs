@@ -239,45 +239,49 @@
 
     <!-- Payment Information -->
     {{#if booking.requireDeposit}}
-    <div class="detail-info-section">
-      <h3 class="section-title">Thông tin thanh toán</h3>
+      <div class="detail-info-section">
+        <h3 class="section-title">Thông tin thanh toán</h3>
 
-      <div class="detail-item">
-        <div class="detail-label">
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <line x1="12" y1="1" x2="12" y2="23"></line>
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-          </svg>
-          Tiền đặt cọc
+        <div class="detail-item">
+          <div class="detail-label">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path
+                d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
+              ></path>
+            </svg>
+            Tiền đặt cọc
+          </div>
+          <div class="detail-value">{{booking.depositAmount}}đ</div>
         </div>
-        <div class="detail-value">{{booking.depositAmount}}đ</div>
-      </div>
 
-      <div class="detail-item">
-        <div class="detail-label">
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-            <line x1="1" y1="10" x2="23" y2="10"></line>
-          </svg>
-          Trạng thái thanh toán
+        <div class="detail-item">
+          <div class="detail-label">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+              <line x1="1" y1="10" x2="23" y2="10"></line>
+            </svg>
+            Trạng thái thanh toán
+          </div>
+          <div
+            class="detail-value payment-status"
+          >{{booking.paymentStatus}}</div>
         </div>
-        <div class="detail-value payment-status">{{booking.paymentStatus}}</div>
       </div>
-    </div>
     {{/if}}
 
     {{#if booking.cancelReason}}

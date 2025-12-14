@@ -54,7 +54,7 @@ export async function renderBookingDetail(bookingId) {
   });
 
   appEl.innerHTML = contentHtml;
-  
+
   // Initialize event listeners
   initBookingDetailEventListeners();
 }
@@ -65,7 +65,7 @@ function initBookingDetailEventListeners() {
   if (btnBack) {
     btnBack.addEventListener("click", () => {
       const referrer = sessionStorage.getItem("bookingDetailReferrer");
-      
+
       if (referrer === "history") {
         sessionStorage.removeItem("bookingDetailReferrer");
         window.location.hash = "#/history";

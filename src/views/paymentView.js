@@ -18,10 +18,10 @@ export function renderPayment(bookingData) {
 
   // Initialize event listeners
   initPaymentListeners(bookingData);
-  
+
   // Initialize test buttons
   initTestButtons();
-  
+
   // Load saved card if exists
   loadSavedCard();
 }
@@ -83,7 +83,7 @@ function initPaymentListeners(bookingData) {
   const cardNumberInput = document.getElementById("cardNumber");
   const previewCardNumber = document.getElementById("previewCardNumber");
   const saveCardCheckbox = document.getElementById("saveCard");
-  
+
   if (cardNumberInput && previewCardNumber) {
     cardNumberInput.addEventListener("input", (e) => {
       let value = e.target.value.replace(/\s/g, "");
@@ -121,7 +121,7 @@ function initPaymentListeners(bookingData) {
       const value = e.target.value.toUpperCase();
       e.target.value = value;
       previewCardName.textContent = value || "TÊN CHỦ THẺ";
-      
+
       // Reset save card checkbox when user changes card info
       if (saveCardCheckbox) {
         saveCardCheckbox.checked = false;
@@ -140,7 +140,7 @@ function initPaymentListeners(bookingData) {
       }
       e.target.value = value;
       previewCardExpiry.textContent = value || "MM/YY";
-      
+
       // Reset save card checkbox when user changes card info
       if (saveCardCheckbox) {
         saveCardCheckbox.checked = false;
@@ -230,7 +230,7 @@ function handleCardPayment(bookingData) {
         localStorage.setItem("dinelink_saved_card", JSON.stringify(savedCard));
         console.log("Card saved for future use");
       }
-      
+
       // Save booking to localStorage
       saveBooking(bookingData);
       // Show success popup
@@ -468,34 +468,34 @@ function loadSavedCard() {
 
   try {
     const savedCard = JSON.parse(savedCardJSON);
-    
+
     // Fill card inputs
     const cardNumberInput = document.getElementById("cardNumber");
     const cardNameInput = document.getElementById("cardName");
     const cardExpiryInput = document.getElementById("cardExpiry");
     const saveCardCheckbox = document.getElementById("saveCard");
-    
+
     if (cardNumberInput && savedCard.cardNumber) {
       cardNumberInput.value = savedCard.cardNumber;
       // Trigger input event to update preview
       cardNumberInput.dispatchEvent(new Event("input"));
     }
-    
+
     if (cardNameInput && savedCard.cardName) {
       cardNameInput.value = savedCard.cardName;
       cardNameInput.dispatchEvent(new Event("input"));
     }
-    
+
     if (cardExpiryInput && savedCard.cardExpiry) {
       cardExpiryInput.value = savedCard.cardExpiry;
       cardExpiryInput.dispatchEvent(new Event("input"));
     }
-    
+
     // Check the save card checkbox
     if (saveCardCheckbox) {
       saveCardCheckbox.checked = true;
     }
-    
+
     console.log("Loaded saved card information");
   } catch (error) {
     console.error("Error loading saved card:", error);

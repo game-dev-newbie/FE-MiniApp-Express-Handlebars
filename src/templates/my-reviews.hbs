@@ -22,7 +22,11 @@
     {{#if reviews.length}}
       <div class="reviews-list">
         {{#each reviews}}
-          <div class="review-card" data-review-id="{{this.id}}" data-restaurant-id="{{this.restaurantId}}">
+          <div
+            class="review-card"
+            data-review-id="{{this.id}}"
+            data-restaurant-id="{{this.restaurantId}}"
+          >
             <div class="review-header clickable-review-header">
               <img
                 src="{{this.restaurantImage}}"

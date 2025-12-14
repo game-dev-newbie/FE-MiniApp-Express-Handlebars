@@ -47,10 +47,13 @@ function loadNotifications() {
       // Determine notification type for color coding
       const notifType = notification.type || notification.status || "";
       let typeClass = "";
-      
+
       if (notifType === "booking_confirmed" || notifType === "CONFIRMED") {
         typeClass = "notification-confirmed";
-      } else if (notifType === "booking_cancelled" || notifType === "CANCELLED") {
+      } else if (
+        notifType === "booking_cancelled" ||
+        notifType === "CANCELLED"
+      ) {
         typeClass = "notification-cancelled";
       } else if (notifType === "CHECKED_IN") {
         typeClass = "notification-checkedin";
@@ -58,7 +61,9 @@ function loadNotifications() {
 
       return `
       <div class="notification-item ${typeClass} ${
-        (notification.isRead === true || notification.read === true) ? "" : "unread"
+        notification.isRead === true || notification.read === true
+          ? ""
+          : "unread"
       }" data-id="${notification.id}">
         <div class="notification-content">
           <h3 class="notification-title">${notification.title}</h3>
@@ -67,7 +72,11 @@ function loadNotifications() {
             notification.timestamp || notification.createdAt
           )}</span>
         </div>
-        ${!(notification.isRead === true || notification.read === true) ? '<div class="unread-dot"></div>' : ""}
+        ${
+          !(notification.isRead === true || notification.read === true)
+            ? '<div class="unread-dot"></div>'
+            : ""
+        }
       </div>
     `;
     })
@@ -127,11 +136,14 @@ function initNotificationEventListeners() {
       const notifications = JSON.parse(
         localStorage.getItem("dinelink_notifications") || "[]"
       );
-      notifications.forEach(n => {
+      notifications.forEach((n) => {
         n.isRead = true;
         n.read = true;
       });
-      localStorage.setItem("dinelink_notifications", JSON.stringify(notifications));
+      localStorage.setItem(
+        "dinelink_notifications",
+        JSON.stringify(notifications)
+      );
       loadNotifications();
       updateNotificationBadge();
       if (navigator.vibrate) navigator.vibrate(10);
@@ -175,7 +187,9 @@ export function updateNotificationBadge() {
   const notifications = JSON.parse(
     localStorage.getItem("dinelink_notifications") || "[]"
   );
-  const unreadCount = notifications.filter((n) => !(n.isRead === true || n.read === true)).length;
+  const unreadCount = notifications.filter(
+    (n) => !(n.isRead === true || n.read === true)
+  ).length;
 
   // Update badge in bottom nav if exists
   const notificationBadges = document.querySelectorAll(".notification-badge");

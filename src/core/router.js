@@ -25,13 +25,13 @@ export function initRouter() {
 
 function handleRouteChange() {
   const hash = window.location.hash || "#/splash";
-  
+
   // Get app element and add fade animation
   const appEl = document.getElementById("app");
   if (appEl) {
     appEl.classList.remove("page-transition-enter", "page-transition-exit");
     appEl.classList.add("page-transition-enter");
-    
+
     // Remove animation class after animation completes
     setTimeout(() => {
       appEl.classList.remove("page-transition-enter");

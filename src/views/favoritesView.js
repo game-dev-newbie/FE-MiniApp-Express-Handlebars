@@ -34,7 +34,7 @@ function initFavoritesEventListeners() {
       // Check referrer from sessionStorage
       const referrer = sessionStorage.getItem("favoritesReferrer");
       sessionStorage.removeItem("favoritesReferrer");
-      
+
       if (referrer === "home") {
         window.location.hash = "#/home";
       } else {

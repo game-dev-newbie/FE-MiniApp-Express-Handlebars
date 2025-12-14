@@ -217,7 +217,8 @@ function initBookingFormListeners(restaurant) {
       bookingData.tablesText = tablesInfo;
 
       // Check if deposit is required
-      const needsDeposit = restaurant.require_deposit && restaurant.default_deposit_amount > 0;
+      const needsDeposit =
+        restaurant.require_deposit && restaurant.default_deposit_amount > 0;
 
       if (needsDeposit) {
         // Workflow 1: Deposit required - go to payment page
@@ -631,9 +632,9 @@ function simulateDashboardResponse(bookingId) {
 
     // Send notification
     sendBookingStatusNotification(bookings[bookingIndex]);
-    
+
     // Update notification badge
-    if (typeof updateNotificationBadge === 'function') {
+    if (typeof updateNotificationBadge === "function") {
       updateNotificationBadge();
     }
 
@@ -664,9 +665,9 @@ function simulateDashboardResponse(bookingId) {
 
     // Send notification
     sendBookingStatusNotification(bookings[bookingIndex]);
-    
+
     // Update notification badge
-    if (typeof updateNotificationBadge === 'function') {
+    if (typeof updateNotificationBadge === "function") {
       updateNotificationBadge();
     }
 
@@ -720,7 +721,7 @@ function simulateDashboardCheckIn(bookingId) {
   localStorage.setItem("dinelink_notifications", JSON.stringify(notifications));
 
   // Update notification badge
-  if (typeof updateNotificationBadge === 'function') {
+  if (typeof updateNotificationBadge === "function") {
     updateNotificationBadge();
   }
 
@@ -747,7 +748,10 @@ function sendBookingStatusNotification(booking) {
 
   const newNotification = {
     id: Date.now().toString(),
-    type: booking.status === "CONFIRMED" ? "booking_confirmed" : "booking_cancelled",
+    type:
+      booking.status === "CONFIRMED"
+        ? "booking_confirmed"
+        : "booking_cancelled",
     title:
       booking.status === "CONFIRMED"
         ? "Đặt bàn đã được xác nhận"
@@ -755,7 +759,9 @@ function sendBookingStatusNotification(booking) {
     message:
       booking.status === "CONFIRMED"
         ? `Đặt bàn tại ${booking.restaurantName} vào ${booking.date} lúc ${booking.time} đã được xác nhận. Chúc bạn có trải nghiệm tuyệt vời!`
-        : `Đặt bàn tại ${booking.restaurantName} vào ${booking.date} lúc ${booking.time} đã bị hủy. ${booking.cancelReason || ""}`,
+        : `Đặt bàn tại ${booking.restaurantName} vào ${booking.date} lúc ${
+            booking.time
+          } đã bị hủy. ${booking.cancelReason || ""}`,
     timestamp: new Date().toISOString(),
     read: false,
     bookingId: booking.id,
