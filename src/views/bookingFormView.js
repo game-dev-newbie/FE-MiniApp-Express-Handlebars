@@ -1,6 +1,7 @@
 // src/views/bookingFormView.js
 import { renderTemplate } from "../core/templates.js";
 import { restaurants, users, getAvailableTables } from "../data/mockData.js";
+import { updateNotificationBadge } from "./notificationView.js";
 
 const appEl = document.getElementById("app");
 const currentUser = users[0]; // Simulate logged in user
@@ -211,15 +212,21 @@ function initBookingFormListeners(restaurant) {
 
       console.log("Booking data:", bookingData);
 
-      // Store booking data and redirect to payment
+      // Store booking data
       const tablesInfo = selectedTables.map((t) => t.name).join(", ");
       bookingData.tablesText = tablesInfo;
 
-      // Store in sessionStorage to pass to payment page
-      sessionStorage.setItem("pendingBooking", JSON.stringify(bookingData));
+      // Check if deposit is required
+      const needsDeposit = restaurant.require_deposit && restaurant.default_deposit_amount > 0;
 
-      // Redirect to payment page
-      window.location.hash = "#/payment";
+      if (needsDeposit) {
+        // Workflow 1: Deposit required - go to payment page
+        sessionStorage.setItem("pendingBooking", JSON.stringify(bookingData));
+        window.location.hash = "#/payment";
+      } else {
+        // Workflow 2: No deposit required - save booking directly
+        saveBookingDirectly(bookingData);
+      }
     });
   }
 
@@ -512,4 +519,250 @@ function showOverCapacityPopup(restaurant) {
 
   popup.querySelector(".btn-close-popup").addEventListener("click", closePopup);
   popup.querySelector(".popup-overlay").addEventListener("click", closePopup);
+}
+
+// Save booking directly without payment (for restaurants that don't require deposit)
+function saveBookingDirectly(bookingData) {
+  // Get existing bookings from localStorage
+  const existingBookings = JSON.parse(
+    localStorage.getItem("dinelink_bookings") || "[]"
+  );
+
+  // Create new booking with PENDING status (waiting for dashboard confirmation)
+  const newBooking = {
+    ...bookingData,
+    id: Date.now().toString(),
+    status: "PENDING",
+    paymentStatus: "UNPAID", // No payment required
+    createdAt: new Date().toISOString(),
+  };
+
+  // Add to bookings array
+  existingBookings.unshift(newBooking);
+
+  // Save back to localStorage
+  localStorage.setItem("dinelink_bookings", JSON.stringify(existingBookings));
+
+  // Clear pending booking
+  sessionStorage.removeItem("pendingBooking");
+
+  console.log("Booking saved without payment:", newBooking);
+
+  // Show success popup
+  showBookingSuccessPopup();
+
+  // Simulate API call to dashboard for confirmation
+  sendBookingToDashboard(newBooking.id);
+}
+
+// Show booking success popup
+function showBookingSuccessPopup() {
+  const popup = document.createElement("div");
+  popup.className = "booking-success-popup";
+  popup.innerHTML = `
+    <div class="popup-overlay"></div>
+    <div class="popup-content success-content">
+      <div class="success-icon">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="9 12 11 14 15 10"></polyline>
+        </svg>
+      </div>
+      <h3>Đặt bàn thành công!</h3>
+      <p>Yêu cầu đặt bàn của bạn đã được gửi đến nhà hàng.</p>
+      <p class="small-text">Nhà hàng sẽ xác nhận đặt bàn trong vòng 5-10 phút.</p>
+      <button class="btn-goto-bookings">Xem đặt bàn</button>
+    </div>
+  `;
+
+  document.body.appendChild(popup);
+
+  // Animate in
+  setTimeout(() => {
+    popup.querySelector(".popup-content").style.animation =
+      "popupSlideIn 0.3s ease-out";
+  }, 10);
+
+  // Close handler
+  const btnGotoBookings = popup.querySelector(".btn-goto-bookings");
+  btnGotoBookings.addEventListener("click", () => {
+    popup.remove();
+    window.location.hash = "#/booking";
+  });
+}
+
+// Mock API: Send booking to dashboard and simulate response
+function sendBookingToDashboard(bookingId) {
+  console.log("Sending booking to dashboard for confirmation:", bookingId);
+
+  // Simulate dashboard response after 3-5 seconds
+  const responseTime = Math.random() * 2000 + 3000; // 3-5 seconds
+
+  setTimeout(() => {
+    simulateDashboardResponse(bookingId);
+  }, responseTime);
+}
+
+// Mock dashboard response: 95% accept, 5% reject
+function simulateDashboardResponse(bookingId) {
+  const bookings = JSON.parse(
+    localStorage.getItem("dinelink_bookings") || "[]"
+  );
+  const bookingIndex = bookings.findIndex((b) => b.id === bookingId);
+
+  if (bookingIndex === -1) {
+    console.log("Booking not found:", bookingId);
+    return;
+  }
+
+  // 95% chance of acceptance
+  const isAccepted = Math.random() > 0.05;
+
+  if (isAccepted) {
+    // Update status to CONFIRMED
+    bookings[bookingIndex].status = "CONFIRMED";
+    bookings[bookingIndex].confirmedAt = new Date().toISOString();
+
+    console.log("✅ Dashboard ACCEPTED booking:", bookingId);
+    console.log("Nhà hàng đã xác nhận đơn đặt bàn");
+    console.log("Trạng thái: CONFIRMED (Đã xác nhận)\n");
+
+    localStorage.setItem("dinelink_bookings", JSON.stringify(bookings));
+
+    // Send notification
+    sendBookingStatusNotification(bookings[bookingIndex]);
+    
+    // Update notification badge
+    if (typeof updateNotificationBadge === 'function') {
+      updateNotificationBadge();
+    }
+
+    // Dispatch event
+    window.dispatchEvent(
+      new CustomEvent("bookingStatusUpdated", {
+        detail: { bookingId, status: "CONFIRMED" },
+      })
+    );
+
+    // Simulate dashboard check-in after 15 seconds
+    setTimeout(() => {
+      simulateDashboardCheckIn(bookingId);
+    }, 15000); // 15 seconds after confirmation
+  } else {
+    // Update status to CANCELLED
+    bookings[bookingIndex].status = "CANCELLED";
+    bookings[bookingIndex].cancelledAt = new Date().toISOString();
+    bookings[bookingIndex].cancelReason =
+      "Nhà hàng không thể xác nhận đặt bàn do hết chỗ.";
+
+    console.log("❌ Dashboard REJECTED booking:", bookingId);
+    console.log("Nhà hàng từ chối đơn đặt bàn");
+    console.log("Lý do: Không còn chỗ trống");
+    console.log("Trạng thái: CANCELLED (Đã hủy)\n");
+
+    localStorage.setItem("dinelink_bookings", JSON.stringify(bookings));
+
+    // Send notification
+    sendBookingStatusNotification(bookings[bookingIndex]);
+    
+    // Update notification badge
+    if (typeof updateNotificationBadge === 'function') {
+      updateNotificationBadge();
+    }
+
+    // Dispatch event
+    window.dispatchEvent(
+      new CustomEvent("bookingStatusUpdated", {
+        detail: { bookingId, status: "CANCELLED" },
+      })
+    );
+  }
+}
+
+// Simulate dashboard check-in (after confirmation)
+function simulateDashboardCheckIn(bookingId) {
+  const bookings = JSON.parse(
+    localStorage.getItem("dinelink_bookings") || "[]"
+  );
+  const bookingIndex = bookings.findIndex((b) => b.id === bookingId);
+
+  if (bookingIndex === -1 || bookings[bookingIndex].status !== "CONFIRMED") {
+    return;
+  }
+
+  // Change status to CHECKED_IN
+  bookings[bookingIndex].status = "CHECKED_IN";
+  bookings[bookingIndex].checkedInAt = new Date().toISOString();
+
+  console.log("✅ Dashboard CHECK-IN completed:", bookingId);
+  console.log("Khách hàng đã check-in tại nhà hàng");
+  console.log("Trạng thái: CHECKED_IN (Đã check-in)");
+  console.log("Booking chuyển sang trang lịch sử để đánh giá\n");
+
+  localStorage.setItem("dinelink_bookings", JSON.stringify(bookings));
+
+  // Create notification for check-in
+  const notifications = JSON.parse(
+    localStorage.getItem("dinelink_notifications") || "[]"
+  );
+
+  const checkInNotification = {
+    id: Date.now().toString(),
+    type: "CHECKED_IN",
+    title: "Bạn đã check-in thành công!",
+    message: `Check-in tại ${bookings[bookingIndex].restaurantName} thành công. Chúc bạn có trải nghiệm tuyệt vời!`,
+    timestamp: new Date().toISOString(),
+    read: false,
+    bookingId: bookings[bookingIndex].id,
+  };
+
+  notifications.unshift(checkInNotification);
+  localStorage.setItem("dinelink_notifications", JSON.stringify(notifications));
+
+  // Update notification badge
+  if (typeof updateNotificationBadge === 'function') {
+    updateNotificationBadge();
+  }
+
+  // Dispatch check-in event
+  window.dispatchEvent(
+    new CustomEvent("bookingCheckedIn", {
+      detail: { bookingId, status: "CHECKED_IN" },
+    })
+  );
+
+  // Also dispatch status update event
+  window.dispatchEvent(
+    new CustomEvent("bookingStatusUpdated", {
+      detail: { bookingId, status: "CHECKED_IN" },
+    })
+  );
+}
+
+// Send notification about booking status change
+function sendBookingStatusNotification(booking) {
+  const notifications = JSON.parse(
+    localStorage.getItem("dinelink_notifications") || "[]"
+  );
+
+  const newNotification = {
+    id: Date.now().toString(),
+    type: booking.status === "CONFIRMED" ? "booking_confirmed" : "booking_cancelled",
+    title:
+      booking.status === "CONFIRMED"
+        ? "Đặt bàn đã được xác nhận"
+        : "Đặt bàn đã bị hủy",
+    message:
+      booking.status === "CONFIRMED"
+        ? `Đặt bàn tại ${booking.restaurantName} vào ${booking.date} lúc ${booking.time} đã được xác nhận. Chúc bạn có trải nghiệm tuyệt vời!`
+        : `Đặt bàn tại ${booking.restaurantName} vào ${booking.date} lúc ${booking.time} đã bị hủy. ${booking.cancelReason || ""}`,
+    timestamp: new Date().toISOString(),
+    read: false,
+    bookingId: booking.id,
+  };
+
+  notifications.unshift(newNotification);
+  localStorage.setItem("dinelink_notifications", JSON.stringify(notifications));
+
+  console.log("Notification sent:", newNotification);
 }

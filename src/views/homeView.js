@@ -196,6 +196,7 @@ function initHomeEventListeners() {
 
   if (bookmarkBtn) {
     bookmarkBtn.addEventListener("click", () => {
+      sessionStorage.setItem("favoritesReferrer", "home");
       window.location.hash = "#/favorites";
     });
   }

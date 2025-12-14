@@ -54,4 +54,24 @@ export async function renderBookingDetail(bookingId) {
   });
 
   appEl.innerHTML = contentHtml;
+  
+  // Initialize event listeners
+  initBookingDetailEventListeners();
+}
+
+function initBookingDetailEventListeners() {
+  // Back button - check referrer
+  const btnBack = document.getElementById("btnBackFromDetail");
+  if (btnBack) {
+    btnBack.addEventListener("click", () => {
+      const referrer = sessionStorage.getItem("bookingDetailReferrer");
+      
+      if (referrer === "history") {
+        sessionStorage.removeItem("bookingDetailReferrer");
+        window.location.hash = "#/history";
+      } else {
+        window.location.hash = "#/booking";
+      }
+    });
+  }
 }

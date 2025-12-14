@@ -179,6 +179,7 @@ function initProfileEventListeners() {
   const myFavoritesBtn = document.getElementById("myFavoritesBtn");
   if (myFavoritesBtn) {
     myFavoritesBtn.addEventListener("click", () => {
+      sessionStorage.setItem("favoritesReferrer", "profile");
       window.location.hash = "#/favorites";
     });
   }

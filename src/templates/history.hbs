@@ -92,9 +92,11 @@
                 class="btn-booking-action btn-outline btn-view-booking-detail"
                 data-booking-id="{{this.id}}"
               >Xem chi tiết</button>
-              <button
-                class="btn-booking-action btn-outline btn-view-my-reviews"
-              >Xem đánh giá</button>
+              {{#if this.hasReview}}
+                <button
+                  class="btn-booking-action btn-outline btn-view-my-reviews"
+                >Xem đánh giá</button>
+              {{/if}}
               <button
                 class="btn-booking-action btn-outline btn-rebook"
                 data-restaurant-id="{{this.restaurantId}}"

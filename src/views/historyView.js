@@ -104,6 +104,8 @@ function initHistoryEventListeners() {
       const bookingId = button.getAttribute("data-booking-id");
 
       if (bookingId) {
+        // Store that we're coming from history
+        sessionStorage.setItem("bookingDetailReferrer", "history");
         window.location.hash = `#/booking/detail/${bookingId}`;
       }
     });

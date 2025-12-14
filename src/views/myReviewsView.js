@@ -66,35 +66,29 @@ function formatDateTime(dateString) {
 }
 
 function initMyReviewsListeners() {
-  // View booking detail buttons
-  const viewDetailBtns = document.querySelectorAll(".btn-view-booking-detail");
-  viewDetailBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const bookingId = btn.dataset.bookingId;
-      if (bookingId) {
-        window.location.hash = `#/booking/detail/${bookingId}`;
+  // Click on restaurant header (image or name) to view restaurant
+  const reviewHeaders = document.querySelectorAll(".clickable-review-header");
+  reviewHeaders.forEach((header) => {
+    header.addEventListener("click", (e) => {
+      // Prevent triggering if clicking on delete button
+      if (e.target.closest(".btn-delete-review")) {
+        return;
+      }
+      const reviewCard = header.closest(".review-card");
+      const restaurantId = reviewCard.dataset.restaurantId;
+      if (restaurantId) {
+        window.location.hash = `#/restaurant/${restaurantId}`;
       }
     });
   });
 
-  // View restaurant buttons
-  const viewRestaurantBtns = document.querySelectorAll(".btn-view-restaurant");
-  viewRestaurantBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const restaurantId = btn.dataset.restaurantId;
-      window.location.hash = `#/restaurant/${restaurantId}`;
-    });
-  });
-
-  // Delete review buttons
+  // Delete review buttons with mobile-optimized confirmation
   const deleteReviewBtns = document.querySelectorAll(".btn-delete-review");
   deleteReviewBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation(); // Prevent triggering header click
       const reviewId = btn.dataset.reviewId;
-
-      if (confirm("Bạn có chắc chắn muốn xóa đánh giá này?")) {
-        deleteReview(reviewId);
-      }
+      showDeleteConfirmation(reviewId);
     });
   });
 }
@@ -124,4 +118,51 @@ function deleteReview(reviewId) {
 
   // Reload page
   renderMyReviews();
+}
+
+// Show mobile-optimized delete confirmation
+function showDeleteConfirmation(reviewId) {
+  // Create modal overlay
+  const modal = document.createElement("div");
+  modal.className = "delete-modal-overlay";
+  modal.innerHTML = `
+    <div class="delete-modal">
+      <h3 class="delete-modal-title">Xóa đánh giá</h3>
+      <p class="delete-modal-message">Bạn có chắc chắn muốn xóa đánh giá này?</p>
+      <div class="delete-modal-actions">
+        <button class="btn-cancel-delete">Hủy</button>
+        <button class="btn-confirm-delete">Xóa</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Fade in animation
+  setTimeout(() => modal.classList.add("show"), 10);
+
+  // Cancel button
+  const btnCancel = modal.querySelector(".btn-cancel-delete");
+  btnCancel.addEventListener("click", () => {
+    closeDeleteModal(modal);
+  });
+
+  // Confirm delete button
+  const btnConfirm = modal.querySelector(".btn-confirm-delete");
+  btnConfirm.addEventListener("click", () => {
+    deleteReview(reviewId);
+    closeDeleteModal(modal);
+  });
+
+  // Click outside to close
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      closeDeleteModal(modal);
+    }
+  });
+}
+
+function closeDeleteModal(modal) {
+  modal.classList.remove("show");
+  setTimeout(() => modal.remove(), 300);
 }

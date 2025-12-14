@@ -2,7 +2,7 @@
 <main class="main-content booking-form-page">
   <!-- Header -->
   <div class="booking-form-header booking-form-header-center">
-    <button class="btn-back" onclick="window.location.hash='#/booking'">
+    <button class="btn-back" id="btnBackFromDetail">
       <svg
         width="24"
         height="24"
@@ -238,6 +238,7 @@
     </div>
 
     <!-- Payment Information -->
+    {{#if booking.requireDeposit}}
     <div class="detail-info-section">
       <h3 class="section-title">Thông tin thanh toán</h3>
 
@@ -277,6 +278,7 @@
         <div class="detail-value payment-status">{{booking.paymentStatus}}</div>
       </div>
     </div>
+    {{/if}}
 
     {{#if booking.cancelReason}}
       <div class="detail-info-section cancel-reason-section">
@@ -288,28 +290,28 @@
       </div>
     {{/if}}
   </div>
-
-  <!-- Fixed Action Button -->
-  {{#if (eq booking.status "PENDING")}}
-    <div class="booking-form-footer">
-      <button
-        type="button"
-        class="btn-submit-booking"
-        onclick="window.location.hash='#/booking/edit/{{booking.id}}'"
-      >
-        Chỉnh sửa đặt bàn
-      </button>
-    </div>
-  {{/if}}
-  {{#if (eq booking.status "CONFIRMED")}}
-    <div class="booking-form-footer">
-      <button
-        type="button"
-        class="btn-submit-booking"
-        onclick="window.location.hash='#/booking/edit/{{booking.id}}'"
-      >
-        Chỉnh sửa đặt bàn
-      </button>
-    </div>
-  {{/if}}
 </main>
+
+<!-- Fixed Action Button (outside main-content to avoid animation) -->
+{{#if (eq booking.status "PENDING")}}
+  <div class="booking-form-footer">
+    <button
+      type="button"
+      class="btn-submit-booking"
+      onclick="window.location.hash='#/booking/edit/{{booking.id}}'"
+    >
+      Chỉnh sửa đặt bàn
+    </button>
+  </div>
+{{/if}}
+{{#if (eq booking.status "CONFIRMED")}}
+  <div class="booking-form-footer">
+    <button
+      type="button"
+      class="btn-submit-booking"
+      onclick="window.location.hash='#/booking/edit/{{booking.id}}'"
+    >
+      Chỉnh sửa đặt bàn
+    </button>
+  </div>
+{{/if}}

@@ -44,55 +44,30 @@ function loadNotifications() {
 
   const notificationsHtml = notifications
     .map((notification) => {
-      // Determine icon based on status
-      let iconClass = "success";
-      let icon = "";
-
-      switch (notification.status) {
-        case "CONFIRMED":
-          iconClass = "success";
-          icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-             <polyline points="20 6 9 17 4 12"></polyline>
-           </svg>`;
-          break;
-        case "CHECKED_IN":
-          iconClass = "success";
-          icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-             <polyline points="22 4 12 14.01 9 11.01"></polyline>
-           </svg>`;
-          break;
-        case "CANCELLED":
-          iconClass = "error";
-          icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-             <line x1="18" y1="6" x2="6" y2="18"></line>
-             <line x1="6" y1="6" x2="18" y2="18"></line>
-           </svg>`;
-          break;
-        default:
-          iconClass = "info";
-          icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-             <circle cx="12" cy="12" r="10"></circle>
-             <line x1="12" y1="16" x2="12" y2="12"></line>
-             <line x1="12" y1="8" x2="12.01" y2="8"></line>
-           </svg>`;
+      // Determine notification type for color coding
+      const notifType = notification.type || notification.status || "";
+      let typeClass = "";
+      
+      if (notifType === "booking_confirmed" || notifType === "CONFIRMED") {
+        typeClass = "notification-confirmed";
+      } else if (notifType === "booking_cancelled" || notifType === "CANCELLED") {
+        typeClass = "notification-cancelled";
+      } else if (notifType === "CHECKED_IN") {
+        typeClass = "notification-checkedin";
       }
 
       return `
-      <div class="notification-item ${
-        notification.isRead ? "" : "unread"
+      <div class="notification-item ${typeClass} ${
+        (notification.isRead === true || notification.read === true) ? "" : "unread"
       }" data-id="${notification.id}">
-        <div class="notification-icon ${iconClass}">
-          ${icon}
-        </div>
         <div class="notification-content">
           <h3 class="notification-title">${notification.title}</h3>
           <p class="notification-message">${notification.message}</p>
           <span class="notification-time">${formatTime(
-            notification.createdAt
+            notification.timestamp || notification.createdAt
           )}</span>
         </div>
-        ${!notification.isRead ? '<div class="unread-dot"></div>' : ""}
+        ${!(notification.isRead === true || notification.read === true) ? '<div class="unread-dot"></div>' : ""}
       </div>
     `;
     })
@@ -121,6 +96,7 @@ function markAsRead(notificationId) {
   const notification = notifications.find((n) => n.id === notificationId);
   if (notification) {
     notification.isRead = true;
+    notification.read = true;
     localStorage.setItem(
       "dinelink_notifications",
       JSON.stringify(notifications)
@@ -137,16 +113,28 @@ function initNotificationEventListeners() {
     });
   }
 
-  // Clear all button
+  // Clear all button with mobile-optimized confirmation
   const btnClearAll = document.getElementById("btnClearAll");
   if (btnClearAll) {
     btnClearAll.addEventListener("click", () => {
-      if (confirm("Bạn có chắc muốn xóa tất cả thông báo?")) {
-        localStorage.setItem("dinelink_notifications", "[]");
-        loadNotifications();
-        updateNotificationBadge();
-        if (navigator.vibrate) navigator.vibrate(10);
-      }
+      showDeleteAllConfirmation();
+    });
+  }
+  // Mark all as read button
+  const btnMarkAllRead = document.getElementById("btnMarkAllRead");
+  if (btnMarkAllRead) {
+    btnMarkAllRead.addEventListener("click", () => {
+      const notifications = JSON.parse(
+        localStorage.getItem("dinelink_notifications") || "[]"
+      );
+      notifications.forEach(n => {
+        n.isRead = true;
+        n.read = true;
+      });
+      localStorage.setItem("dinelink_notifications", JSON.stringify(notifications));
+      loadNotifications();
+      updateNotificationBadge();
+      if (navigator.vibrate) navigator.vibrate(10);
     });
   }
 
@@ -187,7 +175,7 @@ export function updateNotificationBadge() {
   const notifications = JSON.parse(
     localStorage.getItem("dinelink_notifications") || "[]"
   );
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const unreadCount = notifications.filter((n) => !(n.isRead === true || n.read === true)).length;
 
   // Update badge in bottom nav if exists
   const notificationBadges = document.querySelectorAll(".notification-badge");
@@ -199,4 +187,48 @@ export function updateNotificationBadge() {
       badge.style.display = "none";
     }
   });
+}
+
+// Show mobile-optimized delete all confirmation
+function showDeleteAllConfirmation() {
+  const modal = document.createElement("div");
+  modal.className = "delete-modal-overlay";
+  modal.innerHTML = `
+    <div class="delete-modal">
+      <h3 class="delete-modal-title">Xóa tất cả thông báo</h3>
+      <p class="delete-modal-message">Bạn có chắc chắn muốn xóa tất cả thông báo? Hành động này không thể hoàn tác.</p>
+      <div class="delete-modal-actions">
+        <button class="btn-cancel-delete">Hủy</button>
+        <button class="btn-confirm-delete">Xóa tất cả</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  setTimeout(() => modal.classList.add("show"), 10);
+
+  const btnCancel = modal.querySelector(".btn-cancel-delete");
+  btnCancel.addEventListener("click", () => {
+    closeModal(modal);
+  });
+
+  const btnConfirm = modal.querySelector(".btn-confirm-delete");
+  btnConfirm.addEventListener("click", () => {
+    localStorage.setItem("dinelink_notifications", "[]");
+    loadNotifications();
+    updateNotificationBadge();
+    if (navigator.vibrate) navigator.vibrate(10);
+    closeModal(modal);
+  });
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      closeModal(modal);
+    }
+  });
+}
+
+function closeModal(modal) {
+  modal.classList.remove("show");
+  setTimeout(() => modal.remove(), 300);
 }

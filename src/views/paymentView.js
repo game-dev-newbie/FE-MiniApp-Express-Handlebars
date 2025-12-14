@@ -7,6 +7,7 @@ import {
 
 const appEl = document.getElementById("app");
 let selectedEWallet = null;
+let paymentTestMode = "success"; // success or failure
 
 export function renderPayment(bookingData) {
   const paymentContent = renderTemplate("payment", {
@@ -17,6 +18,39 @@ export function renderPayment(bookingData) {
 
   // Initialize event listeners
   initPaymentListeners(bookingData);
+  
+  // Initialize test buttons
+  initTestButtons();
+  
+  // Load saved card if exists
+  loadSavedCard();
+}
+
+function initTestButtons() {
+  const btnTestSuccess = document.getElementById("btnTestSuccess");
+  const btnTestFailure = document.getElementById("btnTestFailure");
+
+  // Set initial state
+  btnTestSuccess.classList.add("active");
+  paymentTestMode = "success";
+
+  if (btnTestSuccess) {
+    btnTestSuccess.addEventListener("click", () => {
+      paymentTestMode = "success";
+      btnTestSuccess.classList.add("active");
+      btnTestFailure.classList.remove("active");
+      if (navigator.vibrate) navigator.vibrate(10);
+    });
+  }
+
+  if (btnTestFailure) {
+    btnTestFailure.addEventListener("click", () => {
+      paymentTestMode = "failure";
+      btnTestFailure.classList.add("active");
+      btnTestSuccess.classList.remove("active");
+      if (navigator.vibrate) navigator.vibrate(10);
+    });
+  }
 }
 
 function initPaymentListeners(bookingData) {
@@ -48,11 +82,18 @@ function initPaymentListeners(bookingData) {
   // Card number formatting and preview update
   const cardNumberInput = document.getElementById("cardNumber");
   const previewCardNumber = document.getElementById("previewCardNumber");
+  const saveCardCheckbox = document.getElementById("saveCard");
+  
   if (cardNumberInput && previewCardNumber) {
     cardNumberInput.addEventListener("input", (e) => {
       let value = e.target.value.replace(/\s/g, "");
       let formattedValue = value.match(/.{1,4}/g)?.join(" ") || value;
       e.target.value = formattedValue;
+
+      // Reset save card checkbox when user changes card info
+      if (saveCardCheckbox) {
+        saveCardCheckbox.checked = false;
+      }
 
       // Update preview
       if (value.length === 0) {
@@ -80,6 +121,11 @@ function initPaymentListeners(bookingData) {
       const value = e.target.value.toUpperCase();
       e.target.value = value;
       previewCardName.textContent = value || "TÊN CHỦ THẺ";
+      
+      // Reset save card checkbox when user changes card info
+      if (saveCardCheckbox) {
+        saveCardCheckbox.checked = false;
+      }
     });
   }
 
@@ -94,6 +140,11 @@ function initPaymentListeners(bookingData) {
       }
       e.target.value = value;
       previewCardExpiry.textContent = value || "MM/YY";
+      
+      // Reset save card checkbox when user changes card info
+      if (saveCardCheckbox) {
+        saveCardCheckbox.checked = false;
+      }
     });
   }
 
@@ -137,7 +188,7 @@ function initPaymentListeners(bookingData) {
   const btnPopupOk = document.getElementById("btnPopupOk");
   if (btnPopupOk) {
     btnPopupOk.addEventListener("click", () => {
-      window.location.hash = "#/home";
+      window.location.hash = "#/booking";
     });
   }
 }
@@ -167,11 +218,27 @@ function handleCardPayment(bookingData) {
 
   // Simulate API call
   setTimeout(() => {
-    // Save booking to localStorage
-    saveBooking(bookingData);
-
-    // Show success popup
-    showSuccessPopup();
+    if (paymentTestMode === "success") {
+      // Save card info if checkbox is checked
+      const saveCardCheckbox = document.getElementById("saveCard");
+      if (saveCardCheckbox && saveCardCheckbox.checked) {
+        const savedCard = {
+          cardNumber,
+          cardName,
+          cardExpiry,
+        };
+        localStorage.setItem("dinelink_saved_card", JSON.stringify(savedCard));
+        console.log("Card saved for future use");
+      }
+      
+      // Save booking to localStorage
+      saveBooking(bookingData);
+      // Show success popup
+      showSuccessPopup();
+    } else {
+      // Show failure popup
+      showFailurePopup();
+    }
   }, 1500);
 }
 
@@ -190,11 +257,15 @@ function handleEWalletPayment(bookingData) {
 
   // Simulate API call
   setTimeout(() => {
-    // Save booking to localStorage
-    saveBooking(bookingData);
-
-    // Show success popup
-    showSuccessPopup();
+    if (paymentTestMode === "success") {
+      // Save booking to localStorage
+      saveBooking(bookingData);
+      // Show success popup
+      showSuccessPopup();
+    } else {
+      // Show failure popup
+      showFailurePopup();
+    }
   }, 1500);
 }
 
@@ -350,6 +421,85 @@ function simulateDashboardCheckIn(bookingId) {
       detail: { bookingId, status: "CHECKED_IN" },
     })
   );
+}
+
+// Show payment failure popup
+function showFailurePopup() {
+  const popup = document.createElement("div");
+  popup.className = "payment-popup";
+  popup.innerHTML = `
+    <div class="payment-popup-overlay"></div>
+    <div class="payment-popup-content payment-failure">
+      <div class="popup-icon">
+        <svg
+          width="64"
+          height="64"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="15" y1="9" x2="9" y2="15"></line>
+          <line x1="9" y1="9" x2="15" y2="15"></line>
+        </svg>
+      </div>
+      <h2>Thanh toán thất bại!</h2>
+      <p class="popup-message">
+        Không thể xử lý thanh toán của bạn. Vui lòng kiểm tra lại thông tin và thử lại.
+      </p>
+      <button class="btn-popup-retry" id="btnPopupRetry">Thử lại</button>
+    </div>
+  `;
+
+  document.body.appendChild(popup);
+
+  // Retry button
+  const btnRetry = popup.querySelector("#btnPopupRetry");
+  btnRetry.addEventListener("click", () => {
+    document.body.removeChild(popup);
+  });
+}
+
+// Load saved card information
+function loadSavedCard() {
+  const savedCardJSON = localStorage.getItem("dinelink_saved_card");
+  if (!savedCardJSON) return;
+
+  try {
+    const savedCard = JSON.parse(savedCardJSON);
+    
+    // Fill card inputs
+    const cardNumberInput = document.getElementById("cardNumber");
+    const cardNameInput = document.getElementById("cardName");
+    const cardExpiryInput = document.getElementById("cardExpiry");
+    const saveCardCheckbox = document.getElementById("saveCard");
+    
+    if (cardNumberInput && savedCard.cardNumber) {
+      cardNumberInput.value = savedCard.cardNumber;
+      // Trigger input event to update preview
+      cardNumberInput.dispatchEvent(new Event("input"));
+    }
+    
+    if (cardNameInput && savedCard.cardName) {
+      cardNameInput.value = savedCard.cardName;
+      cardNameInput.dispatchEvent(new Event("input"));
+    }
+    
+    if (cardExpiryInput && savedCard.cardExpiry) {
+      cardExpiryInput.value = savedCard.cardExpiry;
+      cardExpiryInput.dispatchEvent(new Event("input"));
+    }
+    
+    // Check the save card checkbox
+    if (saveCardCheckbox) {
+      saveCardCheckbox.checked = true;
+    }
+    
+    console.log("Loaded saved card information");
+  } catch (error) {
+    console.error("Error loading saved card:", error);
+  }
 }
 
 function showSuccessPopup() {

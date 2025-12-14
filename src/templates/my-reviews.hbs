@@ -22,8 +22,8 @@
     {{#if reviews.length}}
       <div class="reviews-list">
         {{#each reviews}}
-          <div class="review-card" data-review-id="{{this.id}}">
-            <div class="review-header">
+          <div class="review-card" data-review-id="{{this.id}}" data-restaurant-id="{{this.restaurantId}}">
+            <div class="review-header clickable-review-header">
               <img
                 src="{{this.restaurantImage}}"
                 alt="{{this.restaurantName}}"
@@ -47,23 +47,6 @@
             {{/if}}
             <div class="review-actions">
               <button
-                class="btn-review-action btn-view-booking-detail"
-                data-booking-id="{{this.bookingId}}"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-                Xem chi tiết
-              </button>
-              <button
                 class="btn-review-action btn-delete-review"
                 data-review-id="{{this.id}}"
               >
@@ -80,13 +63,7 @@
                     d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
                   ></path>
                 </svg>
-                Xóa
-              </button>
-              <button
-                class="btn-review-action btn-view-restaurant"
-                data-restaurant-id="{{this.restaurantId}}"
-              >
-                Xem nhà hàng
+                Xóa đánh giá
               </button>
             </div>
           </div>
