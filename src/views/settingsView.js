@@ -49,13 +49,13 @@ function initSettingsEventListeners() {
   themeBtns.forEach((btn) => {
     btn.addEventListener("click", async () => {
       const isLoggedIn = authService.isAuthenticated();
-      
+
       // Only allow theme change for logged in users
       if (!isLoggedIn) {
         alert("Vui lòng đăng nhập để sử dụng chức năng này!");
         return;
       }
-      
+
       const theme = btn.getAttribute("data-theme");
 
       // Update active state

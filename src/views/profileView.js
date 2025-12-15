@@ -222,13 +222,13 @@ function initProfileEventListeners() {
   themeBtns.forEach((btn) => {
     btn.addEventListener("click", async () => {
       const isLoggedIn = authService.isAuthenticated();
-      
+
       // Only allow theme change for logged in users
       if (!isLoggedIn) {
         alert("Vui lòng đăng nhập để sử dụng chức năng này!");
         return;
       }
-      
+
       const theme = btn.getAttribute("data-theme");
 
       // Update active state
@@ -328,13 +328,13 @@ function showLogoutConfirmation() {
     try {
       confirmBtn.disabled = true;
       confirmBtn.textContent = "Đang đăng xuất...";
-      
+
       await authService.logout();
-      
+
       if (navigator.vibrate) navigator.vibrate([50, 100, 50]);
-      
+
       closeBottomSheet(bottomSheet);
-      
+
       setTimeout(() => {
         window.location.hash = "#/login";
       }, 300);

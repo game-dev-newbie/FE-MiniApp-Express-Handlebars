@@ -3,24 +3,28 @@
 ## 📧 Đăng nhập bằng Email
 
 ### Tài khoản Admin
+
 ```
 Email: admin@dinelink.com
 Password: Admin123456
 ```
 
 ### Tài khoản User 1
+
 ```
 Email: nguyenvana@gmail.com
 Password: User123456
 ```
 
 ### Tài khoản User 2
+
 ```
 Email: tranthib@gmail.com
 Password: User123456
 ```
 
 ### Tài khoản Demo
+
 ```
 Email: demo@dinelink.com
 Password: Demo123456
@@ -55,7 +59,9 @@ Password: Demo123456
 Khi implement backend, các endpoint sau cần xử lý:
 
 ### POST /api/auth/login
+
 **Request:**
+
 ```json
 {
   "email": "nguyenvana@gmail.com",
@@ -65,6 +71,7 @@ Khi implement backend, các endpoint sau cần xử lý:
 ```
 
 **Response (Success):**
+
 ```json
 {
   "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -80,7 +87,9 @@ Khi implement backend, các endpoint sau cần xử lý:
 ```
 
 ### POST /api/auth/register
+
 **Request:**
+
 ```json
 {
   "email": "newuser@gmail.com",
@@ -91,7 +100,9 @@ Khi implement backend, các endpoint sau cần xử lý:
 ```
 
 ### POST /api/auth/zalo
+
 **Request:**
+
 ```json
 {
   "zalo_user_id": "1234567890",
@@ -101,7 +112,9 @@ Khi implement backend, các endpoint sau cần xử lý:
 ```
 
 ### POST /api/auth/refresh
+
 **Request:**
+
 ```json
 {
   "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -109,6 +122,7 @@ Khi implement backend, các endpoint sau cần xử lý:
 ```
 
 **Response:**
+
 ```json
 {
   "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -117,7 +131,9 @@ Khi implement backend, các endpoint sau cần xử lý:
 ```
 
 ### POST /api/auth/logout
+
 **Headers:**
+
 ```
 Authorization: Bearer {accessToken}
 ```
@@ -136,18 +152,18 @@ Authorization: Bearer {accessToken}
 
 ## 🎨 Tính năng theo phân quyền
 
-| Tính năng | Khách | Đã đăng nhập |
-|-----------|-------|--------------|
-| Xem danh sách nhà hàng | ✅ | ✅ |
-| Tìm kiếm nhà hàng | ✅ | ✅ |
-| Xem chi tiết nhà hàng | ✅ | ✅ |
-| Đặt bàn | ❌ | ✅ |
-| Thích nhà hàng | ❌ | ✅ |
-| Viết đánh giá | ❌ | ✅ |
-| Xem lịch sử đặt bàn | ❌ | ✅ |
-| Xem yêu thích | ❌ | ✅ |
-| Đổi giao diện sáng/tối | ❌ | ✅ |
-| Nhận thông báo | ❌ | ✅ |
+| Tính năng              | Khách | Đã đăng nhập |
+| ---------------------- | ----- | ------------ |
+| Xem danh sách nhà hàng | ✅    | ✅           |
+| Tìm kiếm nhà hàng      | ✅    | ✅           |
+| Xem chi tiết nhà hàng  | ✅    | ✅           |
+| Đặt bàn                | ❌    | ✅           |
+| Thích nhà hàng         | ❌    | ✅           |
+| Viết đánh giá          | ❌    | ✅           |
+| Xem lịch sử đặt bàn    | ❌    | ✅           |
+| Xem yêu thích          | ❌    | ✅           |
+| Đổi giao diện sáng/tối | ❌    | ✅           |
+| Nhận thông báo         | ❌    | ✅           |
 
 ---
 

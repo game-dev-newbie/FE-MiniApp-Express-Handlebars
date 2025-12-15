@@ -21,7 +21,10 @@ class AuthService {
       // nativeStorage.getItem is synchronous, returns string or null
       return nativeStorage.getItem(key);
     } catch (error) {
-      console.warn("Zalo nativeStorage not available, using localStorage:", error);
+      console.warn(
+        "Zalo nativeStorage not available, using localStorage:",
+        error
+      );
       return localStorage.getItem(key);
     }
   }
@@ -32,7 +35,10 @@ class AuthService {
       nativeStorage.setItem(key, value);
       return true;
     } catch (error) {
-      console.warn("Zalo nativeStorage not available, using localStorage:", error);
+      console.warn(
+        "Zalo nativeStorage not available, using localStorage:",
+        error
+      );
       localStorage.setItem(key, value);
       return true;
     }
@@ -44,7 +50,10 @@ class AuthService {
       nativeStorage.removeItem(key);
       return true;
     } catch (error) {
-      console.warn("Zalo nativeStorage not available, using localStorage:", error);
+      console.warn(
+        "Zalo nativeStorage not available, using localStorage:",
+        error
+      );
       localStorage.removeItem(key);
       return true;
     }
@@ -252,7 +261,9 @@ class AuthService {
 
         // Generate mock tokens
         const mockAccessToken = `mock_access_${Date.now()}_${mockUser.user.id}`;
-        const mockRefreshToken = `mock_refresh_${Date.now()}_${mockUser.user.id}`;
+        const mockRefreshToken = `mock_refresh_${Date.now()}_${
+          mockUser.user.id
+        }`;
 
         // Save tokens and user data
         this.setAccessToken(mockAccessToken);

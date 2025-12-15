@@ -137,10 +137,10 @@ function showAvatarModal() {
   // Upload button
   const btnUpload = document.getElementById("btnUploadAvatar");
   const fileInput = document.getElementById("avatarUpload");
-  
+
   if (btnUpload && fileInput) {
     btnUpload.addEventListener("click", () => fileInput.click());
-    
+
     fileInput.addEventListener("change", (e) => {
       const file = e.target.files[0];
       if (file && file.type.startsWith("image/")) {
@@ -160,7 +160,7 @@ function selectAvatar(avatarUrl) {
   const avatarImg = document.getElementById("profileAvatar");
   if (avatarImg) {
     avatarImg.src = avatarUrl;
-    
+
     // Add animation
     avatarImg.style.transform = "scale(0.9)";
     setTimeout(() => {

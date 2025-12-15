@@ -9,13 +9,13 @@ function bootstrap() {
   // Apply saved theme on startup - but force light mode for guests
   const isLoggedIn = authService.isAuthenticated();
   let savedTheme = localStorage.getItem("dinelink_theme") || "light";
-  
+
   // Force light mode for guest users
   if (!isLoggedIn) {
     savedTheme = "light";
     localStorage.setItem("dinelink_theme", "light");
   }
-  
+
   document.documentElement.setAttribute("data-theme", savedTheme);
 
   // Check if first time visit - show splash

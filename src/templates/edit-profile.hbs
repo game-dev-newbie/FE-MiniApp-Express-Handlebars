@@ -2,7 +2,14 @@
   <!-- Header -->
   <div class="edit-profile-header">
     <button class="btn-back" id="btnBackFromEditProfile">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
         <polyline points="15 18 9 12 15 6"></polyline>
       </svg>
     </button>
@@ -13,10 +20,24 @@
   <!-- Avatar Section -->
   <div class="edit-avatar-section">
     <div class="avatar-container">
-      <img src="{{user.avatar_url}}" alt="Avatar" class="profile-avatar" id="profileAvatar" />
+      <img
+        src="{{user.avatar_url}}"
+        alt="Avatar"
+        class="profile-avatar"
+        id="profileAvatar"
+      />
       <button class="btn-change-avatar" id="btnChangeAvatar">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+          ></path>
           <circle cx="12" cy="13" r="4"></circle>
         </svg>
       </button>
@@ -30,15 +51,23 @@
     <div class="form-group">
       <label for="displayName">Họ và tên</label>
       <div class="input-wrapper">
-        <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg
+          class="input-icon"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
           <circle cx="12" cy="7" r="4"></circle>
         </svg>
-        <input 
-          type="text" 
-          id="displayName" 
-          name="displayName" 
-          value="{{user.display_name}}" 
+        <input
+          type="text"
+          id="displayName"
+          name="displayName"
+          value="{{user.display_name}}"
           placeholder="Nhập họ và tên"
           required
         />
@@ -49,15 +78,25 @@
     <div class="form-group">
       <label for="email">Email</label>
       <div class="input-wrapper">
-        <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+        <svg
+          class="input-icon"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+          ></path>
           <polyline points="22,6 12,13 2,6"></polyline>
         </svg>
-        <input 
-          type="email" 
-          id="email" 
-          name="email" 
-          value="{{user.email}}" 
+        <input
+          type="email"
+          id="email"
+          name="email"
+          value="{{user.email}}"
           readonly
           disabled
         />
@@ -69,14 +108,24 @@
     <div class="form-group">
       <label for="phone">Số điện thoại</label>
       <div class="input-wrapper">
-        <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+        <svg
+          class="input-icon"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
+          ></path>
         </svg>
-        <input 
-          type="tel" 
-          id="phone" 
-          name="phone" 
-          value="{{user.phone}}" 
+        <input
+          type="tel"
+          id="phone"
+          name="phone"
+          value="{{user.phone}}"
           placeholder="Nhập số điện thoại"
         />
       </div>
@@ -86,13 +135,23 @@
     <div class="form-group">
       <label for="bio">Giới thiệu</label>
       <div class="input-wrapper">
-        <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        <svg
+          class="input-icon"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+          ></path>
         </svg>
-        <textarea 
-          id="bio" 
-          name="bio" 
-          rows="3" 
+        <textarea
+          id="bio"
+          name="bio"
+          rows="3"
           placeholder="Viết vài dòng về bạn..."
         >{{user.bio}}</textarea>
       </div>
@@ -107,7 +166,14 @@
       <div class="modal-header">
         <h3>Chọn ảnh đại diện</h3>
         <button class="btn-close-modal" id="btnCloseAvatarModal">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
@@ -122,9 +188,21 @@
           {{/each}}
         </div>
         <div class="upload-section">
-          <input type="file" id="avatarUpload" accept="image/*" style="display: none;" />
+          <input
+            type="file"
+            id="avatarUpload"
+            accept="image/*"
+            style="display: none;"
+          />
           <button class="btn-upload-avatar" id="btnUploadAvatar">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="17 8 12 3 7 8"></polyline>
               <line x1="12" y1="3" x2="12" y2="15"></line>
