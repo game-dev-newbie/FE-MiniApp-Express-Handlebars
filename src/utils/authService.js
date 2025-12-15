@@ -1,11 +1,6 @@
 // src/utils/authService.js
 // Authentication Service - Manages tokens and auth state
-import {
-  getUserInfo,
-  getStorage,
-  setStorage,
-  removeStorage,
-} from "zmp-sdk/apis";
+import { getUserInfo, getAccessToken, nativeStorage } from "zmp-sdk/apis";
 
 const ACCESS_TOKEN_KEY = "dinelink_access_token";
 const REFRESH_TOKEN_KEY = "dinelink_refresh_token";
@@ -20,34 +15,36 @@ class AuthService {
 
   // ===== ZALO STORAGE HELPERS =====
 
-  // Use zmp-sdk storage methods
-  async getStorageData(key) {
+  // Use nativeStorage (synchronous) with localStorage fallback
+  getStorageData(key) {
     try {
-      const { data } = await getStorage({ keys: [key] });
-      return data[key] || null;
+      // nativeStorage.getItem is synchronous, returns string or null
+      return nativeStorage.getItem(key);
     } catch (error) {
-      console.warn("Zalo storage not available, using localStorage:", error);
+      console.warn("Zalo nativeStorage not available, using localStorage:", error);
       return localStorage.getItem(key);
     }
   }
 
-  async setStorageData(key, value) {
+  setStorageData(key, value) {
     try {
-      await setStorage({ [key]: value });
+      // nativeStorage.setItem is synchronous
+      nativeStorage.setItem(key, value);
       return true;
     } catch (error) {
-      console.warn("Zalo storage not available, using localStorage:", error);
+      console.warn("Zalo nativeStorage not available, using localStorage:", error);
       localStorage.setItem(key, value);
       return true;
     }
   }
 
-  async removeStorageData(key) {
+  removeStorageData(key) {
     try {
-      await removeStorage({ keys: [key] });
+      // nativeStorage.removeItem is synchronous
+      nativeStorage.removeItem(key);
       return true;
     } catch (error) {
-      console.warn("Zalo storage not available, using localStorage:", error);
+      console.warn("Zalo nativeStorage not available, using localStorage:", error);
       localStorage.removeItem(key);
       return true;
     }
@@ -55,68 +52,68 @@ class AuthService {
 
   // ===== TOKEN MANAGEMENT =====
 
-  async getAccessToken() {
-    return await this.getStorageData(ACCESS_TOKEN_KEY);
+  getAccessToken() {
+    return this.getStorageData(ACCESS_TOKEN_KEY);
   }
 
-  async setAccessToken(token) {
-    await this.setStorageData(ACCESS_TOKEN_KEY, token);
+  setAccessToken(token) {
+    this.setStorageData(ACCESS_TOKEN_KEY, token);
   }
 
-  async removeAccessToken() {
-    await this.removeStorageData(ACCESS_TOKEN_KEY);
+  removeAccessToken() {
+    this.removeStorageData(ACCESS_TOKEN_KEY);
   }
 
-  async getRefreshToken() {
-    return await this.getStorageData(REFRESH_TOKEN_KEY);
+  getRefreshToken() {
+    return this.getStorageData(REFRESH_TOKEN_KEY);
   }
 
-  async setRefreshToken(token) {
-    await this.setStorageData(REFRESH_TOKEN_KEY, token);
+  setRefreshToken(token) {
+    this.setStorageData(REFRESH_TOKEN_KEY, token);
   }
 
-  async removeRefreshToken() {
-    await this.removeStorageData(REFRESH_TOKEN_KEY);
+  removeRefreshToken() {
+    this.removeStorageData(REFRESH_TOKEN_KEY);
   }
 
   // Legacy method for backward compatibility
-  async getToken() {
-    return await this.getAccessToken();
+  getToken() {
+    return this.getAccessToken();
   }
 
-  async setToken(token) {
-    await this.setAccessToken(token);
+  setToken(token) {
+    this.setAccessToken(token);
   }
 
-  async removeToken() {
-    await this.removeAccessToken();
-    await this.removeRefreshToken();
+  removeToken() {
+    this.removeAccessToken();
+    this.removeRefreshToken();
   }
 
   // ===== USER DATA MANAGEMENT =====
 
-  async getUser() {
-    const userData = await this.getStorageData(USER_KEY);
+  getUser() {
+    const userData = this.getStorageData(USER_KEY);
     return userData ? JSON.parse(userData) : null;
   }
 
-  async setUser(user) {
-    await this.setStorageData(USER_KEY, JSON.stringify(user));
+  setUser(user) {
+    this.setStorageData(USER_KEY, JSON.stringify(user));
   }
 
-  async removeUser() {
-    await this.removeStorageData(USER_KEY);
+  removeUser() {
+    this.removeStorageData(USER_KEY);
   }
 
   // ===== AUTH STATE =====
 
-  async isAuthenticated() {
-    const token = await this.getAccessToken();
+  isAuthenticated() {
+    const token = this.getAccessToken();
     return !!token;
   }
 
-  async isGuest() {
-    return !(await this.isAuthenticated());
+  isGuest() {
+    return !this.isAuthenticated();
   }
 
   // ===== ZALO SSO LOGIN =====
@@ -149,10 +146,10 @@ class AuthService {
 
       const data = await response.json();
 
-      // Save tokens and user data
-      await this.setAccessToken(data.accessToken);
-      await this.setRefreshToken(data.refreshToken);
-      await this.setUser(data.user);
+      // Save tokens and user data (now synchronous)
+      this.setAccessToken(data.accessToken);
+      this.setRefreshToken(data.refreshToken);
+      this.setUser(data.user);
 
       return { success: true, user: data.user };
     } catch (error) {
@@ -197,6 +194,75 @@ class AuthService {
 
   async loginWithEmail(email, password) {
     try {
+      // Mock user data for testing (remove when backend is ready)
+      const MOCK_USERS = [
+        {
+          email: "admin@dinelink.com",
+          password: "Admin123456",
+          user: {
+            id: 999,
+            display_name: "Admin DineLink",
+            email: "admin@dinelink.com",
+            avatar_url: "https://i.pravatar.cc/150?img=70",
+            phone: "0900000000",
+          },
+        },
+        {
+          email: "nguyenvana@gmail.com",
+          password: "User123456",
+          user: {
+            id: 1,
+            display_name: "Nguyễn Văn A",
+            email: "nguyenvana@gmail.com",
+            avatar_url: "https://i.pravatar.cc/150?img=1",
+            phone: "0901234567",
+          },
+        },
+        {
+          email: "tranthib@gmail.com",
+          password: "User123456",
+          user: {
+            id: 2,
+            display_name: "Trần Thị B",
+            email: "tranthib@gmail.com",
+            avatar_url: "https://i.pravatar.cc/150?img=2",
+            phone: "0912345678",
+          },
+        },
+        {
+          email: "demo@dinelink.com",
+          password: "Demo123456",
+          user: {
+            id: 100,
+            display_name: "Demo User",
+            email: "demo@dinelink.com",
+            avatar_url: "https://i.pravatar.cc/150?img=50",
+            phone: "0909999999",
+          },
+        },
+      ];
+
+      // Check mock users first
+      const mockUser = MOCK_USERS.find(
+        (u) => u.email === email && u.password === password
+      );
+
+      if (mockUser) {
+        console.log("🎭 Mock login successful:", mockUser.user);
+
+        // Generate mock tokens
+        const mockAccessToken = `mock_access_${Date.now()}_${mockUser.user.id}`;
+        const mockRefreshToken = `mock_refresh_${Date.now()}_${mockUser.user.id}`;
+
+        // Save tokens and user data
+        this.setAccessToken(mockAccessToken);
+        this.setRefreshToken(mockRefreshToken);
+        this.setUser(mockUser.user);
+
+        return { success: true, user: mockUser.user };
+      }
+
+      // If no mock user found, try real backend
       const response = await fetch(`${this.apiBaseUrl}/auth/login`, {
         method: "POST",
         headers: {
@@ -216,14 +282,21 @@ class AuthService {
 
       const data = await response.json();
 
-      // Save tokens and user data
-      await this.setAccessToken(data.accessToken);
-      await this.setRefreshToken(data.refreshToken);
-      await this.setUser(data.user);
+      // Save tokens and user data (now synchronous)
+      this.setAccessToken(data.accessToken);
+      this.setRefreshToken(data.refreshToken);
+      this.setUser(data.user);
 
       return { success: true, user: data.user };
     } catch (error) {
       console.error("Email login error:", error);
+      // Return more helpful error message
+      if (error.message.includes("Failed to fetch")) {
+        return {
+          success: false,
+          error: "Email hoặc mật khẩu không đúng",
+        };
+      }
       return { success: false, error: error.message };
     }
   }
@@ -252,10 +325,10 @@ class AuthService {
 
       const data = await response.json();
 
-      // Save tokens and user data
-      await this.setAccessToken(data.accessToken);
-      await this.setRefreshToken(data.refreshToken);
-      await this.setUser(data.user);
+      // Save tokens and user data (now synchronous)
+      this.setAccessToken(data.accessToken);
+      this.setRefreshToken(data.refreshToken);
+      this.setUser(data.user);
 
       return { success: true, user: data.user };
     } catch (error) {
@@ -299,12 +372,12 @@ class AuthService {
 
       const data = await response.json();
 
-      // Save new tokens
-      await this.setAccessToken(data.accessToken);
+      // Save new tokens (now synchronous)
+      this.setAccessToken(data.accessToken);
 
       // Optionally update refresh token if backend rotates it
       if (data.refreshToken) {
-        await this.setRefreshToken(data.refreshToken);
+        this.setRefreshToken(data.refreshToken);
       }
 
       // Notify all subscribers
@@ -314,9 +387,9 @@ class AuthService {
       return data.accessToken;
     } catch (error) {
       console.error("Refresh token error:", error);
-      // Clear all tokens and redirect to login
-      await this.removeToken();
-      await this.removeUser();
+      // Clear all tokens and redirect to login (now synchronous)
+      this.removeToken();
+      this.removeUser();
       window.location.hash = "#/login";
       throw error;
     } finally {
@@ -328,7 +401,7 @@ class AuthService {
 
   async logout() {
     try {
-      const token = await this.getAccessToken();
+      const token = this.getAccessToken();
 
       if (token) {
         // Call backend to invalidate tokens
@@ -343,16 +416,16 @@ class AuthService {
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      // Always clear local data
-      await this.removeToken();
-      await this.removeUser();
+      // Always clear local data (now synchronous)
+      this.removeToken();
+      this.removeUser();
     }
   }
 
   // ===== AUTH GUARD =====
 
-  async requireAuth(intendedPath = null) {
-    const isAuth = await this.isAuthenticated();
+  requireAuth(intendedPath = null) {
+    const isAuth = this.isAuthenticated();
     if (!isAuth) {
       // Store intended destination (where user wanted to go)
       if (intendedPath) {
@@ -360,8 +433,10 @@ class AuthService {
       } else {
         sessionStorage.setItem("auth_redirect", window.location.hash);
       }
-      // Redirect to login
-      window.location.hash = "#/login";
+      // Use setTimeout to avoid blocking current render
+      setTimeout(() => {
+        window.location.hash = "#/login";
+      }, 0);
       return false;
     }
     return true;
@@ -377,7 +452,7 @@ class AuthService {
   // ===== API HELPER WITH AUTH & AUTO REFRESH =====
 
   async fetchWithAuth(url, options = {}) {
-    let token = await this.getAccessToken();
+    let token = this.getAccessToken();
 
     if (!token) {
       throw new Error("Not authenticated");

@@ -164,7 +164,7 @@ function initProfileEventListeners() {
   const editAvatarBtn = document.querySelector(".btn-edit-avatar");
   if (editAvatarBtn) {
     editAvatarBtn.addEventListener("click", () => {
-      alert("Chức năng đổi ảnh đại diện đang được phát triển!");
+      window.location.hash = "#/edit-profile";
     });
   }
 
@@ -172,7 +172,7 @@ function initProfileEventListeners() {
   const editProfileBtn = document.getElementById("editProfileBtn");
   if (editProfileBtn) {
     editProfileBtn.addEventListener("click", () => {
-      alert("Chức năng sửa thông tin cá nhân đang được phát triển!");
+      window.location.hash = "#/edit-profile";
     });
   }
 
@@ -217,10 +217,18 @@ function initProfileEventListeners() {
     });
   }
 
-  // Theme toggle buttons
+  // Theme toggle buttons - only works when logged in
   const themeBtns = document.querySelectorAll(".theme-btn-inline");
   themeBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
+      const isLoggedIn = authService.isAuthenticated();
+      
+      // Only allow theme change for logged in users
+      if (!isLoggedIn) {
+        alert("Vui lòng đăng nhập để sử dụng chức năng này!");
+        return;
+      }
+      
       const theme = btn.getAttribute("data-theme");
 
       // Update active state
@@ -249,29 +257,8 @@ function initProfileEventListeners() {
   const logoutBtn = document.getElementById("logoutBtn");
   if (logoutBtn) {
     logoutBtn.addEventListener("click", async () => {
-      // Check if user is logged in
-      const isLoggedIn = authService.getToken() !== null;
-
-      if (isLoggedIn) {
-        // User is logged in, perform logout
-        if (confirm("Bạn có chắc chắn muốn đăng xuất?")) {
-          try {
-            await authService.logout();
-            if (navigator.vibrate) navigator.vibrate(10);
-            window.location.hash = "#/login";
-          } catch (error) {
-            console.error("Logout error:", error);
-            alert("Có lỗi xảy ra khi đăng xuất. Vui lòng thử lại.");
-          }
-        }
-      } else {
-        // User is in guest mode, just clear onboarding
-        if (confirm("Bạn có chắc chắn muốn đặt lại ứng dụng?")) {
-          localStorage.removeItem("onboardingCompleted");
-          window.location.hash = "#/splash";
-          location.reload();
-        }
-      }
+      // Show logout confirmation bottom sheet
+      showLogoutConfirmation();
     });
   }
 
@@ -288,4 +275,81 @@ function initProfileEventListeners() {
       window.location.hash = `#/${page === "home" ? "" : page}`;
     });
   });
+}
+
+function showLogoutConfirmation() {
+  // Create bottom sheet
+  const bottomSheet = document.createElement("div");
+  bottomSheet.className = "logout-bottom-sheet";
+  bottomSheet.innerHTML = `
+    <div class="bottom-sheet-overlay"></div>
+    <div class="bottom-sheet-content">
+      <div class="bottom-sheet-handle"></div>
+      <div class="bottom-sheet-body">
+        <div class="logout-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </div>
+        <h3 class="logout-title">Đăng xuất</h3>
+        <p class="logout-message">Bạn có chắc chắn muốn đăng xuất khỏi tài khoản không?</p>
+        <div class="logout-actions">
+          <button class="btn-logout-cancel">Hủy</button>
+          <button class="btn-logout-confirm">Đăng xuất</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(bottomSheet);
+
+  // Trigger animation
+  setTimeout(() => {
+    bottomSheet.classList.add("active");
+  }, 10);
+
+  // Handle overlay click
+  const overlay = bottomSheet.querySelector(".bottom-sheet-overlay");
+  overlay.addEventListener("click", () => {
+    closeBottomSheet(bottomSheet);
+  });
+
+  // Handle cancel button
+  const cancelBtn = bottomSheet.querySelector(".btn-logout-cancel");
+  cancelBtn.addEventListener("click", () => {
+    closeBottomSheet(bottomSheet);
+  });
+
+  // Handle confirm button
+  const confirmBtn = bottomSheet.querySelector(".btn-logout-confirm");
+  confirmBtn.addEventListener("click", async () => {
+    try {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = "Đang đăng xuất...";
+      
+      await authService.logout();
+      
+      if (navigator.vibrate) navigator.vibrate([50, 100, 50]);
+      
+      closeBottomSheet(bottomSheet);
+      
+      setTimeout(() => {
+        window.location.hash = "#/login";
+      }, 300);
+    } catch (error) {
+      console.error("Logout error:", error);
+      alert("Có lỗi xảy ra khi đăng xuất. Vui lòng thử lại.");
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = "Đăng xuất";
+    }
+  });
+}
+
+function closeBottomSheet(bottomSheet) {
+  bottomSheet.classList.remove("active");
+  setTimeout(() => {
+    bottomSheet.remove();
+  }, 300);
 }

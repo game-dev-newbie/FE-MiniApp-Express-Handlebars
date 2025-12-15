@@ -1,5 +1,6 @@
 // src/views/settingsView.js
 import { renderTemplate } from "../core/templates.js";
+import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
 
@@ -43,10 +44,18 @@ function initSettingsEventListeners() {
     });
   }
 
-  // Theme toggle buttons
+  // Theme toggle buttons - only works when logged in
   const themeBtns = document.querySelectorAll(".theme-btn");
   themeBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
+      const isLoggedIn = authService.isAuthenticated();
+      
+      // Only allow theme change for logged in users
+      if (!isLoggedIn) {
+        alert("Vui lòng đăng nhập để sử dụng chức năng này!");
+        return;
+      }
+      
       const theme = btn.getAttribute("data-theme");
 
       // Update active state

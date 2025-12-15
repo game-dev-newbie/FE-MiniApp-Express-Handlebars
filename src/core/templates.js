@@ -23,6 +23,7 @@ import myReviewsTpl from "../templates/my-reviews.hbs?raw";
 import helpTpl from "../templates/help.hbs?raw";
 import loginTpl from "../templates/login.hbs?raw";
 import registerTpl from "../templates/register.hbs?raw";
+import editProfileTpl from "../templates/edit-profile.hbs?raw";
 
 // compile sẵn
 const templates = {
@@ -48,6 +49,7 @@ const templates = {
   help: Handlebars.compile(helpTpl),
   login: Handlebars.compile(loginTpl),
   register: Handlebars.compile(registerTpl),
+  "edit-profile": Handlebars.compile(editProfileTpl),
 };
 
 // nếu cần register helpers/partials, làm thêm ở đây

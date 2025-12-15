@@ -16,10 +16,10 @@ import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
 
-export async function renderHome() {
-  // Check if user is logged in (await since it's async)
-  const isLoggedIn = await authService.isAuthenticated();
-  const user = isLoggedIn ? await authService.getUser() : null;
+export function renderHome() {
+  // Check if user is logged in (now synchronous)
+  const isLoggedIn = authService.isAuthenticated();
+  const user = isLoggedIn ? authService.getUser() : null;
 
   // Use logged in user data or guest data
   const displayName = user ? user.display_name : "Quý khách";
@@ -141,9 +141,9 @@ function initHomeEventListeners() {
       e.stopPropagation();
 
       // Check if user is logged in before allowing favorite
-      if (!(await authService.isAuthenticated())) {
+      if (!authService.isAuthenticated()) {
         // Store current page and redirect to login
-        await authService.requireAuth(window.location.hash || "#/home");
+        authService.requireAuth(window.location.hash || "#/home");
         return;
       }
 
@@ -213,8 +213,8 @@ function initHomeEventListeners() {
   if (bookmarkBtn) {
     bookmarkBtn.addEventListener("click", async () => {
       // Check if user is logged in before allowing access to favorites
-      if (!(await authService.isAuthenticated())) {
-        await authService.requireAuth("#/favorites");
+      if (!authService.isAuthenticated()) {
+        authService.requireAuth("#/favorites");
         return;
       }
       sessionStorage.setItem("favoritesReferrer", "home");
@@ -225,8 +225,8 @@ function initHomeEventListeners() {
   if (profileBtn) {
     profileBtn.addEventListener("click", async () => {
       // Check if user is logged in before allowing access to profile
-      if (!(await authService.isAuthenticated())) {
-        await authService.requireAuth("#/profile");
+      if (!authService.isAuthenticated()) {
+        authService.requireAuth("#/profile");
         return;
       }
       window.location.hash = "#/profile";

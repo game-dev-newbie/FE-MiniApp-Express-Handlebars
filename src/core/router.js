@@ -19,6 +19,7 @@ import { renderHistory } from "../views/historyView.js";
 import { renderHelp } from "../views/helpView.js";
 import { renderLogin } from "../views/loginView.js";
 import { renderRegister } from "../views/registerView.js";
+import { renderEditProfile } from "../views/editProfileView.js";
 
 export function initRouter() {
   window.addEventListener("hashchange", handleRouteChange);
@@ -120,6 +121,9 @@ function handleRouteChange() {
       break;
     case "profile":
       renderProfile();
+      break;
+    case "edit-profile":
+      renderEditProfile();
       break;
     case "my-reviews":
       renderMyReviews();
