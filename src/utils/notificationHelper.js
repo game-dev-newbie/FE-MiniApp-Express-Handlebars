@@ -39,7 +39,11 @@ export function createBookingNotification(
       break;
     case "REMINDER":
       title = "Nhắc nhở đặt bàn!";
-      message = `Đặt bàn của bạn tại ${booking.restaurantName || "nhà hàng"} sẽ bắt đầu trong 30 phút nữa (lúc ${booking.time}). Chuẩn bị khởi hành thôi!`;
+      message = `Đặt bàn của bạn tại ${
+        booking.restaurantName || "nhà hàng"
+      } sẽ bắt đầu trong 30 phút nữa (lúc ${
+        booking.time
+      }). Chuẩn bị khởi hành thôi!`;
       break;
     default:
       title = "Thông báo đặt bàn";
@@ -110,7 +114,9 @@ export function receiveBackendNotification(notificationData) {
   );
 
   const notification = {
-    id: notificationData.id || `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    id:
+      notificationData.id ||
+      `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     bookingId: notificationData.bookingId,
     type: notificationData.type || notificationData.status,
     status: notificationData.status,
@@ -168,7 +174,8 @@ export function startNotificationPolling(intervalMs = 60000) {
       const notifications = JSON.parse(
         localStorage.getItem("dinelink_notifications") || "[]"
       );
-      const lastTimestamp = notifications[0]?.createdAt || new Date(0).toISOString();
+      const lastTimestamp =
+        notifications[0]?.createdAt || new Date(0).toISOString();
 
       // Call backend API to get new notifications
       const response = await fetch(
@@ -190,7 +197,9 @@ export function startNotificationPolling(intervalMs = 60000) {
           newNotifications.forEach((notif) => {
             receiveBackendNotification(notif);
           });
-          console.log(`🔔 Received ${newNotifications.length} new notification(s)`);
+          console.log(
+            `🔔 Received ${newNotifications.length} new notification(s)`
+          );
         }
       }
     } catch (error) {
@@ -215,19 +224,20 @@ export function createTestNotification() {
     type: "REMINDER",
     status: "REMINDER",
     title: "🧪 Test Notification",
-    message: "Đây là thông báo test để kiểm tra real-time update. Nếu bạn thấy notification này xuất hiện ngay lập tức, hệ thống đang hoạt động tốt!",
+    message:
+      "Đây là thông báo test để kiểm tra real-time update. Nếu bạn thấy notification này xuất hiện ngay lập tức, hệ thống đang hoạt động tốt!",
     createdAt: new Date().toISOString(),
     isRead: false,
   };
 
   console.log("🧪 Creating test notification:", testNotification);
-  
+
   receiveBackendNotification(testNotification);
-  
+
   return testNotification;
 }
 
 // Make it available globally for testing in console
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   window.createTestNotification = createTestNotification;
 }

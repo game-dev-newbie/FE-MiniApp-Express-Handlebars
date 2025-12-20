@@ -3,6 +3,7 @@
 ## ✅ Trạng thái kiểm tra (20/12/2025)
 
 ### 🟢 Đã sẵn sàng:
+
 - ✅ Base URL đã được cấu hình: `https://pyramidally-unborrowed-cherie.ngrok-free.dev`
 - ✅ HTTP Client với error handling
 - ✅ Authentication service với mock data fallback
@@ -11,10 +12,12 @@
 - ✅ CORS credentials: include
 
 ### 🟡 Cần chú ý:
+
 - ⚠️ Mock data đang được sử dụng cho reviews (USE_MOCK_API = true)
 - ⚠️ Authentication có fallback mock users để test
 
 ### 🔴 Cần backend hỗ trợ:
+
 - ❌ CORS headers từ backend
 - ❌ Token refresh endpoint
 - ❌ Các endpoints cần implement (xem danh sách bên dưới)
@@ -26,6 +29,7 @@
 ### 🔐 Authentication (`/auth`)
 
 #### POST `/auth/login`
+
 ```json
 Request:
 {
@@ -49,6 +53,7 @@ Response:
 ```
 
 #### POST `/auth/register`
+
 ```json
 Request:
 {
@@ -62,6 +67,7 @@ Response: (giống login)
 ```
 
 #### POST `/auth/zalo`
+
 Đăng nhập/Đăng ký với Zalo (auto register nếu user mới)
 
 **Quan trọng:** Backend cần lưu `avatar_url` từ Zalo để user có ảnh đại diện ngay khi đăng ký
@@ -90,6 +96,7 @@ Response:
 ```
 
 #### POST `/auth/register`
+
 Đăng ký với Email
 
 **Quan trọng:** Backend cần set `avatar_url` mặc định nếu không có trong request
@@ -108,6 +115,7 @@ Response: (giống login)
 ```
 
 #### POST `/auth/refresh`
+
 ```json
 Request:
 {
@@ -122,6 +130,7 @@ Response:
 ```
 
 #### POST `/auth/logout`
+
 Headers: `Authorization: Bearer {token}`
 
 ---
@@ -129,6 +138,7 @@ Headers: `Authorization: Bearer {token}`
 ### 🍽️ Restaurants (`/restaurants`)
 
 #### GET `/restaurants`
+
 Query params: `?category=italian&search=pizza&limit=10&offset=0`
 
 ```json
@@ -156,6 +166,7 @@ Response:
 ```
 
 #### GET `/restaurants/:id`
+
 ```json
 Response:
 {
@@ -186,6 +197,7 @@ Response:
 ```
 
 #### GET `/restaurants/:id/reviews`
+
 Query params: `?limit=10&offset=0&sort=newest`
 
 ```json
@@ -214,6 +226,7 @@ Response:
 ### 📅 Bookings (`/bookings`)
 
 #### POST `/bookings`
+
 Headers: `Authorization: Bearer {token}`
 
 ```json
@@ -244,6 +257,7 @@ Response:
 ```
 
 #### GET `/bookings`
+
 Headers: `Authorization: Bearer {token}`
 Query params: `?status=CONFIRMED&limit=10`
 
@@ -266,9 +280,11 @@ Response:
 ```
 
 #### GET `/bookings/:id`
+
 Headers: `Authorization: Bearer {token}`
 
 #### PUT `/bookings/:id`
+
 Headers: `Authorization: Bearer {token}`
 
 ```json
@@ -281,6 +297,7 @@ Request:
 ```
 
 #### DELETE `/bookings/:id` (Cancel)
+
 Headers: `Authorization: Bearer {token}`
 
 ```json
@@ -291,6 +308,7 @@ Request:
 ```
 
 #### POST `/bookings/:id/checkin`
+
 Headers: `Authorization: Bearer {token}`
 
 ```json
@@ -307,6 +325,7 @@ Response:
 ### ⭐ Reviews (`/reviews`)
 
 #### POST `/reviews`
+
 Headers: `Authorization: Bearer {token}`
 
 ```json
@@ -331,12 +350,15 @@ Response:
 ```
 
 #### GET `/reviews/my-reviews`
+
 Headers: `Authorization: Bearer {token}`
 
 #### PUT `/reviews/:id`
+
 Headers: `Authorization: Bearer {token}`
 
 #### DELETE `/reviews/:id`
+
 Headers: `Authorization: Bearer {token}`
 
 ---
@@ -344,6 +366,7 @@ Headers: `Authorization: Bearer {token}`
 ### ❤️ Favorites (`/favorites`)
 
 #### POST `/favorites`
+
 Headers: `Authorization: Bearer {token}`
 
 ```json
@@ -354,9 +377,11 @@ Request:
 ```
 
 #### DELETE `/favorites/:restaurantId`
+
 Headers: `Authorization: Bearer {token}`
 
 #### GET `/favorites`
+
 Headers: `Authorization: Bearer {token}`
 
 ```json
@@ -379,6 +404,7 @@ Response:
 ### 👤 User Profile (`/user`)
 
 #### GET `/user/profile`
+
 Lấy thông tin profile của user hiện tại
 
 Headers: `Authorization: Bearer {token}`
@@ -400,6 +426,7 @@ Response:
 ```
 
 #### PUT `/user/profile`
+
 Cập nhật thông tin profile
 
 Headers: `Authorization: Bearer {token}`
@@ -430,6 +457,7 @@ Response:
 ```
 
 #### POST `/user/avatar`
+
 Upload avatar mới (alternative - nếu upload file riêng)
 
 Headers: `Authorization: Bearer {token}`
@@ -451,6 +479,7 @@ Response:
 ## 🔧 Cấu hình Backend cần thiết
 
 ### CORS Headers
+
 ```javascript
 Access-Control-Allow-Origin: * (hoặc domain cụ thể)
 Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS
@@ -459,13 +488,16 @@ Access-Control-Allow-Credentials: true
 ```
 
 ### Response Format
+
 Tất cả response nên theo format:
+
 ```json
 Success: { "data": {...}, "message": "Success" }
 Error: { "error": "Error message", "code": "ERROR_CODE" }
 ```
 
 ### Status Codes
+
 - 200: Success
 - 201: Created
 - 400: Bad Request
@@ -479,7 +511,9 @@ Error: { "error": "Error message", "code": "ERROR_CODE" }
 ## 🚀 Cách chuyển từ Mock sang Real API
 
 ### Bước 1: Tắt Mock Data
+
 Trong các file API, đổi flag:
+
 ```javascript
 // src/api/restaurantApi.js
 const USE_MOCK_API = false; // Đổi từ true sang false
@@ -489,12 +523,14 @@ const USE_MOCK_API = false; // Đổi từ true sang false
 ```
 
 ### Bước 2: Test Authentication
+
 1. Test login với email/password
 2. Test Zalo login
 3. Kiểm tra token được lưu đúng
 4. Test refresh token
 
 ### Bước 3: Test từng module
+
 1. Restaurants listing & detail
 2. Bookings create/read/update/delete
 3. Reviews create/read/update/delete
@@ -502,7 +538,9 @@ const USE_MOCK_API = false; // Đổi từ true sang false
 5. User profile
 
 ### Bước 4: Error Handling
+
 Kiểm tra app xử lý đúng các trường hợp:
+
 - Network error
 - 401 Unauthorized → redirect login
 - 404 Not Found
@@ -513,11 +551,13 @@ Kiểm tra app xử lý đúng các trường hợp:
 ## 📝 Ghi chú
 
 ### Token Storage
+
 - Access Token: `localStorage.dinelink_access_token`
 - Refresh Token: `localStorage.dinelink_refresh_token`
 - User Data: `localStorage.dinelink_user_data`
 
 ### Current Mock Users (for testing)
+
 ```javascript
 - admin@dinelink.com / Admin123456
 - nguyenvana@gmail.com / User123456
@@ -526,6 +566,7 @@ Kiểm tra app xử lý đúng các trường hợp:
 ```
 
 ### Base URL
+
 ```javascript
 Production: https://pyramidally-unborrowed-cherie.ngrok-free.dev
 Development: Can override with VITE_API_BASE_URL env variable
@@ -536,6 +577,7 @@ Development: Can override with VITE_API_BASE_URL env variable
 ## 🔔 Hệ thống Notifications
 
 ### Frontend Polling
+
 Frontend đã được setup để tự động poll notifications từ backend mỗi 60 giây khi user đăng nhập:
 
 ```javascript
@@ -544,6 +586,7 @@ startNotificationPolling(60000); // Poll mỗi 60 giây
 ```
 
 ### GET `/notifications?since={timestamp}`
+
 Lấy các notifications mới từ timestamp cụ thể:
 
 ```json
@@ -570,17 +613,21 @@ Response:
 ```
 
 ### Notification Types
+
 Frontend hỗ trợ các loại notification sau:
 
 1. **CONFIRMED** - Đặt bàn được xác nhận
+
    - Icon: Checkmark
    - Màu: Xanh lá (#4caf50)
 
 2. **CHECKED_IN** - Check-in thành công
+
    - Icon: Layers
    - Màu: Cam (#ef6c00)
 
 3. **CANCELLED** - Đặt bàn bị hủy
+
    - Icon: X Circle
    - Màu: Đỏ (#c62828)
 
@@ -592,6 +639,7 @@ Frontend hỗ trợ các loại notification sau:
 ### Backend Implementation Guidelines
 
 #### 1. Scheduled Reminder Job
+
 Backend cần implement scheduled job (cron job hoặc background worker) để:
 
 ```python
@@ -604,7 +652,7 @@ def send_booking_reminders():
         Booking.status == "CONFIRMED",
         Booking.reminder_sent == False
     )
-    
+
     for booking in upcoming_bookings:
         # Tạo notification
         notification = Notification.create(
@@ -617,11 +665,11 @@ def send_booking_reminders():
             created_at=now(),
             is_read=False
         )
-        
+
         # Đánh dấu đã gửi reminder
         booking.reminder_sent = True
         booking.save()
-        
+
         # Optional: Push notification qua Firebase/OneSignal
         send_push_notification(booking.user_id, notification)
 
@@ -632,6 +680,7 @@ schedule.every(5).minutes.do(send_booking_reminders)
 #### 2. Notification Endpoints
 
 **POST `/notifications` (Optional - for manual testing)**
+
 ```json
 Request:
 {

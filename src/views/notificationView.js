@@ -23,7 +23,7 @@ export async function renderNotifications() {
 
   // Initialize event listeners
   initNotificationEventListeners();
-  
+
   console.log("✅ Notifications page rendered and listeners initialized");
 }
 
@@ -110,7 +110,9 @@ function loadNotifications(highlightNewId = null) {
         notification.isRead === true || notification.read === true
           ? ""
           : "unread"
-      } ${highlightNewId === notification.id ? 'new-item-highlight' : ''}" data-id="${notification.id}">
+      } ${
+        highlightNewId === notification.id ? "new-item-highlight" : ""
+      }" data-id="${notification.id}">
         ${
           !(notification.isRead === true || notification.read === true)
             ? '<div class="unread-dot"></div>'
@@ -138,10 +140,10 @@ function loadNotifications(highlightNewId = null) {
     setTimeout(() => {
       const newItem = document.querySelector(`[data-id="${highlightNewId}"]`);
       if (newItem) {
-        newItem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        newItem.scrollIntoView({ behavior: "smooth", block: "start" });
         // Remove highlight after animation
         setTimeout(() => {
-          newItem.classList.remove('new-item-highlight');
+          newItem.classList.remove("new-item-highlight");
         }, 3000);
       }
     }, 100);
@@ -231,28 +233,36 @@ function initNotificationEventListeners() {
   // Listen for new notifications from backend
   const handleNotificationReceived = (event) => {
     const notification = event.detail;
-    console.log("🔔 [NotificationView] Received notification event:", notification);
-    
+    console.log(
+      "🔔 [NotificationView] Received notification event:",
+      notification
+    );
+
     // Reload notifications list with highlight for new item
     loadNotifications(notification.id);
     updateNotificationBadge();
-    
+
     // Show toast for new notification
     showNewNotificationToast(notification);
-    
+
     // Vibrate if supported
     if (navigator.vibrate) {
       navigator.vibrate([100, 50, 100]);
     }
   };
 
-  console.log("👂 [NotificationView] Registering listener for 'notificationReceived' event");
+  console.log(
+    "👂 [NotificationView] Registering listener for 'notificationReceived' event"
+  );
   window.addEventListener("notificationReceived", handleNotificationReceived);
 
   // Cleanup listener when page changes
   const cleanupListener = () => {
     console.log("🧹 [NotificationView] Cleaning up notification listener");
-    window.removeEventListener("notificationReceived", handleNotificationReceived);
+    window.removeEventListener(
+      "notificationReceived",
+      handleNotificationReceived
+    );
     window.removeEventListener("hashchange", cleanupListener);
   };
 
@@ -272,16 +282,18 @@ function showNewNotificationToast(notification) {
     </div>
     <div class="toast-content">
       <div class="toast-title">${notification.title || "Thông báo mới"}</div>
-      <div class="toast-message">${notification.message?.substring(0, 50) || ""}...</div>
+      <div class="toast-message">${
+        notification.message?.substring(0, 50) || ""
+      }...</div>
     </div>
   `;
-  
+
   document.body.appendChild(toast);
-  
+
   setTimeout(() => {
     toast.classList.add("show");
   }, 10);
-  
+
   setTimeout(() => {
     toast.classList.remove("show");
     setTimeout(() => {

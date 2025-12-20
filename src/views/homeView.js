@@ -90,7 +90,9 @@ function initHomeEventListeners() {
     window.removeEventListener("userDataUpdated", userDataListener);
     window.removeEventListener("hashchange", cleanupUserDataListener);
   };
-  window.addEventListener("hashchange", cleanupUserDataListener, { once: true });
+  window.addEventListener("hashchange", cleanupUserDataListener, {
+    once: true,
+  });
 
   // Category tabs
   const categoryButtons = document.querySelectorAll(".category-btn");

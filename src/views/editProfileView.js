@@ -152,18 +152,21 @@ function showAvatarModal() {
 
         if (filePaths && filePaths.length > 0) {
           const imagePath = filePaths[0];
-          
+
           // Convert local path to base64 for display
           // In Zalo Mini App, you need to upload to server or use the path directly
           // For now, we'll use the path directly (Zalo will handle it)
           selectAvatar(imagePath);
           closeModal();
-          
+
           console.log("✅ Image selected from Zalo:", imagePath);
         }
       } catch (error) {
-        console.warn("Zalo chooseImage not available, falling back to HTML input:", error);
-        
+        console.warn(
+          "Zalo chooseImage not available, falling back to HTML input:",
+          error
+        );
+
         // Fallback to HTML file input for web browser
         if (fileInput) {
           fileInput.click();
@@ -202,9 +205,11 @@ function selectAvatar(avatarUrl) {
   }
 
   if (navigator.vibrate) navigator.vibrate(10);
-  
-  console.log("✅ Avatar selected (will be saved when clicking Save button):", 
-    avatarUrl.substring(0, 50) + "...");
+
+  console.log(
+    "✅ Avatar selected (will be saved when clicking Save button):",
+    avatarUrl.substring(0, 50) + "..."
+  );
 }
 
 async function handleSaveProfile() {
@@ -238,11 +243,14 @@ async function handleSaveProfile() {
   try {
     // Get current user
     const currentUser = authService.getUser();
-    
+
     let avatarUrl = selectedAvatarUrl || currentUser.avatar_url;
 
     // If avatar is a local Zalo path or base64, upload it to server first
-    if (avatarUrl && (avatarUrl.startsWith("zalo://") || avatarUrl.startsWith("data:image"))) {
+    if (
+      avatarUrl &&
+      (avatarUrl.startsWith("zalo://") || avatarUrl.startsWith("data:image"))
+    ) {
       console.log("📤 Uploading avatar to server...");
       try {
         // Upload avatar to backend
@@ -287,7 +295,10 @@ async function handleSaveProfile() {
     }, 500);
   } catch (error) {
     console.error("Save profile error:", error);
-    showNotification(error.message || "Có lỗi xảy ra. Vui lòng thử lại.", "error");
+    showNotification(
+      error.message || "Có lỗi xảy ra. Vui lòng thử lại.",
+      "error"
+    );
     btnSave.disabled = false;
     btnSave.textContent = originalText;
   }

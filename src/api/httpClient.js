@@ -1,6 +1,7 @@
 // src/api/httpClient.js
 const BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "https://pyramidally-unborrowed-cherie.ngrok-free.dev";
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://pyramidally-unborrowed-cherie.ngrok-free.dev";
 
 // Get auth token from storage
 function getAuthToken() {
@@ -34,7 +35,8 @@ async function request(path, options = {}) {
     }
 
     if (!res.ok) {
-      const message = data?.message || data?.error || `Request failed: ${res.status}`;
+      const message =
+        data?.message || data?.error || `Request failed: ${res.status}`;
       const error = new Error(message);
       error.status = res.status;
       error.data = data;
@@ -46,7 +48,9 @@ async function request(path, options = {}) {
     // Network error or fetch failed
     if (!error.status) {
       console.error("Network error:", error);
-      throw new Error("Kết nối mạng thất bại. Vui lòng kiểm tra kết nối của bạn.");
+      throw new Error(
+        "Kết nối mạng thất bại. Vui lòng kiểm tra kết nối của bạn."
+      );
     }
     throw error;
   }

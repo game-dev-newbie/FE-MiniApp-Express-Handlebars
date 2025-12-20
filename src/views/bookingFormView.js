@@ -180,7 +180,10 @@ function initBookingFormListeners(restaurant) {
 
       // Validate table selection
       if (selectedTables.length === 0) {
-        showNotification("Vui lòng chọn bàn trước khi xác nhận đặt bàn!", "warning");
+        showNotification(
+          "Vui lòng chọn bàn trước khi xác nhận đặt bàn!",
+          "warning"
+        );
         return;
       }
 
@@ -192,18 +195,24 @@ function initBookingFormListeners(restaurant) {
       if (restaurant.opening_hours && restaurant.closing_hours) {
         const openingTime = restaurant.opening_hours;
         const closingTime = restaurant.closing_hours;
-        
+
         if (bookingTime < openingTime || bookingTime > closingTime) {
           // Convert 24h to readable format for Vietnamese users
-          const openingHour = parseInt(openingTime.split(':')[0]);
-          const closingHour = parseInt(closingTime.split(':')[0]);
-          const openingFormatted = openingHour < 12 ? `${openingTime} sáng` : 
-                                  openingHour === 12 ? `${openingTime} trưa` : 
-                                  `${openingTime} chiều/tối`;
-          const closingFormatted = closingHour < 12 ? `${closingTime} sáng` : 
-                                  closingHour === 12 ? `${closingTime} trưa` : 
-                                  `${closingTime} chiều/tối`;
-          
+          const openingHour = parseInt(openingTime.split(":")[0]);
+          const closingHour = parseInt(closingTime.split(":")[0]);
+          const openingFormatted =
+            openingHour < 12
+              ? `${openingTime} sáng`
+              : openingHour === 12
+              ? `${openingTime} trưa`
+              : `${openingTime} chiều/tối`;
+          const closingFormatted =
+            closingHour < 12
+              ? `${closingTime} sáng`
+              : closingHour === 12
+              ? `${closingTime} trưa`
+              : `${closingTime} chiều/tối`;
+
           showNotification(
             `Nhà hàng chỉ mở cửa từ ${openingFormatted} đến ${closingFormatted}. Vui lòng chọn giờ trong khung giờ này.`,
             "warning"
@@ -809,7 +818,7 @@ function sendBookingStatusNotification(booking) {
 function showNotification(message, type = "info") {
   const notification = document.createElement("div");
   notification.className = `toast-notification toast-${type}`;
-  
+
   let iconSvg = "";
   if (type === "warning") {
     iconSvg = `

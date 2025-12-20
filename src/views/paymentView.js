@@ -61,7 +61,9 @@ function showNotification(message, type = "warning") {
   }, 3000);
 
   if (navigator.vibrate) {
-    navigator.vibrate(type === "error" || type === "warning" ? [50, 30, 50] : 100);
+    navigator.vibrate(
+      type === "error" || type === "warning" ? [50, 30, 50] : 100
+    );
   }
 }
 
@@ -242,7 +244,10 @@ function initPaymentListeners(bookingData) {
       } else if (selectedMethod === "qr") {
         // Check if user selected an e-wallet provider
         if (!selectedEWallet) {
-          showNotification("Vui lòng chọn ví điện tử để thanh toán!", "warning");
+          showNotification(
+            "Vui lòng chọn ví điện tử để thanh toán!",
+            "warning"
+          );
           return;
         }
         handleEWalletPayment(bookingData);

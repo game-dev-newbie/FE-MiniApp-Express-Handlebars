@@ -201,7 +201,10 @@ let bookingCheckedInHandler = null;
 function setupBookingStatusListener() {
   // Remove old listeners if they exist
   if (bookingStatusUpdateHandler) {
-    window.removeEventListener("bookingStatusUpdated", bookingStatusUpdateHandler);
+    window.removeEventListener(
+      "bookingStatusUpdated",
+      bookingStatusUpdateHandler
+    );
   }
   if (bookingCheckedInHandler) {
     window.removeEventListener("bookingCheckedIn", bookingCheckedInHandler);
@@ -240,11 +243,14 @@ function setupBookingStatusListener() {
 
   // Cleanup on hash change
   const cleanupListener = () => {
-    window.removeEventListener("bookingStatusUpdated", bookingStatusUpdateHandler);
+    window.removeEventListener(
+      "bookingStatusUpdated",
+      bookingStatusUpdateHandler
+    );
     window.removeEventListener("bookingCheckedIn", bookingCheckedInHandler);
     window.removeEventListener("hashchange", cleanupListener);
   };
-  
+
   window.addEventListener("hashchange", cleanupListener, { once: true });
 }
 

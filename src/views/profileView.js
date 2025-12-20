@@ -121,7 +121,7 @@ function setupProfileUpdateListeners() {
     if (profileEmail && updatedUser.email) {
       profileEmail.textContent = updatedUser.email;
     }
-    
+
     console.log("✅ Profile UI updated:", updatedUser.display_name);
   };
   window.addEventListener("userDataUpdated", userDataListener);

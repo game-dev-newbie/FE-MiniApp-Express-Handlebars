@@ -108,7 +108,7 @@ class AuthService {
 
   setUser(user) {
     this.setStorageData(USER_KEY, JSON.stringify(user));
-    
+
     // Dispatch event to notify other components about user data change
     window.dispatchEvent(
       new CustomEvent("userDataUpdated", {
@@ -209,7 +209,8 @@ class AuthService {
       return {
         id: "mock_zalo_" + Date.now(),
         name: "Zalo User " + Math.floor(Math.random() * 1000),
-        avatar: "https://i.pravatar.cc/150?img=" + Math.floor(Math.random() * 70),
+        avatar:
+          "https://i.pravatar.cc/150?img=" + Math.floor(Math.random() * 70),
       };
     }
   }
@@ -560,9 +561,12 @@ class AuthService {
       return { success: true, user: data.user || data };
     } catch (error) {
       console.error("Update profile error:", error);
-      
+
       // If API fails, fallback to local update (for development)
-      if (error.message.includes("Failed to fetch") || error.message === "Not authenticated") {
+      if (
+        error.message.includes("Failed to fetch") ||
+        error.message === "Not authenticated"
+      ) {
         console.warn("API not available, updating locally");
         const currentUser = this.getUser();
         const updatedUser = {
@@ -572,7 +576,7 @@ class AuthService {
         this.setUser(updatedUser);
         return { success: true, user: updatedUser };
       }
-      
+
       return { success: false, error: error.message };
     }
   }

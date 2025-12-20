@@ -2458,7 +2458,8 @@ a {
 }
 
 @keyframes highlightPulse {
-  0%, 100% {
+  0%,
+  100% {
     background: var(--white);
     transform: scale(1);
   }
@@ -2480,7 +2481,8 @@ a {
 }
 
 @keyframes highlightPulseDark {
-  0%, 100% {
+  0%,
+  100% {
     background: #1e293b;
     transform: scale(1);
   }
@@ -7689,9 +7691,16 @@ a {
 }
 
 @keyframes bellRing {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-15deg); }
-  75% { transform: rotate(15deg); }
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-15deg);
+  }
+  75% {
+    transform: rotate(15deg);
+  }
 }
 
 .new-notification-toast .toast-content {
@@ -7740,7 +7749,7 @@ a {
 }
 
 .notification-popup-banner::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -7882,22 +7891,30 @@ a {
   color: #38bdf8;
 }
 
-[data-theme="dark"] .notification-popup-content.popup-success .notification-popup-icon {
+[data-theme="dark"]
+  .notification-popup-content.popup-success
+  .notification-popup-icon {
   background: linear-gradient(135deg, #1a3d2e 0%, #2a4d3e 100%);
   color: #4ade80;
 }
 
-[data-theme="dark"] .notification-popup-content.popup-info .notification-popup-icon {
+[data-theme="dark"]
+  .notification-popup-content.popup-info
+  .notification-popup-icon {
   background: linear-gradient(135deg, #1e2a4f 0%, #2e3a5f 100%);
   color: #60a5fa;
 }
 
-[data-theme="dark"] .notification-popup-content.popup-error .notification-popup-icon {
+[data-theme="dark"]
+  .notification-popup-content.popup-error
+  .notification-popup-icon {
   background: linear-gradient(135deg, #3d1e1e 0%, #4d2e2e 100%);
   color: #f87171;
 }
 
-[data-theme="dark"] .notification-popup-content.popup-warning .notification-popup-icon {
+[data-theme="dark"]
+  .notification-popup-content.popup-warning
+  .notification-popup-icon {
   background: linear-gradient(135deg, #3d2e1e 0%, #4d3e2e 100%);
   color: #fbbf24;
 }
