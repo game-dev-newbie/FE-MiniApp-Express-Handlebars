@@ -148,13 +148,15 @@
           <polyline points="12 6 12 12 16 14"></polyline>
         </svg>
         Giờ đặt bàn
+        <span class="input-hint">(Từ {{restaurant.opening_hours}} đến {{restaurant.closing_hours}})</span>
       </label>
       <input
         type="time"
         id="bookingTime"
         name="time"
-        min="10:00"
-        max="22:00"
+        min="{{restaurant.opening_hours}}"
+        max="{{restaurant.closing_hours}}"
+        placeholder="Chọn giờ"
         required
       />
     </div>

@@ -1,10 +1,18 @@
 // src/views/notificationView.js
 import { renderTemplate } from "../core/templates.js";
 import { restaurants } from "../data/mockData.js";
+import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
 
 export async function renderNotifications() {
+  // Require authentication
+  if (!authService.requireAuth("#/notifications")) {
+    return;
+  }
+
+  console.log("📄 Rendering notifications page...");
+
   const bottomNavHtml = renderTemplate("bottomNav", { activePage: "home" });
   const contentHtml = renderTemplate("notifications", {});
 
@@ -15,9 +23,11 @@ export async function renderNotifications() {
 
   // Initialize event listeners
   initNotificationEventListeners();
+  
+  console.log("✅ Notifications page rendered and listeners initialized");
 }
 
-function loadNotifications() {
+function loadNotifications(highlightNewId = null) {
   const notifications = JSON.parse(
     localStorage.getItem("dinelink_notifications") || "[]"
   );
@@ -47,16 +57,52 @@ function loadNotifications() {
       // Determine notification type for color coding
       const notifType = notification.type || notification.status || "";
       let typeClass = "";
+      let iconSvg = "";
 
       if (notifType === "booking_confirmed" || notifType === "CONFIRMED") {
         typeClass = "notification-confirmed";
+        iconSvg = `
+          <svg class="notification-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        `;
       } else if (
         notifType === "booking_cancelled" ||
         notifType === "CANCELLED"
       ) {
         typeClass = "notification-cancelled";
+        iconSvg = `
+          <svg class="notification-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          </svg>
+        `;
       } else if (notifType === "CHECKED_IN") {
         typeClass = "notification-checkedin";
+        iconSvg = `
+          <svg class="notification-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        `;
+      } else if (notifType === "REMINDER") {
+        typeClass = "notification-reminder";
+        iconSvg = `
+          <svg class="notification-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        `;
+      } else {
+        iconSvg = `
+          <svg class="notification-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+        `;
       }
 
       return `
@@ -64,7 +110,15 @@ function loadNotifications() {
         notification.isRead === true || notification.read === true
           ? ""
           : "unread"
-      }" data-id="${notification.id}">
+      } ${highlightNewId === notification.id ? 'new-item-highlight' : ''}" data-id="${notification.id}">
+        ${
+          !(notification.isRead === true || notification.read === true)
+            ? '<div class="unread-dot"></div>'
+            : ""
+        }
+        <div class="notification-icon-wrapper">
+          ${iconSvg}
+        </div>
         <div class="notification-content">
           <h3 class="notification-title">${notification.title}</h3>
           <p class="notification-message">${notification.message}</p>
@@ -72,11 +126,6 @@ function loadNotifications() {
             notification.timestamp || notification.createdAt
           )}</span>
         </div>
-        ${
-          !(notification.isRead === true || notification.read === true)
-            ? '<div class="unread-dot"></div>'
-            : ""
-        }
       </div>
     `;
     })
@@ -84,11 +133,30 @@ function loadNotifications() {
 
   notificationsList.innerHTML = `<div class="notifications-list">${notificationsHtml}</div>`;
 
-  // Add click listeners to mark as read
+  // Scroll to new item if exists
+  if (highlightNewId) {
+    setTimeout(() => {
+      const newItem = document.querySelector(`[data-id="${highlightNewId}"]`);
+      if (newItem) {
+        newItem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Remove highlight after animation
+        setTimeout(() => {
+          newItem.classList.remove('new-item-highlight');
+        }, 3000);
+      }
+    }, 100);
+  }
+
+  // Add click listeners to mark as read and toggle expand
   const items = notificationsList.querySelectorAll(".notification-item");
   items.forEach((item) => {
     item.addEventListener("click", () => {
       const id = item.getAttribute("data-id");
+
+      // Toggle expanded state
+      item.classList.toggle("expanded");
+
+      // Mark as read
       markAsRead(id);
       item.classList.remove("unread");
       const dot = item.querySelector(".unread-dot");
@@ -159,6 +227,67 @@ function initNotificationEventListeners() {
       window.location.hash = `#/${page === "home" ? "" : page}`;
     });
   });
+
+  // Listen for new notifications from backend
+  const handleNotificationReceived = (event) => {
+    const notification = event.detail;
+    console.log("🔔 [NotificationView] Received notification event:", notification);
+    
+    // Reload notifications list with highlight for new item
+    loadNotifications(notification.id);
+    updateNotificationBadge();
+    
+    // Show toast for new notification
+    showNewNotificationToast(notification);
+    
+    // Vibrate if supported
+    if (navigator.vibrate) {
+      navigator.vibrate([100, 50, 100]);
+    }
+  };
+
+  console.log("👂 [NotificationView] Registering listener for 'notificationReceived' event");
+  window.addEventListener("notificationReceived", handleNotificationReceived);
+
+  // Cleanup listener when page changes
+  const cleanupListener = () => {
+    console.log("🧹 [NotificationView] Cleaning up notification listener");
+    window.removeEventListener("notificationReceived", handleNotificationReceived);
+    window.removeEventListener("hashchange", cleanupListener);
+  };
+
+  window.addEventListener("hashchange", cleanupListener, { once: true });
+}
+
+// Show toast for new notification
+function showNewNotificationToast(notification) {
+  const toast = document.createElement("div");
+  toast.className = "new-notification-toast";
+  toast.innerHTML = `
+    <div class="toast-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+      </svg>
+    </div>
+    <div class="toast-content">
+      <div class="toast-title">${notification.title || "Thông báo mới"}</div>
+      <div class="toast-message">${notification.message?.substring(0, 50) || ""}...</div>
+    </div>
+  `;
+  
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.classList.add("show");
+  }, 10);
+  
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
+  }, 3000);
 }
 
 // Format time helper

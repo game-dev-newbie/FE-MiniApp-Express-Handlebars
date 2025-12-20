@@ -1,6 +1,7 @@
 // src/views/editProfileView.js
 import { renderTemplate } from "../core/templates.js";
 import authService from "../utils/authService.js";
+import { chooseImage } from "zmp-sdk/apis";
 
 const appEl = document.getElementById("app");
 
@@ -129,29 +130,61 @@ function showAvatarModal() {
   avatarOptions.forEach((option) => {
     option.addEventListener("click", () => {
       const avatarUrl = option.getAttribute("data-avatar");
+      console.log("🎭 Avatar preset selected:", avatarUrl);
       selectAvatar(avatarUrl);
       closeModal();
     });
   });
 
-  // Upload button
+  // Upload button - Use Zalo chooseImage API
   const btnUpload = document.getElementById("btnUploadAvatar");
   const fileInput = document.getElementById("avatarUpload");
 
-  if (btnUpload && fileInput) {
-    btnUpload.addEventListener("click", () => fileInput.click());
+  if (btnUpload) {
+    btnUpload.addEventListener("click", async () => {
+      try {
+        // Try to use Zalo Mini App chooseImage API first
+        const { filePaths } = await chooseImage({
+          count: 1, // Only allow 1 image
+          sourceType: ["album", "camera"], // Allow both album and camera
+          cameraType: "front", // Use front camera for selfie
+        });
 
-    fileInput.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (file && file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          selectAvatar(event.target.result);
+        if (filePaths && filePaths.length > 0) {
+          const imagePath = filePaths[0];
+          
+          // Convert local path to base64 for display
+          // In Zalo Mini App, you need to upload to server or use the path directly
+          // For now, we'll use the path directly (Zalo will handle it)
+          selectAvatar(imagePath);
           closeModal();
-        };
-        reader.readAsDataURL(file);
+          
+          console.log("✅ Image selected from Zalo:", imagePath);
+        }
+      } catch (error) {
+        console.warn("Zalo chooseImage not available, falling back to HTML input:", error);
+        
+        // Fallback to HTML file input for web browser
+        if (fileInput) {
+          fileInput.click();
+        }
       }
     });
+
+    // Fallback file input handler for web browser
+    if (fileInput) {
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith("image/")) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            selectAvatar(event.target.result);
+            closeModal();
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
   }
 }
 
@@ -169,6 +202,9 @@ function selectAvatar(avatarUrl) {
   }
 
   if (navigator.vibrate) navigator.vibrate(10);
+  
+  console.log("✅ Avatar selected (will be saved when clicking Save button):", 
+    avatarUrl.substring(0, 50) + "...");
 }
 
 async function handleSaveProfile() {
@@ -202,25 +238,43 @@ async function handleSaveProfile() {
   try {
     // Get current user
     const currentUser = authService.getUser();
+    
+    let avatarUrl = selectedAvatarUrl || currentUser.avatar_url;
 
-    // Update user data
-    const updatedUser = {
-      ...currentUser,
+    // If avatar is a local Zalo path or base64, upload it to server first
+    if (avatarUrl && (avatarUrl.startsWith("zalo://") || avatarUrl.startsWith("data:image"))) {
+      console.log("📤 Uploading avatar to server...");
+      try {
+        // Upload avatar to backend
+        const uploadResult = await uploadAvatarToServer(avatarUrl);
+        if (uploadResult.success) {
+          avatarUrl = uploadResult.url;
+          console.log("✅ Avatar uploaded successfully:", avatarUrl);
+        }
+      } catch (uploadError) {
+        console.warn("⚠️ Avatar upload failed, using local path:", uploadError);
+        // Continue with local path if upload fails
+      }
+    }
+
+    // Prepare update data
+    const profileData = {
       display_name: displayName,
-      avatar_url: selectedAvatarUrl || currentUser.avatar_url,
+      avatar_url: avatarUrl,
       phone: phone || currentUser.phone,
       bio: bio || currentUser.bio || "",
     };
 
-    // In real app, call API:
-    // const response = await fetch('/api/user/profile', {
-    //   method: 'PUT',
-    //   headers: { 'Authorization': `Bearer ${authService.getAccessToken()}` },
-    //   body: JSON.stringify(updatedUser)
-    // });
+    console.log("📝 Updating profile with data:", profileData);
 
-    // For now, just save to local storage
-    authService.setUser(updatedUser);
+    // Call API to update profile
+    const result = await authService.updateProfile(profileData);
+
+    if (!result.success) {
+      throw new Error(result.error || "Cập nhật thất bại");
+    }
+
+    console.log("✅ Profile updated successfully:", result.user);
 
     // Show success
     showNotification("Cập nhật thông tin thành công!", "success");
@@ -233,9 +287,40 @@ async function handleSaveProfile() {
     }, 500);
   } catch (error) {
     console.error("Save profile error:", error);
-    showNotification("Có lỗi xảy ra. Vui lòng thử lại.", "error");
+    showNotification(error.message || "Có lỗi xảy ra. Vui lòng thử lại.", "error");
     btnSave.disabled = false;
     btnSave.textContent = originalText;
+  }
+}
+
+// Helper function to upload avatar to server
+async function uploadAvatarToServer(localPath) {
+  try {
+    // If it's base64, send directly
+    if (localPath.startsWith("data:image")) {
+      const response = await authService.fetchWithAuth(
+        `${authService.apiBaseUrl}/user/avatar`,
+        {
+          method: "POST",
+          body: JSON.stringify({ avatar_base64: localPath }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const data = await response.json();
+      return { success: true, url: data.avatar_url };
+    }
+
+    // For Zalo local path, you might need to use uploadFile API
+    // This is a placeholder - implement based on your backend
+    console.warn("Zalo local path upload not implemented yet:", localPath);
+    return { success: false, url: localPath };
+  } catch (error) {
+    console.error("Upload avatar error:", error);
+    throw error;
   }
 }
 

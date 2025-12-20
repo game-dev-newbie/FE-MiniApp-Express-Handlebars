@@ -195,8 +195,20 @@ function formatBookingTime(dateString) {
 }
 
 // Setup listener for booking status updates from dashboard
+let bookingStatusUpdateHandler = null;
+let bookingCheckedInHandler = null;
+
 function setupBookingStatusListener() {
-  window.addEventListener("bookingStatusUpdated", (event) => {
+  // Remove old listeners if they exist
+  if (bookingStatusUpdateHandler) {
+    window.removeEventListener("bookingStatusUpdated", bookingStatusUpdateHandler);
+  }
+  if (bookingCheckedInHandler) {
+    window.removeEventListener("bookingCheckedIn", bookingCheckedInHandler);
+  }
+
+  // Create new handlers
+  bookingStatusUpdateHandler = (event) => {
     const { bookingId, status } = event.detail;
     console.log(`Booking ${bookingId} status updated to ${status}`);
 
@@ -207,20 +219,33 @@ function setupBookingStatusListener() {
         renderBooking();
       }, 500);
     }
-  });
+  };
 
-  // Listen for check-in events - booking moves from booking page to history page
-  window.addEventListener("bookingCheckedIn", (event) => {
+  bookingCheckedInHandler = (event) => {
     const { bookingId, status } = event.detail;
     console.log(`Booking ${bookingId} checked in - moving to history page`);
 
     // Reload booking view to remove checked-in booking
+    // Only reload if we're still on the booking page
     if (window.location.hash === "#/booking") {
       setTimeout(() => {
         renderBooking();
       }, 500);
     }
-  });
+  };
+
+  // Add new listeners
+  window.addEventListener("bookingStatusUpdated", bookingStatusUpdateHandler);
+  window.addEventListener("bookingCheckedIn", bookingCheckedInHandler);
+
+  // Cleanup on hash change
+  const cleanupListener = () => {
+    window.removeEventListener("bookingStatusUpdated", bookingStatusUpdateHandler);
+    window.removeEventListener("bookingCheckedIn", bookingCheckedInHandler);
+    window.removeEventListener("hashchange", cleanupListener);
+  };
+  
+  window.addEventListener("hashchange", cleanupListener, { once: true });
 }
 
 // Show cancel booking popup

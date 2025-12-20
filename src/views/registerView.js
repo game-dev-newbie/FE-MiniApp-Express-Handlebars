@@ -65,7 +65,8 @@ async function handleZaloRegister() {
       // Redirect to intended page or home
       setTimeout(() => {
         const redirectPath = authService.getRedirectPath();
-        window.location.hash = redirectPath;
+        // Use replace to avoid keeping register page in history
+        window.location.replace(redirectPath);
       }, 500);
     } else {
       throw new Error(result.error || "Đăng ký Zalo thất bại");
@@ -138,7 +139,8 @@ async function handleEmailRegister(event) {
       // Redirect to intended page or home
       setTimeout(() => {
         const redirectPath = authService.getRedirectPath();
-        window.location.hash = redirectPath;
+        // Use replace to avoid keeping register page in history
+        window.location.replace(redirectPath);
       }, 500);
     } else {
       throw new Error(result.error || "Đăng ký thất bại");

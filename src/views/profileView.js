@@ -9,10 +9,13 @@ import {
 import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
-const currentUser = users[0];
 
 // Function to get real-time statistics
 function getProfileStats() {
+  // Get current user from authService
+  const currentUser = authService.getUser();
+  if (!currentUser) return { bookings: 0, reviews: 0, favorites: 0 };
+
   // Get checked-in bookings from localStorage (matching history page logic)
   const allBookings = JSON.parse(
     localStorage.getItem("dinelink_bookings") || "[]"
@@ -49,6 +52,13 @@ function getProfileStats() {
 export async function renderProfile() {
   // Check authentication before allowing access to profile
   if (!authService.requireAuth("#/profile")) {
+    return;
+  }
+
+  // Get current user from authService
+  const currentUser = authService.getUser();
+  if (!currentUser) {
+    window.location.hash = "#/login";
     return;
   }
 
@@ -89,6 +99,33 @@ function updateStatsInDOM() {
 
 // Setup event listeners for real-time updates
 function setupProfileUpdateListeners() {
+  // Listen for user data updates (name, avatar, phone)
+  const userDataListener = (event) => {
+    const updatedUser = event.detail;
+    // Update user info in DOM
+    const profileAvatar = document.querySelector(".avatar-image-large");
+    const profileName = document.querySelector(".profile-name");
+    const profileEmail = document.querySelector(".profile-email");
+
+    if (profileAvatar && updatedUser.avatar_url) {
+      profileAvatar.src = updatedUser.avatar_url;
+      // Add smooth transition effect
+      profileAvatar.style.opacity = "0.5";
+      setTimeout(() => {
+        profileAvatar.style.opacity = "1";
+      }, 100);
+    }
+    if (profileName && updatedUser.display_name) {
+      profileName.textContent = updatedUser.display_name;
+    }
+    if (profileEmail && updatedUser.email) {
+      profileEmail.textContent = updatedUser.email;
+    }
+    
+    console.log("✅ Profile UI updated:", updatedUser.display_name);
+  };
+  window.addEventListener("userDataUpdated", userDataListener);
+
   // Listen for review submissions
   const reviewListener = () => {
     updateStatsInDOM();
@@ -129,6 +166,7 @@ function setupProfileUpdateListeners() {
   window.addEventListener(
     "hashchange",
     () => {
+      window.removeEventListener("userDataUpdated", userDataListener);
       window.removeEventListener("reviewSubmitted", reviewListener);
       window.removeEventListener("reviewUpdated", reviewUpdateListener);
       window.removeEventListener("reviewDeleted", reviewDeleteListener);

@@ -5,7 +5,6 @@ import { updateNotificationBadge } from "./notificationView.js";
 import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
-const currentUser = users[0]; // Simulate logged in user
 let selectedTables = []; // Track selected tables
 
 export function renderBookingForm(restaurantId) {
@@ -13,6 +12,9 @@ export function renderBookingForm(restaurantId) {
   if (!authService.requireAuth(`#/booking/new/${restaurantId}`)) {
     return;
   }
+
+  // Get current user from authService
+  const currentUser = authService.getUser();
 
   // Reset selected tables when entering the page
   selectedTables = [];
@@ -178,12 +180,38 @@ function initBookingFormListeners(restaurant) {
 
       // Validate table selection
       if (selectedTables.length === 0) {
-        alert("Vui lòng chọn bàn trước khi xác nhận đặt bàn!");
+        showNotification("Vui lòng chọn bàn trước khi xác nhận đặt bàn!", "warning");
         return;
       }
 
       const formData = new FormData(bookingForm);
       const peopleCount = parseInt(formData.get("people"));
+      const bookingTime = formData.get("time");
+
+      // Validate booking time against restaurant hours
+      if (restaurant.opening_hours && restaurant.closing_hours) {
+        const openingTime = restaurant.opening_hours;
+        const closingTime = restaurant.closing_hours;
+        
+        if (bookingTime < openingTime || bookingTime > closingTime) {
+          // Convert 24h to readable format for Vietnamese users
+          const openingHour = parseInt(openingTime.split(':')[0]);
+          const closingHour = parseInt(closingTime.split(':')[0]);
+          const openingFormatted = openingHour < 12 ? `${openingTime} sáng` : 
+                                  openingHour === 12 ? `${openingTime} trưa` : 
+                                  `${openingTime} chiều/tối`;
+          const closingFormatted = closingHour < 12 ? `${closingTime} sáng` : 
+                                  closingHour === 12 ? `${closingTime} trưa` : 
+                                  `${closingTime} chiều/tối`;
+          
+          showNotification(
+            `Nhà hàng chỉ mở cửa từ ${openingFormatted} đến ${closingFormatted}. Vui lòng chọn giờ trong khung giờ này.`,
+            "warning"
+          );
+          return;
+        }
+      }
+
       const selectedCapacity = selectedTables.reduce(
         (sum, t) => sum + t.capacity,
         0
@@ -191,8 +219,9 @@ function initBookingFormListeners(restaurant) {
 
       // Check if selected tables can accommodate people
       if (selectedCapacity < peopleCount) {
-        alert(
-          `Bàn đã chọn chỉ đủ cho ${selectedCapacity} người. Vui lòng chọn thêm bàn hoặc giảm số người.`
+        showNotification(
+          `Bàn đã chọn chỉ đủ cho ${selectedCapacity} người. Vui lòng chọn thêm bàn hoặc giảm số người.`,
+          "warning"
         );
         return;
       }
@@ -774,4 +803,54 @@ function sendBookingStatusNotification(booking) {
   localStorage.setItem("dinelink_notifications", JSON.stringify(notifications));
 
   console.log("Notification sent:", newNotification);
+}
+
+// Show toast notification
+function showNotification(message, type = "info") {
+  const notification = document.createElement("div");
+  notification.className = `toast-notification toast-${type}`;
+  
+  let iconSvg = "";
+  if (type === "warning") {
+    iconSvg = `
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+    `;
+  } else if (type === "success") {
+    iconSvg = `
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+    `;
+  } else if (type === "error") {
+    iconSvg = `
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="15" y1="9" x2="9" y2="15"></line>
+        <line x1="9" y1="9" x2="15" y2="15"></line>
+      </svg>
+    `;
+  }
+
+  notification.innerHTML = `
+    <div class="toast-icon">${iconSvg}</div>
+    <div class="toast-message">${message}</div>
+  `;
+
+  document.body.appendChild(notification);
+
+  setTimeout(() => {
+    notification.classList.add("show");
+  }, 10);
+
+  setTimeout(() => {
+    notification.classList.remove("show");
+    setTimeout(() => {
+      notification.remove();
+    }, 300);
+  }, 3000);
 }

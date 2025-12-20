@@ -8,7 +8,7 @@ const USER_KEY = "dinelink_user_data";
 
 class AuthService {
   constructor() {
-    this.apiBaseUrl = "/api"; // Update with your backend URL
+    this.apiBaseUrl = "https://pyramidally-unborrowed-cherie.ngrok-free.dev";
     this.isRefreshing = false;
     this.refreshSubscribers = [];
   }
@@ -108,6 +108,13 @@ class AuthService {
 
   setUser(user) {
     this.setStorageData(USER_KEY, JSON.stringify(user));
+    
+    // Dispatch event to notify other components about user data change
+    window.dispatchEvent(
+      new CustomEvent("userDataUpdated", {
+        detail: user,
+      })
+    );
   }
 
   removeUser() {
@@ -155,12 +162,20 @@ class AuthService {
 
       const data = await response.json();
 
+      // Ensure avatar_url from Zalo is saved
+      const userData = {
+        ...data.user,
+        avatar_url: data.user.avatar_url || zaloUser.avatar,
+      };
+
       // Save tokens and user data (now synchronous)
       this.setAccessToken(data.accessToken);
       this.setRefreshToken(data.refreshToken);
-      this.setUser(data.user);
+      this.setUser(userData);
 
-      return { success: true, user: data.user };
+      console.log("✅ Zalo login successful with avatar:", userData.avatar_url);
+
+      return { success: true, user: userData };
     } catch (error) {
       console.error("Zalo login error:", error);
       return { success: false, error: error.message };
@@ -194,7 +209,7 @@ class AuthService {
       return {
         id: "mock_zalo_" + Date.now(),
         name: "Zalo User " + Math.floor(Math.random() * 1000),
-        avatar: "https://via.placeholder.com/150",
+        avatar: "https://i.pravatar.cc/150?img=" + Math.floor(Math.random() * 70),
       };
     }
   }
@@ -316,6 +331,9 @@ class AuthService {
 
   async registerWithEmail(email, password, displayName) {
     try {
+      // Default avatar for email users (guest icon)
+      const defaultAvatar = "/src/assets/icons/cá nhân.jpg";
+
       const response = await fetch(`${this.apiBaseUrl}/auth/register`, {
         method: "POST",
         headers: {
@@ -325,6 +343,7 @@ class AuthService {
           email,
           password,
           display_name: displayName,
+          avatar_url: defaultAvatar,
           provider: "EMAIL",
         }),
       });
@@ -513,6 +532,49 @@ class AuthService {
     }
 
     return response;
+  }
+
+  // ===== UPDATE PROFILE =====
+
+  async updateProfile(profileData) {
+    try {
+      // Call backend API to update profile
+      const response = await this.fetchWithAuth(
+        `${this.apiBaseUrl}/user/profile`,
+        {
+          method: "PUT",
+          body: JSON.stringify(profileData),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Cập nhật thông tin thất bại");
+      }
+
+      const data = await response.json();
+
+      // Update local user data with response from backend
+      this.setUser(data.user || data);
+
+      return { success: true, user: data.user || data };
+    } catch (error) {
+      console.error("Update profile error:", error);
+      
+      // If API fails, fallback to local update (for development)
+      if (error.message.includes("Failed to fetch") || error.message === "Not authenticated") {
+        console.warn("API not available, updating locally");
+        const currentUser = this.getUser();
+        const updatedUser = {
+          ...currentUser,
+          ...profileData,
+        };
+        this.setUser(updatedUser);
+        return { success: true, user: updatedUser };
+      }
+      
+      return { success: false, error: error.message };
+    }
   }
 }
 

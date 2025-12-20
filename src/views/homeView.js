@@ -69,6 +69,29 @@ export function renderHome() {
 function initHomeEventListeners() {
   console.log("Initializing home event listeners...");
 
+  // Listen for user data updates
+  const userDataListener = (event) => {
+    const updatedUser = event.detail;
+    // Update user info in header
+    const headerAvatar = document.querySelector(".user-avatar");
+    const headerName = document.querySelector(".greeting-name");
+
+    if (headerAvatar && updatedUser.avatar_url) {
+      headerAvatar.src = updatedUser.avatar_url;
+    }
+    if (headerName && updatedUser.display_name) {
+      headerName.textContent = updatedUser.display_name;
+    }
+  };
+  window.addEventListener("userDataUpdated", userDataListener);
+
+  // Cleanup on page change
+  const cleanupUserDataListener = () => {
+    window.removeEventListener("userDataUpdated", userDataListener);
+    window.removeEventListener("hashchange", cleanupUserDataListener);
+  };
+  window.addEventListener("hashchange", cleanupUserDataListener, { once: true });
+
   // Category tabs
   const categoryButtons = document.querySelectorAll(".category-btn");
   console.log("Found category buttons:", categoryButtons.length);

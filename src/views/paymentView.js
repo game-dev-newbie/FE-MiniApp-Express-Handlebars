@@ -10,6 +10,61 @@ const appEl = document.getElementById("app");
 let selectedEWallet = null;
 let paymentTestMode = "success"; // success or failure
 
+// Show mobile-friendly notification
+function showNotification(message, type = "warning") {
+  const existingToast = document.querySelector(".toast-notification");
+  if (existingToast) {
+    existingToast.remove();
+  }
+
+  const toast = document.createElement("div");
+  toast.className = `toast-notification toast-${type}`;
+
+  let iconSvg = "";
+  if (type === "warning") {
+    iconSvg = `
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+    `;
+  } else if (type === "success") {
+    iconSvg = `
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+    `;
+  } else if (type === "error") {
+    iconSvg = `
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="15" y1="9" x2="9" y2="15"></line>
+        <line x1="9" y1="9" x2="15" y2="15"></line>
+      </svg>
+    `;
+  }
+
+  toast.innerHTML = `
+    <div class="toast-icon">${iconSvg}</div>
+    <div class="toast-message">${message}</div>
+  `;
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => toast.classList.add("show"), 10);
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+
+  if (navigator.vibrate) {
+    navigator.vibrate(type === "error" || type === "warning" ? [50, 30, 50] : 100);
+  }
+}
+
 export function renderPayment(bookingData) {
   // Check authentication before allowing payment
   if (!authService.requireAuth("#/payment")) {
@@ -185,6 +240,11 @@ function initPaymentListeners(bookingData) {
       if (selectedMethod === "card") {
         handleCardPayment(bookingData);
       } else if (selectedMethod === "qr") {
+        // Check if user selected an e-wallet provider
+        if (!selectedEWallet) {
+          showNotification("Vui lòng chọn ví điện tử để thanh toán!", "warning");
+          return;
+        }
         handleEWalletPayment(bookingData);
       }
     });
@@ -258,8 +318,9 @@ function handleCardPayment(bookingData) {
 }
 
 function handleEWalletPayment(bookingData) {
+  // Double check (redundant but safe)
   if (!selectedEWallet) {
-    alert("Vui lòng chọn ví điện tử để thanh toán!");
+    showNotification("Vui lòng chọn ví điện tử để thanh toán!", "warning");
     return;
   }
 

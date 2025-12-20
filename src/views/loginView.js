@@ -64,7 +64,8 @@ async function handleZaloLogin() {
       // Redirect to intended page or home
       setTimeout(() => {
         const redirectPath = authService.getRedirectPath();
-        window.location.hash = redirectPath;
+        // Use replace to avoid keeping login page in history
+        window.location.replace(redirectPath);
       }, 500);
     } else {
       throw new Error(result.error || "Đăng nhập Zalo thất bại");
@@ -114,7 +115,8 @@ async function handleEmailLogin(event) {
       // Redirect to intended page or home
       setTimeout(() => {
         const redirectPath = authService.getRedirectPath();
-        window.location.hash = redirectPath;
+        // Use replace to avoid keeping login page in history
+        window.location.replace(redirectPath);
       }, 500);
     } else {
       throw new Error(result.error || "Đăng nhập thất bại");
@@ -128,10 +130,46 @@ async function handleEmailLogin(event) {
 }
 
 function showNotification(message, type = "info") {
+  // Remove existing notification if any
+  const existing = document.querySelector(".auth-notification");
+  if (existing) {
+    existing.remove();
+  }
+
+  // Icon based on type
+  let iconSvg = "";
+  if (type === "success") {
+    iconSvg = `
+      <svg class="notif-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+    `;
+  } else if (type === "error") {
+    iconSvg = `
+      <svg class="notif-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+    `;
+  } else {
+    iconSvg = `
+      <svg class="notif-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+      </svg>
+    `;
+  }
+
   // Create notification element
   const notification = document.createElement("div");
   notification.className = `auth-notification ${type}`;
-  notification.textContent = message;
+  notification.innerHTML = `
+    ${iconSvg}
+    <span class="auth-notification-message">${message}</span>
+  `;
 
   document.body.appendChild(notification);
 
@@ -144,7 +182,9 @@ function showNotification(message, type = "info") {
   setTimeout(() => {
     notification.classList.remove("show");
     setTimeout(() => {
-      document.body.removeChild(notification);
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
     }, 300);
   }, 3000);
 }
