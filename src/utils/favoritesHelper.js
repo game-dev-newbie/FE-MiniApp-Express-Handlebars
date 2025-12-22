@@ -1,37 +1,71 @@
 // src/utils/favoritesHelper.js
-const FAVORITES_KEY = "dinelink_favorites";
+import { 
+  addToFavorites as addToFavoritesAPI,
+  removeFromFavorites as removeFromFavoritesAPI,
+  checkFavoriteStatus 
+} from "../api/favoritesApi.js";
+
+// Local cache for favorites (updated from API)
+let favoritesCache = [];
+let cacheInitialized = false;
 
 /**
- * Get all favorite restaurant IDs from localStorage
+ * Initialize favorites cache from API
+ */
+async function initializeFavoritesCache() {
+  if (cacheInitialized) return;
+  
+  try {
+    const { getMyFavorites } = await import("../api/favoritesApi.js");
+    const response = await getMyFavorites();
+    const favorites = response?.items || [];
+    favoritesCache = favorites.map(fav => fav.restaurant_id);
+    cacheInitialized = true;
+    console.log("❤️ Favorites cache initialized:", favoritesCache);
+  } catch (error) {
+    console.warn("Could not initialize favorites cache:", error);
+    favoritesCache = [];
+    cacheInitialized = true;
+  }
+}
+
+/**
+ * Get all favorite restaurant IDs from cache
  * @returns {number[]} Array of restaurant IDs
  */
 export function getFavorites() {
-  const favorites = localStorage.getItem(FAVORITES_KEY);
-  return favorites ? JSON.parse(favorites) : [];
+  return favoritesCache;
 }
 
 /**
- * Check if a restaurant is favorited
+ * Check if a restaurant is favorited via API
  * @param {number} restaurantId
- * @returns {boolean}
+ * @returns {Promise<boolean>}
  */
-export function isFavorite(restaurantId) {
-  const favorites = getFavorites();
-  return favorites.includes(Number(restaurantId));
+export async function isFavorite(restaurantId) {
+  // Ensure cache is initialized
+  await initializeFavoritesCache();
+  return favoritesCache.includes(Number(restaurantId));
 }
 
 /**
- * Add a restaurant to favorites
+ * Add a restaurant to favorites via API
  * @param {number} restaurantId
- * @returns {number[]} Updated favorites array
+ * @returns {Promise<boolean>} Success status
  */
-export function addFavorite(restaurantId) {
-  let favorites = getFavorites();
-  const id = Number(restaurantId);
+export async function addFavorite(restaurantId) {
+  try {
+    const id = Number(restaurantId);
+    
+    // Call API
+    await addToFavoritesAPI(id);
+    
+    // Update cache
+    if (!favoritesCache.includes(id)) {
+      favoritesCache.push(id);
+    }
 
-  if (!favorites.includes(id)) {
-    favorites.push(id);
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+    console.log("❤️ Added to favorites:", id);
 
     // Dispatch event for real-time updates
     window.dispatchEvent(
@@ -39,56 +73,71 @@ export function addFavorite(restaurantId) {
         detail: { restaurantId: id, isFavorite: true },
       })
     );
-  }
 
-  return favorites;
-}
-
-/**
- * Remove a restaurant from favorites
- * @param {number} restaurantId
- * @returns {number[]} Updated favorites array
- */
-export function removeFavorite(restaurantId) {
-  let favorites = getFavorites();
-  const id = Number(restaurantId);
-
-  favorites = favorites.filter((fav) => fav !== id);
-  localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-
-  // Dispatch event for real-time updates
-  window.dispatchEvent(
-    new CustomEvent("favoriteToggled", {
-      detail: { restaurantId: id, isFavorite: false },
-    })
-  );
-
-  return favorites;
-}
-
-/**
- * Toggle favorite status for a restaurant
- * @param {number} restaurantId
- * @returns {boolean} New favorite status (true if added, false if removed)
- */
-export function toggleFavorite(restaurantId) {
-  if (isFavorite(restaurantId)) {
-    removeFavorite(restaurantId);
-    return false;
-  } else {
-    addFavorite(restaurantId);
     return true;
+  } catch (error) {
+    console.error("Error adding to favorites:", error);
+    throw error;
   }
 }
 
 /**
- * Get all favorited restaurants data
- * @param {Array} allRestaurants - All restaurants array from mockData
- * @returns {Array} Array of favorited restaurant objects
+ * Remove a restaurant from favorites via API
+ * @param {number} restaurantId
+ * @returns {Promise<boolean>} Success status
  */
-export function getFavoriteRestaurants(allRestaurants) {
-  const favoriteIds = getFavorites();
-  return allRestaurants.filter((restaurant) =>
-    favoriteIds.includes(restaurant.id)
-  );
+export async function removeFavorite(restaurantId) {
+  try {
+    const id = Number(restaurantId);
+    
+    // Call API
+    await removeFromFavoritesAPI(id);
+    
+    // Update cache
+    favoritesCache = favoritesCache.filter((fav) => fav !== id);
+
+    console.log("💔 Removed from favorites:", id);
+
+    // Dispatch event for real-time updates
+    window.dispatchEvent(
+      new CustomEvent("favoriteToggled", {
+        detail: { restaurantId: id, isFavorite: false },
+      })
+    );
+
+    return true;
+  } catch (error) {
+    console.error("Error removing from favorites:", error);
+    throw error;
+  }
+}
+
+/**
+ * Toggle favorite status for a restaurant via API
+ * @param {number} restaurantId
+ * @returns {Promise<boolean>} New favorite status (true if added, false if removed)
+ */
+export async function toggleFavorite(restaurantId) {
+  try {
+    const isFav = await isFavorite(restaurantId);
+    
+    if (isFav) {
+      await removeFavorite(restaurantId);
+      return false;
+    } else {
+      await addFavorite(restaurantId);
+      return true;
+    }
+  } catch (error) {
+    console.error("Error toggling favorite:", error);
+    throw error;
+  }
+}
+
+/**
+ * Refresh favorites cache from API
+ */
+export async function refreshFavoritesCache() {
+  cacheInitialized = false;
+  await initializeFavoritesCache();
 }

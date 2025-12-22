@@ -10,43 +10,43 @@ import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
 
-// Function to get real-time statistics
-function getProfileStats() {
-  // Get current user from authService
+// Function to get real-time statistics from APIs
+async function getProfileStats() {
   const currentUser = authService.getUser();
   if (!currentUser) return { bookings: 0, reviews: 0, favorites: 0 };
 
-  // Get checked-in bookings from localStorage (matching history page logic)
-  const allBookings = JSON.parse(
-    localStorage.getItem("dinelink_bookings") || "[]"
-  );
+  try {
+    // Fetch data from APIs in parallel
+    const [bookingsResponse, reviewsResponse, favoritesResponse] = await Promise.all([
+      // Get bookings from history (COMPLETED/CHECKED_IN status)
+      import("../api/bookingApi.js").then(({ getMyBookings }) => 
+        getMyBookings().catch(() => ({ items: [] }))
+      ),
+      // Get user reviews
+      import("../api/reviewApi.js").then(({ getMyReviews }) => 
+        getMyReviews().catch(() => ({ items: [] }))
+      ),
+      // Get favorites
+      import("../api/favoritesApi.js").then(({ getMyFavorites }) => 
+        getMyFavorites().catch(() => ({ items: [] }))
+      ),
+    ]);
 
-  // Debug: log to see what's in bookings
-  console.log("All bookings:", allBookings);
-  console.log("Current user ID:", currentUser.id);
+    // Count ALL bookings (not just history)
+    const allBookings = bookingsResponse?.items || [];
 
-  const historyBookings = allBookings.filter(
-    (b) => b.status === "CHECKED_IN" || b.status === "COMPLETED"
-  );
+    const stats = {
+      bookings: allBookings.length,  // All bookings
+      reviews: (reviewsResponse?.items || []).length,
+      favorites: (favoritesResponse?.items || []).length,
+    };
 
-  console.log("History bookings (CHECKED_IN or COMPLETED):", historyBookings);
-
-  // Get reviews from localStorage (matching my-reviews page logic)
-  const allReviews = JSON.parse(
-    localStorage.getItem("dinelink_user_reviews") || "[]"
-  );
-  const userReviews = allReviews.filter((r) => r.userId === currentUser.id);
-
-  // Get favorites from localStorage (matching favorites page logic - array of IDs)
-  const favorites = JSON.parse(
-    localStorage.getItem("dinelink_favorites") || "[]"
-  );
-
-  return {
-    bookings: historyBookings.length,
-    reviews: userReviews.length,
-    favorites: favorites.length,
-  };
+    console.log("📊 Profile stats from API:", stats);
+    return stats;
+  } catch (error) {
+    console.error("Error fetching profile stats:", error);
+    return { bookings: 0, reviews: 0, favorites: 0 };
+  }
 }
 
 export async function renderProfile() {
@@ -64,15 +64,13 @@ export async function renderProfile() {
 
   const bottomNavHtml = renderTemplate("bottomNav", { activePage: "profile" });
 
-  // Get real-time statistics
-  const stats = getProfileStats();
-
   // Get current theme
   const currentTheme = localStorage.getItem("dinelink_theme") || "light";
 
+  // Show loading stats first
   const contentHtml = renderTemplate("profile", {
     user: currentUser,
-    stats,
+    stats: { bookings: "...", reviews: "...", favorites: "..." },
     isLightMode: currentTheme === "light",
   });
 
@@ -83,11 +81,15 @@ export async function renderProfile() {
 
   // Setup real-time update listeners
   setupProfileUpdateListeners();
+
+  // Fetch and update stats from API
+  const stats = await getProfileStats();
+  updateStatsInDOM(stats);
 }
 
 // Function to update stats in DOM without full re-render
-function updateStatsInDOM() {
-  const stats = getProfileStats();
+function updateStatsInDOM(stats) {
+  if (!stats) return;
 
   const statItems = document.querySelectorAll(".stat-item");
   if (statItems.length >= 3) {

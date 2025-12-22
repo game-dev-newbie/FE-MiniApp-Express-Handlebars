@@ -122,7 +122,8 @@ async function handleEmailRegister(event) {
     const result = await authService.registerWithEmail(
       email,
       password,
-      displayName
+      displayName,
+      passwordConfirm
     );
 
     if (result.success) {

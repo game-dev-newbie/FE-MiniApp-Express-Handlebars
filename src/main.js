@@ -31,15 +31,18 @@ function bootstrap() {
     }
   }
 
+  // Notification polling disabled due to CORS issues
+  // Uncomment below to enable if backend CORS is configured
+  
   // Start notification polling if user is logged in
-  if (isLoggedIn) {
-    startNotificationPolling(5000); // Poll every 5 seconds (for testing)
-  }
+  // if (isLoggedIn) {
+  //   startNotificationPolling(5000); // Poll every 5 seconds (for testing)
+  // }
 
   // Listen for login/logout events to start/stop polling
-  window.addEventListener("userLoggedIn", () => {
-    startNotificationPolling(5000); // Poll every 5 seconds (for testing)
-  });
+  // window.addEventListener("userLoggedIn", () => {
+  //   startNotificationPolling(5000); // Poll every 5 seconds (for testing)
+  // });
 
   window.addEventListener("userLoggedOut", () => {
     stopNotificationPolling();

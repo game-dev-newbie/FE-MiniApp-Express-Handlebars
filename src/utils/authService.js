@@ -8,7 +8,8 @@ const USER_KEY = "dinelink_user_data";
 
 class AuthService {
   constructor() {
-    this.apiBaseUrl = "https://pyramidally-unborrowed-cherie.ngrok-free.dev";
+    this.apiBaseUrl =
+      import.meta.env.VITE_API_BASE_URL || "https://pyramidally-unborrowed-cherie.ngrok-free.dev";
     this.isRefreshing = false;
     this.refreshSubscribers = [];
   }
@@ -134,68 +135,74 @@ class AuthService {
 
   // ===== ZALO SSO LOGIN =====
 
-  async loginWithZalo() {
+  async loginWithZalo(phone = null) {
     try {
-      // Get Zalo user info from Zalo SDK
-      const zaloUser = await this.getZaloUserInfo();
+      // Step 1: Get Zalo access token and user info from Zalo SDK
+      const { accessToken, userInfo } =
+        await this.getZaloAccessTokenAndUserInfo();
 
-      if (!zaloUser) {
+      if (!accessToken || !userInfo) {
         throw new Error("Không thể lấy thông tin từ Zalo");
       }
 
-      // Call backend API - backend will auto register if new user
-      const response = await fetch(`${this.apiBaseUrl}/auth/zalo`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          zalo_user_id: zaloUser.id,
-          display_name: zaloUser.name,
-          avatar_url: zaloUser.avatar,
-        }),
-      });
+      // Step 2: Call backend API - backend will auto register if new user
+      const response = await fetch(
+        `${this.apiBaseUrl}/api/v1/miniapp/auth/zalo/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            accessToken,
+            userInfo,
+            phone, // Optional
+          }),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error("Đăng nhập Zalo thất bại");
+        const error = await response.json();
+        throw new Error(error.message || "Đăng nhập Zalo thất bại");
       }
 
-      const data = await response.json();
+      const result = await response.json();
 
-      // Ensure avatar_url from Zalo is saved
-      const userData = {
-        ...data.user,
-        avatar_url: data.user.avatar_url || zaloUser.avatar,
-      };
+      // Extract data from response
+      const { user, tokens } = result.data;
 
-      // Save tokens and user data (now synchronous)
-      this.setAccessToken(data.accessToken);
-      this.setRefreshToken(data.refreshToken);
-      this.setUser(userData);
+      // Save tokens and user data
+      this.setAccessToken(tokens.accessToken);
+      this.setRefreshToken(tokens.refreshToken);
+      this.setUser(user);
 
-      console.log("✅ Zalo login successful with avatar:", userData.avatar_url);
+      console.log("✅ Zalo login successful:", user);
 
-      return { success: true, user: userData };
+      return { success: true, user };
     } catch (error) {
       console.error("Zalo login error:", error);
       return { success: false, error: error.message };
     }
   }
 
-  async getZaloUserInfo() {
+  async getZaloAccessTokenAndUserInfo() {
     try {
-      // Use zmp-sdk to get user info với autoRequestPermission
-      // autoRequestPermission: true sẽ tự động yêu cầu quyền truy cập thông tin
-      // avatarType: "normal" để lấy ảnh avatar kích thước vừa
+      // Step 1: Get Zalo access token
+      const { accessToken } = await getAccessToken({});
+
+      // Step 2: Get user info with autoRequestPermission
       const { userInfo } = await getUserInfo({
         autoRequestPermission: true,
         avatarType: "normal",
       });
 
       return {
-        id: userInfo.id,
-        name: userInfo.name,
-        avatar: userInfo.avatar,
+        accessToken,
+        userInfo: {
+          id: userInfo.id,
+          name: userInfo.name,
+          avatar: userInfo.avatar,
+        },
       };
     } catch (error) {
       console.warn("Not running in Zalo Mini App - using mock data:", error);
@@ -205,12 +212,16 @@ class AuthService {
         throw new Error("Bạn cần cho phép truy cập thông tin để đăng nhập");
       }
 
-      // Return mock data for development
+      // Return mock data for development (web testing)
+      const mockId = "mock_zalo_" + Date.now();
       return {
-        id: "mock_zalo_" + Date.now(),
-        name: "Zalo User " + Math.floor(Math.random() * 1000),
-        avatar:
-          "https://i.pravatar.cc/150?img=" + Math.floor(Math.random() * 70),
+        accessToken: `mock_zalo_access_token_${mockId}`,
+        userInfo: {
+          id: mockId,
+          name: "Zalo User " + Math.floor(Math.random() * 1000),
+          avatar:
+            "https://i.pravatar.cc/150?img=" + Math.floor(Math.random() * 70),
+        },
       };
     }
   }
@@ -290,7 +301,7 @@ class AuthService {
       }
 
       // If no mock user found, try real backend
-      const response = await fetch(`${this.apiBaseUrl}/auth/login`, {
+      const response = await fetch(`${this.apiBaseUrl}/api/v1/miniapp/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -298,7 +309,6 @@ class AuthService {
         body: JSON.stringify({
           email,
           password,
-          provider: "EMAIL",
         }),
       });
 
@@ -307,14 +317,17 @@ class AuthService {
         throw new Error(error.message || "Đăng nhập thất bại");
       }
 
-      const data = await response.json();
+      const result = await response.json();
 
-      // Save tokens and user data (now synchronous)
-      this.setAccessToken(data.accessToken);
-      this.setRefreshToken(data.refreshToken);
-      this.setUser(data.user);
+      // Extract data from response
+      const { user, tokens } = result.data;
 
-      return { success: true, user: data.user };
+      // Save tokens and user data
+      this.setAccessToken(tokens.accessToken);
+      this.setRefreshToken(tokens.refreshToken);
+      this.setUser(user);
+
+      return { success: true, user };
     } catch (error) {
       console.error("Email login error:", error);
       // Return more helpful error message
@@ -330,38 +343,68 @@ class AuthService {
 
   // ===== EMAIL REGISTER =====
 
-  async registerWithEmail(email, password, displayName) {
+  async registerWithEmail(email, password, displayName, confirmPassword, phone = null) {
     try {
-      // Default avatar for email users (guest icon)
-      const defaultAvatar = "/src/assets/icons/cá nhân.jpg";
-
-      const response = await fetch(`${this.apiBaseUrl}/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          display_name: displayName,
-          avatar_url: defaultAvatar,
-          provider: "EMAIL",
-        }),
+      const requestBody = {
+        display_name: displayName,
+        email,
+        password,
+        confirm_password: confirmPassword,
+        ...(phone && { phone }), // Optional phone
+      };
+      
+      console.log("📤 Register request:", {
+        url: `${this.apiBaseUrl}/api/v1/miniapp/auth/register`,
+        body: { ...requestBody, password: "***" } // Hide password in log
       });
+
+      const response = await fetch(
+        `${this.apiBaseUrl}/api/v1/miniapp/auth/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Đăng ký thất bại");
+        console.error("❌ Register API error response:", JSON.stringify(error, null, 2));
+        console.error("Status:", response.status);
+        
+        // Extract detailed error message
+        let errorMsg = "Đăng ký thất bại";
+        
+        if (error?.error) {
+          // Check for validation errors with details
+          if (error.error.code?.details && Array.isArray(error.error.code.details)) {
+            // Extract validation messages from details array
+            const messages = error.error.code.details.map(detail => detail.message || "").filter(m => m);
+            errorMsg = messages.length > 0 ? messages.join(", ") : error.error.message;
+          } else if (error.error.message) {
+            errorMsg = error.error.message;
+          }
+        } else if (error?.message) {
+          errorMsg = error.message;
+        }
+        
+        console.error("📝 Parsed error message:", errorMsg);
+        throw new Error(errorMsg);
       }
 
-      const data = await response.json();
+      const result = await response.json();
 
-      // Save tokens and user data (now synchronous)
-      this.setAccessToken(data.accessToken);
-      this.setRefreshToken(data.refreshToken);
-      this.setUser(data.user);
+      // Extract data from response
+      const { user, tokens } = result.data;
 
-      return { success: true, user: data.user };
+      // Save tokens and user data
+      this.setAccessToken(tokens.accessToken);
+      this.setRefreshToken(tokens.refreshToken);
+      this.setUser(user);
+
+      return { success: true, user };
     } catch (error) {
       console.error("Email register error:", error);
       return { success: false, error: error.message };
@@ -383,42 +426,48 @@ class AuthService {
     this.isRefreshing = true;
 
     try {
-      const refreshToken = await this.getRefreshToken();
+      const refreshToken = this.getRefreshToken();
 
       if (!refreshToken) {
         throw new Error("No refresh token available");
       }
 
-      const response = await fetch(`${this.apiBaseUrl}/auth/refresh`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ refreshToken }),
-      });
+      const response = await fetch(
+        `${this.apiBaseUrl}/api/v1/common/auth/refresh`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ refreshToken }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Token refresh failed");
       }
 
-      const data = await response.json();
+      const result = await response.json();
 
-      // Save new tokens (now synchronous)
-      this.setAccessToken(data.accessToken);
+      // Extract new tokens from response
+      const { accessToken, refreshToken: newRefreshToken } = result.data;
 
-      // Optionally update refresh token if backend rotates it
-      if (data.refreshToken) {
-        this.setRefreshToken(data.refreshToken);
+      // Save new tokens
+      this.setAccessToken(accessToken);
+
+      // Update refresh token if backend rotates it
+      if (newRefreshToken) {
+        this.setRefreshToken(newRefreshToken);
       }
 
       // Notify all subscribers
-      this.refreshSubscribers.forEach((callback) => callback(data.accessToken));
+      this.refreshSubscribers.forEach((callback) => callback(accessToken));
       this.refreshSubscribers = [];
 
-      return data.accessToken;
+      return accessToken;
     } catch (error) {
       console.error("Refresh token error:", error);
-      // Clear all tokens and redirect to login (now synchronous)
+      // Clear all tokens and redirect to login
       this.removeToken();
       this.removeUser();
       window.location.hash = "#/login";
@@ -432,22 +481,22 @@ class AuthService {
 
   async logout() {
     try {
-      const token = this.getAccessToken();
+      const refreshToken = this.getRefreshToken();
 
-      if (token) {
+      if (refreshToken) {
         // Call backend to invalidate tokens
-        await fetch(`${this.apiBaseUrl}/auth/logout`, {
+        await fetch(`${this.apiBaseUrl}/api/v1/common/auth/logout`, {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
+          body: JSON.stringify({ refreshToken }),
         });
       }
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      // Always clear local data (now synchronous)
+      // Always clear local data
       this.removeToken();
       this.removeUser();
     }
@@ -502,9 +551,13 @@ class AuthService {
 
     // Handle 401 Unauthorized - Try to refresh token
     if (response.status === 401) {
+      console.warn("⚠️ Access token expired, attempting refresh...");
+      
       try {
         // Attempt to refresh the access token
         token = await this.refreshAccessToken();
+        
+        console.log("✅ Token refreshed successfully, retrying request...");
 
         // Retry the original request with new token
         const newHeaders = {
@@ -518,15 +571,25 @@ class AuthService {
           headers: newHeaders,
         });
 
-        // If still 401 after refresh, logout
+        // If still 401 after refresh, session truly expired
         if (response.status === 401) {
+          console.error("❌ Still unauthorized after refresh - session expired");
           await this.logout();
+          
+          // Show user-friendly message
+          alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+          
           window.location.hash = "#/login";
           throw new Error("Session expired");
         }
       } catch (error) {
-        // Refresh failed, logout
+        // Refresh failed - logout and redirect
+        console.error("❌ Token refresh failed:", error.message);
         await this.logout();
+        
+        // Show user-friendly message
+        alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        
         window.location.hash = "#/login";
         throw new Error("Session expired");
       }
@@ -537,13 +600,15 @@ class AuthService {
 
   // ===== UPDATE PROFILE =====
 
+  // ===== UPDATE PROFILE =====
+
   async updateProfile(profileData) {
     try {
-      // Call backend API to update profile
+      // Call new API endpoint
       const response = await this.fetchWithAuth(
-        `${this.apiBaseUrl}/user/profile`,
+        `${this.apiBaseUrl}/api/v1/miniapp/users/me`,
         {
-          method: "PUT",
+          method: "PATCH",
           body: JSON.stringify(profileData),
         }
       );
@@ -553,12 +618,13 @@ class AuthService {
         throw new Error(error.message || "Cập nhật thông tin thất bại");
       }
 
-      const data = await response.json();
+      const result = await response.json();
+      const updatedUser = result.data;
 
       // Update local user data with response from backend
-      this.setUser(data.user || data);
+      this.setUser(updatedUser);
 
-      return { success: true, user: data.user || data };
+      return { success: true, user: updatedUser };
     } catch (error) {
       console.error("Update profile error:", error);
 

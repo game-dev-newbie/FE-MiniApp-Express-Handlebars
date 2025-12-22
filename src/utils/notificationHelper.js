@@ -1,6 +1,11 @@
 // src/utils/notificationHelper.js
+import { getUnreadCount as getUnreadCountAPI } from "../api/notificationsApi.js";
 
-// Create a notification for booking status change
+// Get base URL from environment
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "https://pyramidally-unborrowed-cherie.ngrok-free.dev";
+
+// Create a notification for booking status change (local only, for UI feedback)
 export function createBookingNotification(
   booking,
   status,
@@ -84,27 +89,47 @@ export function createBookingNotification(
   return notification;
 }
 
-// Get unread notification count
-export function getUnreadCount() {
-  const notifications = JSON.parse(
-    localStorage.getItem("dinelink_notifications") || "[]"
-  );
-  return notifications.filter((n) => !n.isRead).length;
+// Get unread notification count (try API first, return 0 if not available)
+export async function getUnreadCount() {
+  try {
+    // Try to get from API
+    const result = await getUnreadCountAPI();
+    // Safely access unreadCount with fallback to 0
+    return result?.unreadCount ?? 0;
+  } catch (error) {
+    // If API not available (backend not running), return 0
+    // Don't use mock data to avoid confusion
+    console.warn("API not available, notifications disabled:", error.message);
+    return 0;
+  }
 }
 
 // Update notification badge in UI
-export function updateNotificationBadge() {
-  const unreadCount = getUnreadCount();
-  const notificationBadges = document.querySelectorAll(".notification-badge");
+export async function updateNotificationBadge() {
+  console.log("🔔 [Badge] Starting update...");
+  
+  try {
+    const unreadCount = await getUnreadCount();
+    console.log("🔔 [Badge] Unread count from API:", unreadCount);
+    
+    const notificationBadges = document.querySelectorAll(".notification-badge");
+    console.log("🔔 [Badge] Found badge elements:", notificationBadges.length);
 
-  notificationBadges.forEach((badge) => {
-    if (unreadCount > 0) {
-      badge.style.display = "flex";
-      badge.textContent = unreadCount > 99 ? "99+" : unreadCount;
-    } else {
-      badge.style.display = "none";
-    }
-  });
+    notificationBadges.forEach((badge, index) => {
+      console.log(`🔔 [Badge ${index}] Current display:`, badge.style.display);
+      
+      if (unreadCount > 0) {
+        badge.style.display = "flex";
+        badge.textContent = unreadCount > 99 ? "99+" : unreadCount;
+        console.log(`🔔 [Badge ${index}] Updated to show:`, badge.textContent);
+      } else {
+        badge.style.display = "none";
+        console.log(`🔔 [Badge ${index}] Hidden (no unread)`);
+      }
+    });
+  } catch (error) {
+    console.error("🔔 [Badge] Error updating:", error);
+  }
 }
 
 // Receive notification from backend (called when backend pushes notification)
@@ -179,7 +204,7 @@ export function startNotificationPolling(intervalMs = 60000) {
 
       // Call backend API to get new notifications
       const response = await fetch(
-        `https://pyramidally-unborrowed-cherie.ngrok-free.dev/notifications?since=${lastTimestamp}`,
+        `${API_BASE_URL}/api/v1/miniapp/notifications?since=${lastTimestamp}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -189,6 +214,13 @@ export function startNotificationPolling(intervalMs = 60000) {
       );
 
       if (response.ok) {
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          console.warn("Backend returned non-JSON response, skipping notification update");
+          return;
+        }
+        
         const data = await response.json();
         const newNotifications = data.data || data;
 
@@ -203,10 +235,15 @@ export function startNotificationPolling(intervalMs = 60000) {
         }
       }
     } catch (error) {
-      console.error("Error polling notifications:", error);
+      // Silently skip polling errors (CORS, network issues)
+      // Don't log to avoid console spam
     }
   }, intervalMs);
 }
+
+// Disable auto-start polling due to CORS issues
+// User can manually enable if needed
+export const AUTO_START_POLLING = false;
 
 export function stopNotificationPolling() {
   if (pollIntervalId) {

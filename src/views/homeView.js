@@ -1,29 +1,25 @@
 // src/views/homeView.js
 import { renderTemplate } from "../core/templates.js";
 import {
-  getFeaturedRestaurants,
-  getPopularRestaurants,
-  getRestaurantsByCategory,
-  searchRestaurants,
-  getRecentlyVisitedRestaurants,
-  getRestaurantsByTimeOfDay,
-  getTimeOfDayTitle,
-  users,
-} from "../data/mockData.js";
+  fetchTopRatedRestaurants,
+  fetchTopFavoriteRestaurants,
+  fetchTopRestaurantsByTag,
+} from "../api/restaurantApi.js";
 import { toggleFavorite, isFavorite } from "../utils/favoritesHelper.js";
 import { updateNotificationBadge } from "../utils/notificationHelper.js";
 import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
 
-export function renderHome() {
+export async function renderHome() {
   // Check if user is logged in (now synchronous)
   const isLoggedIn = authService.isAuthenticated();
   const user = isLoggedIn ? authService.getUser() : null;
 
   // Use logged in user data or guest data
   const displayName = user ? user.display_name : "Quý khách";
-  const avatarUrl = user ? user.avatar_url : "/src/assets/icons/cá nhân.jpg";
+  const defaultAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%2300c853'/%3E%3Cpath d='M50 45c8.284 0 15-6.716 15-15s-6.716-15-15-15-15 6.716-15 15 6.716 15 15 15zm0 7.5c-10 0-30 5-30 15V75h60v-7.5c0-10-20-15-30-15z' fill='white'/%3E%3C/svg%3E";
+  const avatarUrl = (user && user.avatar_url) ? user.avatar_url : defaultAvatar;
   const userId = user ? user.id : null;
 
   // Render header and bottom nav
@@ -33,26 +29,143 @@ export function renderHome() {
   });
   const bottomNavHtml = renderTemplate("bottomNav", { activePage: "home" });
 
-  // Get data from mockData
-  const featuredRestaurants = getFeaturedRestaurants();
-  const popularRestaurants = getPopularRestaurants();
-  const recentRestaurants = userId ? getRecentlyVisitedRestaurants(userId) : [];
-  const timeBasedRestaurants = getRestaurantsByTimeOfDay();
-  const timeOfDayTitle = getTimeOfDayTitle();
+  // Show loading state
+  appEl.innerHTML =
+    headerHtml +
+    `
+    <main class="main-content">
+      <div class="loading-container" style="display: flex; justify-content: center; align-items: center; min-height: 400px;">
+        <div class="spinner"></div>
+      </div>
+    </main>
+  ` +
+    bottomNavHtml;
 
-  const contentHtml = renderTemplate("homeContent", {
-    userName: displayName,
-    featuredRestaurants,
-    popularRestaurants,
-    recentRestaurants,
-    timeBasedRestaurants,
-    timeOfDayTitle,
-  });
+  try {
+    // Fetch data from API (parallel requests)
+    const [topRatedData, topFavoriteData, topByTagData] = await Promise.all([
+      fetchTopRatedRestaurants(),
+      fetchTopFavoriteRestaurants(),
+      fetchTopRestaurantsByTag("romantic"), // You can change the tag here (e.g., "lunch", "dinner", "romantic")
+    ]);
 
-  appEl.innerHTML = headerHtml + contentHtml + bottomNavHtml;
+    console.log("🏠 Home API responses:", {
+      topRated: topRatedData,
+      topFavorite: topFavoriteData,
+      topByTag: topByTagData
+    });
 
-  // Update notification badge
-  updateNotificationBadge();
+    // Log raw items from API
+    console.log("📦 RAW API Items:", {
+      topRatedItems: topRatedData?.items,
+      topFavoriteItems: topFavoriteData?.items,
+      topByTagItems: topByTagData?.items
+    });
+
+    // Log detailed structure
+    console.log("📊 API Response Structure:", {
+      topRatedTotal: topRatedData?.total,
+      topRatedItemsLength: topRatedData?.items?.length,
+      topFavoriteTotal: topFavoriteData?.total,
+      topFavoriteItemsLength: topFavoriteData?.items?.length,
+      topByTagTotal: topByTagData?.total,
+      topByTagItemsLength: topByTagData?.items?.length
+    });
+
+    // Transform API data to match template format
+    const transformRestaurant = (restaurant) => {
+      const baseURL = "https://pyramidally-unborrowed-cherie.ngrok-free.dev";
+      return {
+        id: restaurant.id,
+        name: restaurant.name || "Nhà hàng",
+        address: "", // API không trả về field này
+        image: restaurant.main_image_url 
+          ? (restaurant.main_image_url.startsWith('http') 
+              ? restaurant.main_image_url 
+              : `${baseURL}${restaurant.main_image_url}`)
+          : "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23f0f0f0' width='400' height='300'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='24' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3ENo Image%3C/text%3E%3C/svg%3E",
+        average_rating: restaurant.average_rating || 0,
+        review_count: restaurant.review_count || 0,
+        favorite_count: restaurant.favorite_count || 0,
+        cuisine: restaurant.tags?.split(',')[0] || "Đa dạng",
+        opening_hours: "08:00", // API không trả về field này - dùng default
+        closing_hours: "22:00", // API không trả về field này - dùng default
+        priceRange: restaurant.default_deposit_amount > 0
+          ? `Đặt cọc: ${restaurant.default_deposit_amount.toLocaleString('vi-VN')}đ`
+          : "Miễn phí",
+        recommended: restaurant.average_rating >= 4.5
+      };
+    };
+
+    const featuredRestaurants = (topRatedData?.items || []).map(transformRestaurant);
+    const popularRestaurants = (topFavoriteData?.items || []).map(transformRestaurant);
+    const timeBasedRestaurants = (topByTagData?.items || []).map(transformRestaurant);
+    
+    console.log("📊 Restaurant counts:", {
+      featured: featuredRestaurants.length,
+      popular: popularRestaurants.length,
+      byTag: timeBasedRestaurants.length
+    });
+    
+    console.log("🔄 Transformed data:", {
+      featuredRestaurants,
+      popularRestaurants,
+      timeBasedRestaurants
+    });
+    
+    // Log first item if available
+    if (featuredRestaurants.length > 0) {
+      console.log("🍽️ Sample featured restaurant:", featuredRestaurants[0]);
+    } else {
+      console.warn("⚠️ No featured restaurants returned from API");
+    }
+    if (popularRestaurants.length > 0) {
+      console.log("❤️ Sample popular restaurant:", popularRestaurants[0]);
+    } else {
+      console.warn("⚠️ No popular restaurants returned from API");
+    }
+    if (timeBasedRestaurants.length > 0) {
+      console.log("⏰ Sample tag-based restaurant:", timeBasedRestaurants[0]);
+    } else {
+      console.warn("⚠️ No tag-based restaurants returned from API");
+    }
+    
+    // Remove mock data - only use real API data
+    const recentRestaurants = [];
+    const timeOfDayTitle = "Nhà hàng lãng mạn"; // Title for tag-based section
+
+    const contentHtml = renderTemplate("homeContent", {
+      userName: displayName,
+      featuredRestaurants,
+      popularRestaurants,
+      recentRestaurants,
+      timeBasedRestaurants,
+      timeOfDayTitle,
+    });
+
+    appEl.innerHTML = headerHtml + contentHtml + bottomNavHtml;
+  } catch (error) {
+    console.error("Error loading home data:", error);
+
+    // Show error state
+    appEl.innerHTML =
+      headerHtml +
+      `
+      <main class="main-content">
+        <div class="error-container" style="text-align: center; padding: 40px 20px;">
+          <p style="color: #666; margin-bottom: 16px;">Không thể tải dữ liệu. Vui lòng thử lại.</p>
+          <button onclick="location.reload()" class="btn-primary">Tải lại</button>
+        </div>
+      </main>
+    ` +
+      bottomNavHtml;
+    return;
+  }
+
+  // Update notification badge after DOM is fully loaded
+  setTimeout(() => {
+    updateNotificationBadge();
+  }, 100);
 
   // Reset scroll position for all horizontal scroll sections
   setTimeout(() => {
@@ -94,19 +207,6 @@ function initHomeEventListeners() {
     once: true,
   });
 
-  // Category tabs
-  const categoryButtons = document.querySelectorAll(".category-btn");
-  console.log("Found category buttons:", categoryButtons.length);
-
-  categoryButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      const category = button.getAttribute("data-category");
-      console.log("Navigate to category:", category);
-
-      // Navigate to category page
-      window.location.hash = `#/category/${category}`;
-    });
-  });
 
   // Search functionality
   const searchInput = document.getElementById("searchInput");
@@ -152,14 +252,21 @@ function initHomeEventListeners() {
 
   // Bookmark buttons - toggle favorites
   const bookmarkButtons = document.querySelectorAll(".bookmark-featured-btn");
-  bookmarkButtons.forEach((button) => {
+  bookmarkButtons.forEach(async (button) => {
     const restaurantId = button
       .closest(".featured-card")
       ?.getAttribute("data-id");
 
-    // Set initial state based on favorites
-    if (restaurantId && isFavorite(restaurantId)) {
-      button.classList.add("active");
+    // Set initial state based on favorites (async check)
+    if (restaurantId) {
+      try {
+        const isCurrentlyFavorite = await isFavorite(restaurantId);
+        if (isCurrentlyFavorite) {
+          button.classList.add("active");
+        }
+      } catch (error) {
+        console.warn("Could not check favorite status:", error);
+      }
     }
 
     button.addEventListener("click", async (e) => {
@@ -173,12 +280,16 @@ function initHomeEventListeners() {
       }
 
       if (restaurantId) {
-        const isNowFavorite = toggleFavorite(restaurantId);
+        try {
+          const isNowFavorite = await toggleFavorite(restaurantId);
 
-        if (isNowFavorite) {
-          button.classList.add("active");
-        } else {
-          button.classList.remove("active");
+          if (isNowFavorite) {
+            button.classList.add("active");
+          } else {
+            button.classList.remove("active");
+          }
+        } catch (error) {
+          console.error("Error toggling favorite:", error);
         }
       }
 
@@ -386,9 +497,23 @@ function reattachCardListeners() {
   // Bookmark buttons
   const bookmarkButtons = document.querySelectorAll(".bookmark-featured-btn");
   bookmarkButtons.forEach((button) => {
-    button.addEventListener("click", (e) => {
+    button.addEventListener("click", async (e) => {
       e.stopPropagation();
-      button.classList.toggle("active");
+      
+      const restaurantId = button.closest(".featured-card")?.getAttribute("data-id");
+      if (!restaurantId) return;
+
+      try {
+        const isNowFavorite = await toggleFavorite(restaurantId);
+        
+        if (isNowFavorite) {
+          button.classList.add("active");
+        } else {
+          button.classList.remove("active");
+        }
+      } catch (error) {
+        console.error("Error toggling favorite:", error);
+      }
 
       if (navigator.vibrate) {
         navigator.vibrate(10);

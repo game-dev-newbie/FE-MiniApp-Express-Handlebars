@@ -106,78 +106,107 @@ function initEditProfileEventListeners() {
 
 function showAvatarModal() {
   const modal = document.getElementById("avatarModal");
-  if (!modal) return;
+  if (!modal) {
+    console.error("❌ Avatar modal not found");
+    return;
+  }
 
-  modal.style.display = "block";
-  setTimeout(() => modal.classList.add("active"), 10);
+  console.log("📸 Opening avatar modal");
 
-  // Close modal
-  const btnClose = document.getElementById("btnCloseAvatarModal");
-  const overlay = modal.querySelector(".modal-overlay");
+  // Show modal with animation
+  modal.classList.add("active");
+  
+  // Debug: check modal state
+  setTimeout(() => {
+    const computedStyle = window.getComputedStyle(modal);
+    console.log("Modal display:", computedStyle.display);
+    console.log("Modal opacity:", computedStyle.opacity);
+    console.log("Modal pointer-events:", computedStyle.pointerEvents);
+  }, 100);
 
+  // Close modal function
   const closeModal = () => {
+    console.log("🔒 Closing modal");
     modal.classList.remove("active");
-    setTimeout(() => {
-      modal.style.display = "none";
-    }, 300);
   };
 
-  if (btnClose) btnClose.addEventListener("click", closeModal);
-  if (overlay) overlay.addEventListener("click", closeModal);
+  // Close button
+  const btnClose = modal.querySelector("#btnCloseAvatarModal");
+  if (btnClose) {
+    console.log("✅ Close button found");
+    btnClose.onclick = (e) => {
+      e.stopPropagation();
+      console.log("❌ Close button clicked");
+      closeModal();
+    };
+  }
+
+  // Overlay click to close
+  const overlay = modal.querySelector(".modal-overlay");
+  if (overlay) {
+    console.log("✅ Overlay found");
+    overlay.onclick = (e) => {
+      e.stopPropagation();
+      console.log("🖱️ Overlay clicked");
+      closeModal();
+    };
+  }
 
   // Avatar options selection
   const avatarOptions = modal.querySelectorAll(".avatar-option");
-  avatarOptions.forEach((option) => {
-    option.addEventListener("click", () => {
+  console.log(`Found ${avatarOptions.length} avatar options`);
+  
+  avatarOptions.forEach((option, index) => {
+    option.onclick = (e) => {
+      e.stopPropagation();
       const avatarUrl = option.getAttribute("data-avatar");
-      console.log("🎭 Avatar preset selected:", avatarUrl);
+      console.log(`🎭 Avatar ${index + 1} clicked:`, avatarUrl);
       selectAvatar(avatarUrl);
       closeModal();
-    });
+    };
   });
 
   // Upload button - Use Zalo chooseImage API
-  const btnUpload = document.getElementById("btnUploadAvatar");
-  const fileInput = document.getElementById("avatarUpload");
-
+  const btnUpload = modal.querySelector("#btnUploadAvatar");
+  console.log("Upload button found:", !!btnUpload);
+  
   if (btnUpload) {
-    btnUpload.addEventListener("click", async () => {
+    btnUpload.onclick = async (e) => {
+      e.stopPropagation();
+      console.log("📤 Upload button clicked");
+      
       try {
         // Try to use Zalo Mini App chooseImage API first
         const { filePaths } = await chooseImage({
-          count: 1, // Only allow 1 image
-          sourceType: ["album", "camera"], // Allow both album and camera
-          cameraType: "front", // Use front camera for selfie
+          count: 1,
+          sourceType: ["album", "camera"],
+          cameraType: "front",
         });
 
         if (filePaths && filePaths.length > 0) {
           const imagePath = filePaths[0];
-
-          // Convert local path to base64 for display
-          // In Zalo Mini App, you need to upload to server or use the path directly
-          // For now, we'll use the path directly (Zalo will handle it)
           selectAvatar(imagePath);
           closeModal();
-
           console.log("✅ Image selected from Zalo:", imagePath);
         }
       } catch (error) {
-        console.warn(
-          "Zalo chooseImage not available, falling back to HTML input:",
-          error
-        );
+        console.warn("Zalo chooseImage not available, falling back to HTML input:", error);
 
-        // Fallback to HTML file input for web browser
+        // Fallback to HTML file input
+        const fileInput = modal.querySelector("#avatarUpload");
         if (fileInput) {
           fileInput.click();
         }
       }
-    });
+    };
 
-    // Fallback file input handler for web browser
+    // Fallback file input handler
+    const fileInput = modal.querySelector("#avatarUpload");
     if (fileInput) {
-      fileInput.addEventListener("change", (e) => {
+      fileInput.onchange = (e) => {
         const file = e.target.files[0];
+        console.log("📁 File selected:", file?.name);
+        
         if (file && file.type.startsWith("image/")) {
           const reader = new FileReader();
           reader.onload = (event) => {
@@ -186,7 +215,7 @@ function showAvatarModal() {
           };
           reader.readAsDataURL(file);
         }
-      });
+      };
     }
   }
 }
@@ -307,27 +336,25 @@ async function handleSaveProfile() {
 // Helper function to upload avatar to server
 async function uploadAvatarToServer(localPath) {
   try {
-    // If it's base64, send directly
+    // Import uploadAvatar from userApi
+    const { uploadAvatar } = await import("../api/userApi.js");
+    
+    // If it's base64, convert to File/Blob
     if (localPath.startsWith("data:image")) {
-      const response = await authService.fetchWithAuth(
-        `${authService.apiBaseUrl}/user/avatar`,
-        {
-          method: "POST",
-          body: JSON.stringify({ avatar_base64: localPath }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Upload failed");
-      }
-
-      const data = await response.json();
-      return { success: true, url: data.avatar_url };
+      // Convert base64 to blob
+      const response = await fetch(localPath);
+      const blob = await response.blob();
+      const file = new File([blob], "avatar.jpg", { type: "image/jpeg" });
+      
+      console.log("📤 Uploading avatar file to server...");
+      const result = await uploadAvatar(file);
+      
+      return { success: true, url: result.url };
     }
 
-    // For Zalo local path, you might need to use uploadFile API
-    // This is a placeholder - implement based on your backend
-    console.warn("Zalo local path upload not implemented yet:", localPath);
+    // For Zalo local path, you might need to fetch it first
+    // This is a placeholder - Zalo paths need special handling
+    console.warn("Zalo local path - using directly:", localPath);
     return { success: false, url: localPath };
   } catch (error) {
     console.error("Upload avatar error:", error);

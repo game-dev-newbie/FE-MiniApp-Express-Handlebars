@@ -1,61 +1,111 @@
 // src/views/restaurantDetailView.js
 import { renderTemplate } from "../core/templates.js";
-import { restaurants, getRestaurantReviews, users } from "../data/mockData.js";
 import { toggleFavorite, isFavorite } from "../utils/favoritesHelper.js";
-import { fetchRestaurantReviews } from "../api/restaurantApi.js";
+import {
+  fetchRestaurantDetail,
+  fetchRestaurantReviews,
+} from "../api/restaurantApi.js";
 import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
-const currentUser = users[0];
 
 export async function renderRestaurantDetail(restaurantId) {
-  // Find restaurant by ID
-  const restaurant = restaurants.find((r) => r.id === parseInt(restaurantId));
-
-  if (!restaurant) {
-    // Restaurant not found, redirect to home
-    window.location.hash = "#/home";
-    return;
-  }
-
   // Show loading state
   appEl.innerHTML = '<div class="loading-spinner">Đang tải...</div>';
 
   try {
-    // Fetch reviews from API with sort by latest
-    let reviews = await fetchRestaurantReviews(restaurantId, {
-      sort: "created_at",
-      order: "desc",
+    // Fetch restaurant detail from API (includes info + images + deposit info)
+    const restaurant = await fetchRestaurantDetail(restaurantId);
+
+    if (!restaurant) {
+      throw new Error("Restaurant not found");
+    }
+
+    // Base URL for constructing full URLs
+    const baseURL = "https://pyramidally-unborrowed-cherie.ngrok-free.dev";
+
+    // Fetch reviews from API with pagination
+    const reviewsResponse = await fetchRestaurantReviews(restaurantId, {
       limit: 20,
+      offset: 0,
     });
 
-    // Get user reviews from localStorage and add to reviews list
-    const userReviews = JSON.parse(
-      localStorage.getItem("dinelink_user_reviews") || "[]"
-    );
+    // Extract and process reviews from response
+    const reviews = (reviewsResponse?.items || []).map(review => {
+      // Helper to build avatar URL
+      const avatarUrl = review.User?.avatar_url
+        ? (review.User.avatar_url.startsWith('http')
+            ? review.User.avatar_url
+            : `${baseURL}${review.User.avatar_url}`)
+        : "https://i.pravatar.cc/150?img=3"; // Default avatar
 
-    const userReviewsForRestaurant = userReviews
-      .filter((r) => r.restaurantId === parseInt(restaurantId))
-      .map((review) => {
-        const user = users.find((u) => u.id === review.userId);
-        return {
-          id: review.id,
-          userName: user?.display_name || "Khách hàng",
-          userAvatar: user?.avatar_url || "https://i.pravatar.cc/150?img=3",
-          rating: review.rating,
-          comment: review.comment,
-          created_at: review.createdAt,
-          formattedTime: formatReviewDateTime(review.createdAt),
-        };
-      });
+      return {
+        id: review.id,
+        userName: review.User?.display_name || "Khách hàng",
+        userAvatar: avatarUrl,
+        rating: review.rating || 0,
+        comment: review.comment || "",
+        created_at: review.created_at,
+        formattedTime: formatReviewDateTime(review.created_at),
+        // Restaurant reply
+        hasReply: !!review.reply_comment,
+        replyComment: review.reply_comment || "",
+        replyTime: review.reply_created_at ? formatReviewDateTime(review.reply_created_at) : "",
+      };
+    });
 
-    // Combine and sort by date (newest first)
-    reviews = [...userReviewsForRestaurant, ...reviews].sort(
-      (a, b) => new Date(b.created_at) - new Date(a.created_at)
-    );
+    console.log("📝 Processed reviews:", reviews);
+
+    // Transform restaurant data to match template expectations
+    // Helper function to format image URL
+    const formatImageUrl = (url) => {
+      if (!url) return null;
+      return url.startsWith('http') ? url : `${baseURL}${url}`;
+    };
+    
+    // Fallback image
+    const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23f0f0f0' width='400' height='300'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='24' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3ENo Image%3C/text%3E%3C/svg%3E";
+    
+    // Get carousel images - ONLY GALLERY type
+    const carouselImages = (restaurant.images || [])
+      .filter(img => img.type === 'GALLERY')
+      .map(img => formatImageUrl(img.file_path))
+      .filter(url => url !== null);
+    
+    // If no GALLERY images, add fallback
+    if (carouselImages.length === 0) {
+      carouselImages.push(fallbackImage);
+    }
+    
+    const transformedRestaurant = {
+      ...restaurant,
+      // Format time fields
+      opening_hours: restaurant.open_time?.substring(0, 5) || "08:00",
+      closing_hours: restaurant.close_time?.substring(0, 5) || "22:00",
+      
+      // Derive cuisine from tags
+      cuisine: restaurant.tags?.split(',')[0] || "Đa dạng",
+      
+      // Add priceRange from deposit
+      priceRange: restaurant.default_deposit_amount > 0
+        ? `Đặt cọc: ${restaurant.default_deposit_amount.toLocaleString('vi-VN')}đ`
+        : "Miễn phí",
+      
+      // Main image for compatibility (first GALLERY image or fallback)
+      image: carouselImages[0],
+      
+      // Carousel images for template (GALLERY only)
+      carouselImages: carouselImages,
+      
+      // Format menu images (MENU type only)
+      menuImages: (restaurant.images || [])
+        .filter(img => img.type === 'MENU')
+        .map(img => formatImageUrl(img.file_path))
+        .filter(url => url !== null)
+    };
 
     const restaurantDetailContent = renderTemplate("restaurantDetail", {
-      restaurant,
+      restaurant: transformedRestaurant,
       reviews,
     });
 
@@ -71,53 +121,16 @@ export async function renderRestaurantDetail(restaurantId) {
     initCarousel();
     setupReviewUpdateListeners(restaurantId);
   } catch (error) {
-    console.error("Error fetching restaurant reviews:", error);
+    console.error("Error loading restaurant detail:", error);
 
-    // Fallback to mockData if API fails
-    let reviews = getRestaurantReviews(restaurantId);
-
-    // Get user reviews from localStorage
-    const userReviews = JSON.parse(
-      localStorage.getItem("dinelink_user_reviews") || "[]"
-    );
-
-    const userReviewsForRestaurant = userReviews
-      .filter((r) => r.restaurantId === parseInt(restaurantId))
-      .map((review) => {
-        const user = users.find((u) => u.id === review.userId);
-        return {
-          id: review.id,
-          userName: user?.display_name || "Khách hàng",
-          userAvatar: user?.avatar_url || "https://i.pravatar.cc/150?img=3",
-          rating: review.rating,
-          comment: review.comment,
-          created_at: review.createdAt,
-          formattedTime: formatReviewDateTime(review.createdAt),
-        };
-      });
-
-    // Combine and sort by date (newest first)
-    reviews = [...userReviewsForRestaurant, ...reviews].sort(
-      (a, b) => new Date(b.created_at) - new Date(a.created_at)
-    );
-
-    const restaurantDetailContent = renderTemplate("restaurantDetail", {
-      restaurant,
-      reviews,
-    });
-
-    appEl.innerHTML = restaurantDetailContent;
-
-    // Ensure scroll to top after DOM is rendered
-    requestAnimationFrame(() => {
-      window.scrollTo(0, 0);
-    });
-
-    // Initialize event listeners
-    initRestaurantDetailListeners(restaurant);
-    initCarousel();
-    setupReviewListener(restaurantId);
-    setupReviewUpdateListeners(restaurantId);
+    // Show error state
+    appEl.innerHTML = `
+      <div class="error-container" style="text-align: center; padding: 40px 20px;">
+        <h2>Không thể tải thông tin nhà hàng</h2>
+        <p style="color: #666; margin: 16px 0;">Vui lòng thử lại sau.</p>
+        <button onclick="window.location.hash='#/home'" class="btn-primary">Về trang chủ</button>
+      </div>
+    `;
   }
 }
 

@@ -1,12 +1,13 @@
 // src/views/historyView.js
 // History booking view with review submission
 import { renderTemplate } from "../core/templates.js";
-import { restaurants, users } from "../data/mockData.js";
-import { submitReview as submitReviewAPI } from "../api/reviewApi.js";
+import { createReview } from "../api/reviewApi.js";
+import { getMyBookings } from "../api/bookingApi.js";
 import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
-const currentUser = users[0];
+// Note: currentUser should come from authService, not mock data
+const currentUser = authService.getUser() || { id: 1 };
 
 export async function renderHistory() {
   // Check authentication before showing history
@@ -14,77 +15,47 @@ export async function renderHistory() {
     return;
   }
 
-  // Get bookings from localStorage
-  const localBookings = JSON.parse(
-    localStorage.getItem("dinelink_bookings") || "[]"
-  );
+  // Fetch history bookings from API
+  console.log("📚 Fetching history bookings from API...");
+  
+  const response = await getMyBookings({ category: 'history', limit: 50 });
+  const apiBookings = response?.items || [];
 
-  // Process bookings with restaurant info
-  const processedBookings = localBookings
-    .map((booking) => {
-      if (booking.restaurantId) {
-        const restaurant = restaurants.find(
-          (r) => r.id === booking.restaurantId
-        );
+    console.log("📦 History bookings response:", apiBookings);
 
-        // Format table names properly
-        let tableNames = "Chưa chọn bàn";
-        if (booking.tables) {
-          if (Array.isArray(booking.tables)) {
-            // If tables is array of objects
-            if (typeof booking.tables[0] === "object") {
-              tableNames = booking.tables
-                .map((t) => `${t.name} (${t.type || t.capacity + " người"})`)
-                .join(", ");
-            } else {
-              // If tables is array of strings
-              tableNames = booking.tables.join(", ");
-            }
-          } else if (typeof booking.tables === "string") {
-            tableNames = booking.tables;
-          }
-        }
+    // Process bookings to match template expectations
+    const processedBookings = apiBookings.map((booking) => {
+      // Check if booking has review (from Review object in API response)
+      const hasReview = !!booking.Review;
+      const userRating = booking.Review?.rating || 0;
+      const reviewComment = booking.Review?.comment || "";
 
-        return {
-          id: booking.id,
-          status: booking.status,
-          restaurantId: booking.restaurantId,
-          restaurant_name:
-            restaurant?.name || booking.restaurantName || "Nhà hàng",
-          table_name: tableNames,
-          booking_time: formatBookingTime(
-            new Date(booking.date + " " + booking.time)
-          ),
-          people: booking.people,
-        };
-      }
-      return null;
-    })
-    .filter(Boolean);
-
-  // Filter history bookings (CHECKED_IN or COMPLETED)
-  const historyBookings = processedBookings.filter(
-    (b) => b.status === "CHECKED_IN" || b.status === "COMPLETED"
-  );
+      return {
+        id: booking.id,
+        status: booking.status,
+        restaurantId: booking.restaurant_id,
+        restaurant_name: booking.Restaurant?.name || "Nhà hàng",
+        table_name: booking.RestaurantTable?.name || "Chưa chọn bàn",
+        booking_time: formatBookingTime(new Date(booking.booking_time)),
+        people: booking.people_count,
+        // Review fields
+        hasReview: hasReview,
+        userRating: userRating,
+        reviewComment: reviewComment,
+        reviewId: booking.Review?.id || null,
+      };
+    });
 
   // Sort by booking time descending (newest first)
-  historyBookings.sort((a, b) => {
+  processedBookings.sort((a, b) => {
     const dateA = new Date(a.booking_time);
     const dateB = new Date(b.booking_time);
     return dateB - dateA;
   });
 
-  // Check if user has reviewed each booking
-  const userReviews = JSON.parse(
-    localStorage.getItem("dinelink_user_reviews") || "[]"
-  );
-  historyBookings.forEach((booking) => {
-    const review = userReviews.find((r) => r.bookingId === booking.id);
-    if (review) {
-      booking.hasReview = true;
-      booking.userRating = review.rating;
-    }
-  });
+  const historyBookings = processedBookings;
+
+  console.log("📊 Processed history bookings:", historyBookings);
 
   const contentHtml = renderTemplate("history", {
     historyBookings,
@@ -117,12 +88,55 @@ function initHistoryEventListeners() {
     });
   });
 
-  // View my reviews buttons
-  const viewReviewsButtons = document.querySelectorAll(".btn-view-my-reviews");
-  viewReviewsButtons.forEach((button) => {
-    button.addEventListener("click", (e) => {
+  // Delete review buttons
+  const deleteReviewButtons = document.querySelectorAll(".btn-delete-review");
+  deleteReviewButtons.forEach((button) => {
+    button.addEventListener("click", async (e) => {
       e.stopPropagation();
-      window.location.hash = "#/my-reviews";
+      const reviewId = button.getAttribute("data-review-id");
+      const bookingId = button.getAttribute("data-booking-id");
+
+      if (!reviewId) {
+        console.error("No review ID found");
+        return;
+      }
+
+      // Show mobile confirmation popup
+      const confirmed = await showMobileConfirmation(
+        "Bạn có chắc muốn xóa đánh giá này? Sau khi xóa, bạn có thể viết đánh giá mới."
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        console.log(`🗑️ Deleting review ID: ${reviewId}`);
+        
+        // Import deleteReview from reviewApi
+        const { deleteReview } = await import("../api/reviewApi.js");
+        
+        await deleteReview(reviewId);
+        
+        console.log("✅ Review deleted successfully");
+        
+        // Show success notification
+        showMobileNotification(
+          "Đã xóa đánh giá thành công. Bạn có thể viết đánh giá mới.",
+          "success"
+        );
+
+        // Reload history to update UI
+        setTimeout(() => {
+          renderHistory();
+        }, 1000);
+      } catch (error) {
+        console.error("❌ Error deleting review:", error);
+        showMobileNotification(
+          error.message || "Không thể xóa đánh giá. Vui lòng thử lại!",
+          "error"
+        );
+      }
     });
   });
 
@@ -317,50 +331,40 @@ async function submitReview() {
 
   const comment = document.getElementById("reviewComment").value.trim();
 
-  // Prepare review data
+  // Prepare review data (API only needs rating and comment)
   const reviewData = {
-    restaurantId: currentReviewData.restaurantId,
-    bookingId: currentReviewData.bookingId,
     rating: selectedRating,
-    comment: comment,
+    comment: comment || "", // Optional
   };
 
   try {
+    console.log(`📤 Calling createReview API for booking ${currentReviewData.bookingId}...`);
+    console.log("📦 Review data:", reviewData);
+    
     // Call API to submit review
-    const response = await submitReviewAPI(reviewData);
+    // createReview(bookingId, { rating, comment })
+    const response = await createReview(currentReviewData.bookingId, reviewData);
 
-    console.log("Review API response:", response);
+    console.log("✅ Review API response:", response);
 
-    // Save to localStorage for offline access
-    const reviews = JSON.parse(
-      localStorage.getItem("dinelink_user_reviews") || "[]"
-    );
-
+    // Mark booking as reviewed (update has_review flag)
     const newReview = {
-      id: response.data.id,
+      id: response.id,
       userId: currentUser.id,
       bookingId: currentReviewData.bookingId,
-      restaurantId: parseInt(currentReviewData.restaurantId),
-      rating: selectedRating,
-      comment: comment,
-      createdAt: response.data.createdAt,
+      restaurantId: response.restaurant_id,
+      rating: response.rating,
+      comment: response.comment,
+      status: response.status,
+      createdAt: response.created_at,
     };
 
-    reviews.push(newReview);
-    localStorage.setItem("dinelink_user_reviews", JSON.stringify(reviews));
+    console.log("✅ Review created successfully:", newReview);
 
-    console.log("✅ Review saved:", newReview);
-    console.log("📊 All reviews:", reviews);
-    console.log(
-      "🏪 Restaurant ID:",
-      newReview.restaurantId,
-      "Type:",
-      typeof newReview.restaurantId
-    );
-
-    // Show success message
-    alert(
-      `Cảm ơn bạn đã đánh giá ${selectedRating} sao! Đánh giá của bạn đã được gửi thành công.`
+    // Show mobile-style success popup with API message
+    showMobileNotification(
+      "Cảm ơn bạn đã đánh giá! Đánh giá của bạn đã được gửi thành công.",
+      "success"
     );
 
     // Dispatch event to notify other views
@@ -379,6 +383,216 @@ async function submitReview() {
     }, 300);
   } catch (error) {
     console.error("Error submitting review:", error);
-    alert("Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại!");
+    showMobileNotification(
+      error.message || "Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại!",
+      "error"
+    );
   }
+}
+
+// Helper function to show mobile-style notification popup
+function showMobileNotification(message, type = "success") {
+  // Create overlay
+  const overlay = document.createElement("div");
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.2s ease-out;
+  `;
+
+  // Create popup
+  const popup = document.createElement("div");
+  popup.style.cssText = `
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 320px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    animation: slideUp 0.3s ease-out;
+  `;
+
+  // Icon
+  const icon = document.createElement("div");
+  icon.style.cssText = `
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    background: ${type === "success" ? "#d1fae5" : "#fee2e2"};
+    color: ${type === "success" ? "#10b981" : "#ef4444"};
+  `;
+  icon.textContent = type === "success" ? "✓" : "✗";
+
+  // Message
+  const messageEl = document.createElement("p");
+  messageEl.style.cssText = `
+    margin: 0 0 20px;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #374151;
+  `;
+  messageEl.textContent = message;
+
+  // OK button
+  const button = document.createElement("button");
+  button.textContent = "OK";
+  button.style.cssText = `
+    background: ${type === "success" ? "#10b981" : "#ef4444"};
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+  `;
+
+  button.onclick = () => {
+    overlay.style.animation = "fadeOut 0.2s ease-out";
+    setTimeout(() => document.body.removeChild(overlay), 200);
+  };
+
+  popup.appendChild(icon);
+  popup.appendChild(messageEl);
+  popup.appendChild(button);
+  overlay.appendChild(popup);
+  document.body.appendChild(overlay);
+
+  // Add CSS animations
+  if (!document.getElementById("mobile-notification-styles")) {
+    const style = document.createElement("style");
+    style.id = "mobile-notification-styles";
+    style.textContent = `
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+      @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
+// Helper function to show mobile-style confirmation popup (returns Promise<boolean>)
+function showMobileConfirmation(message) {
+  return new Promise((resolve) => {
+    // Create overlay
+    const overlay = document.createElement("div");
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10001;
+      animation: fadeIn 0.2s ease-out;
+    `;
+
+    // Create popup
+    const popup = document.createElement("div");
+    popup.style.cssText = `
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 320px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      animation: slideUp 0.3s ease-out;
+    `;
+
+    // Message
+    const messageEl = document.createElement("p");
+    messageEl.style.cssText = `
+      margin: 0 0 24px;
+      font-size: 16px;
+      line-height: 1.5;
+      color: #374151;
+    `;
+    messageEl.textContent = message;
+
+    // Buttons container
+    const buttonsContainer = document.createElement("div");
+    buttonsContainer.style.cssText = `
+      display: flex;
+      gap: 12px;
+    `;
+
+    // Cancel button
+    const cancelButton = document.createElement("button");
+    cancelButton.textContent = "Cancel";
+    cancelButton.style.cssText = `
+      flex: 1;
+      background: #f3f4f6;
+      color: #374151;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    `;
+
+    // OK button
+    const okButton = document.createElement("button");
+    okButton.textContent = "OK";
+    okButton.style.cssText = `
+      flex: 1;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    `;
+
+    const closePopup = (result) => {
+      overlay.style.animation = "fadeOut 0.2s ease-out";
+      setTimeout(() => {
+        document.body.removeChild(overlay);
+        resolve(result);
+      }, 200);
+    };
+
+    cancelButton.onclick = () => closePopup(false);
+    okButton.onclick = () => closePopup(true);
+    overlay.onclick = (e) => {
+      if (e.target === overlay) closePopup(false);
+    };
+
+    buttonsContainer.appendChild(cancelButton);
+    buttonsContainer.appendChild(okButton);
+    popup.appendChild(messageEl);
+    popup.appendChild(buttonsContainer);
+    overlay.appendChild(popup);
+    document.body.appendChild(overlay);
+  });
 }

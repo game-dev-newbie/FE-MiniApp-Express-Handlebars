@@ -1202,7 +1202,172 @@ a {
   padding: 0;
   max-width: 428px;
   margin: 0 auto;
-  padding-bottom: 20px; /* Reduced from 90px to decrease gap before bottom nav */
+  padding-bottom: 20px;
+  position: relative;
+  background: linear-gradient(to bottom, 
+    #f0f9ff 0%, 
+    #e0f2fe 30%, 
+    #fef3f2 60%, 
+    #fff 100%
+  );
+}
+
+/* Animated Snowflakes */
+.main-content::before,
+.main-content::after {
+  content: "❄️";
+  position: absolute;
+  font-size: 20px;
+  opacity: 0.4;
+  animation: snowfall 15s linear infinite;
+  pointer-events: none;
+}
+
+.main-content::before {
+  left: 10%;
+  animation-delay: 0s;
+  animation-duration: 12s;
+}
+
+.main-content::after {
+  left: 70%;
+  animation-delay: 3s;
+  animation-duration: 18s;
+}
+
+/* Additional snowflakes via pseudo elements */
+.search-container::before,
+.search-container::after {
+  content: "❄️";
+  position: absolute;
+  font-size: 16px;
+  opacity: 0.3;
+  animation: snowfall 20s linear infinite;
+  pointer-events: none;
+}
+
+.search-container::before {
+  left: 30%;
+  top: -50px;
+  animation-delay: 7s;
+}
+
+.search-container::after {
+  left: 85%;
+  top: -30px;
+  animation-delay: 12s;
+  font-size: 14px;
+}
+
+.search-container {
+  position: relative;
+}
+
+/* Floating snowflakes animation */
+@keyframes snowfall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.6;
+  }
+  90% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+
+.greeting-section {
+  position: relative;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.8) 0%, 
+    rgba(220, 252, 231, 0.6) 100%
+  );
+  padding: var(--spacing-md);
+  padding-top: 20px;
+  padding-bottom: 20px;
+  margin: 0 var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* Christmas tree decoration - right side */
+.greeting-section::after {
+  content: "🎄";
+  font-size: 32px;
+  animation: pulse 2s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(34, 197, 94, 0.4));
+  flex-shrink: 0;
+}
+
+/* Santa hat - left side */
+.greeting-section::before {
+  content: "🎅";
+  font-size: 32px;
+  animation: wave 3s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+/* Center the greeting text */
+.greeting-title {
+  margin: 0;
+  text-align: center;
+  flex: 1;
+  min-width: 0; /* Allow text to shrink if needed */
+}
+
+/* Animations for Christmas decorations */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+@keyframes wave {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-15deg);
+  }
+  75% {
+    transform: rotate(15deg);
+  }
+}
+
+/* Christmas decorations on section headers */
+.section-header::after {
+  content: "⭐";
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  animation: twinkle 2s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.5;
+    transform: translateY(-50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.2);
+  }
 }
 
 /* Greeting */
@@ -1407,7 +1572,26 @@ a {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+  position: relative;
+  padding-left: 12px;
+}
+
+.section-header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 26px;
+  background: linear-gradient(
+    135deg,
+    var(--primary-green) 0%,
+    var(--primary-green-dark) 100%
+  );
+  border-radius: 2px;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
 }
 
 .section-title {
@@ -1774,6 +1958,7 @@ a {
 
 /* ===== FEATURED SECTION (NEW) ===== */
 .featured-section {
+  margin-top: var(--spacing-xl);
   margin-bottom: var(--spacing-md);
   padding: 0 var(--spacing-md);
 }
@@ -1786,10 +1971,19 @@ a {
 }
 
 .section-title-large {
-  font-size: var(--font-xl);
-  font-weight: 700;
-  color: var(--gray-900);
+  font-size: 20px;
+  font-weight: 800;
+  background: linear-gradient(
+    135deg,
+    var(--gray-900) 0%,
+    var(--gray-700) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
   line-height: 1.3;
+  margin: 0;
 }
 
 /* ===== HORIZONTAL SCROLL ===== */
@@ -2399,56 +2593,141 @@ a {
 
 .notification-icon-wrapper {
   flex-shrink: 0;
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-lg);
+  border-radius: 14px;
   background: var(--gray-50);
+  position: relative;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .notification-icon {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   color: var(--gray-600);
 }
 
+/* === BOOKING CREATED === */
+.notification-item.notification-created {
+  border-left: 4px solid #3b82f6;
+  background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+}
+
+.notification-item.notification-created .notification-icon-wrapper {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.notification-item.notification-created .notification-icon {
+  color: #1e40af;
+}
+
+/* === BOOKING CONFIRMED === */
+.notification-item.notification-confirmed {
+  border-left: 4px solid #10b981;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+}
+
 .notification-item.notification-confirmed .notification-icon-wrapper {
-  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
 }
 
 .notification-item.notification-confirmed .notification-icon {
-  color: #2e7d32;
+  color: #047857;
+}
+
+/* === BOOKING CANCELLED === */
+.notification-item.notification-cancelled {
+  border-left: 4px solid #ef4444;
+  background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
 }
 
 .notification-item.notification-cancelled .notification-icon-wrapper {
-  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
 }
 
 .notification-item.notification-cancelled .notification-icon {
-  color: #c62828;
+  color: #b91c1c;
+}
+
+/* === BOOKING CHECKED IN === */
+.notification-item.notification-checkedin {
+  border-left: 4px solid #f59e0b;
+  background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
 }
 
 .notification-item.notification-checkedin .notification-icon-wrapper {
-  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
 }
 
 .notification-item.notification-checkedin .notification-icon {
-  color: #ef6c00;
+  color: #b45309;
+}
+
+/* === PAYMENT SUCCESS === */
+.notification-item.notification-payment-success {
+  border-left: 4px solid #14b8a6;
+  background: linear-gradient(135deg, #f0fdfa 0%, #ffffff 100%);
+}
+
+.notification-item.notification-payment-success .notification-icon-wrapper {
+  background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%);
+  box-shadow: 0 2px 8px rgba(20, 184, 166, 0.2);
+}
+
+.notification-item.notification-payment-success .notification-icon {
+  color: #0f766e;
+}
+
+/* === PAYMENT FAILED === */
+.notification-item.notification-payment-failed {
+  border-left: 4px solid #dc2626;
+  background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
+}
+
+.notification-item.notification-payment-failed .notification-icon-wrapper {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
+}
+
+.notification-item.notification-payment-failed .notification-icon {
+  color: #991b1b;
+}
+
+/* === REFUND SUCCESS === */
+.notification-item.notification-refund {
+  border-left: 4px solid #8b5cf6;
+  background: linear-gradient(135deg, #faf5ff 0%, #ffffff 100%);
+}
+
+.notification-item.notification-refund .notification-icon-wrapper {
+  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2);
+}
+
+.notification-item.notification-refund .notification-icon {
+  color: #6d28d9;
 }
 
 /* Reminder notification styling */
 .notification-item.notification-reminder {
-  border-left: 3px solid #ff9800;
+  border-left: 4px solid #f59e0b;
+  background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
 }
 
 .notification-item.notification-reminder .notification-icon-wrapper {
-  background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
 }
 
 .notification-item.notification-reminder .notification-icon {
-  color: #ff9800;
+  color: #b45309;
 }
 
 /* New notification highlight animation */
@@ -7315,13 +7594,17 @@ a {
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 10000;
+  z-index: 99999 !important;
+  display: none;
   opacity: 0;
   transition: opacity 0.3s;
+  pointer-events: none;
 }
 
 .avatar-modal.active {
+  display: block !important;
   opacity: 1;
+  pointer-events: auto !important;
 }
 
 .avatar-modal .modal-overlay {
@@ -7331,6 +7614,7 @@ a {
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
+  z-index: 1;
 }
 
 .avatar-modal .modal-content {
@@ -7344,6 +7628,7 @@ a {
   overflow: auto;
   transform: translateY(100%);
   transition: transform 0.3s;
+  z-index: 2;
 }
 
 .avatar-modal.active .modal-content {
@@ -7389,6 +7674,8 @@ a {
 
 .modal-body {
   padding: 20px;
+  position: relative;
+  z-index: 3;
 }
 
 .avatar-options {
@@ -7396,15 +7683,19 @@ a {
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
   margin-bottom: 20px;
+  position: relative;
+  z-index: 4;
 }
 
 .avatar-option {
   aspect-ratio: 1;
   border-radius: 50%;
   overflow: hidden;
-  cursor: pointer;
+  cursor: pointer !important;
   border: 3px solid transparent;
   transition: all 0.2s;
+  position: relative;
+  z-index: 5;
 }
 
 .avatar-option:hover {
@@ -7412,15 +7703,22 @@ a {
   border-color: var(--primary-green, #00c853);
 }
 
+.avatar-option:active {
+  transform: scale(0.95);
+}
+
 .avatar-option img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  pointer-events: none;
 }
 
 .upload-section {
   padding-top: 20px;
   border-top: 1px solid var(--border-light, #e2e8f0);
+  position: relative;
+  z-index: 4;
 }
 
 .btn-upload-avatar {

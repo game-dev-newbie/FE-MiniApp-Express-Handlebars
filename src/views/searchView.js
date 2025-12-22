@@ -1,6 +1,6 @@
 // src/views/searchView.js
 import { renderTemplate } from "../core/templates.js";
-import { searchRestaurants } from "../data/mockData.js";
+import { searchRestaurants as searchRestaurantsAPI } from "../api/restaurantApi.js";
 import { toggleFavorite, isFavorite } from "../utils/favoritesHelper.js";
 import authService from "../utils/authService.js";
 
@@ -15,7 +15,7 @@ let preserveInputState = {
   shouldRestore: false,
 };
 
-export function renderSearch(searchQuery = "") {
+export async function renderSearch(searchQuery = "") {
   const bottomNavHtml = renderTemplate("bottomNav", { activePage: "search" });
 
   // Get recent searches from localStorage
@@ -24,13 +24,41 @@ export function renderSearch(searchQuery = "") {
   // Perform search if query exists
   let results = [];
   let hasSearched = false;
+  let isLoading = false;
 
   if (searchQuery.trim()) {
     hasSearched = true;
-    results = searchRestaurants(searchQuery);
+    isLoading = true;
 
-    // Save to recent searches
-    saveRecentSearch(searchQuery);
+    // Show loading state
+    const searchContent = renderTemplate("search", {
+      searchQuery,
+      hasSearched,
+      results: [],
+      recentSearches,
+      isLoading: true,
+    });
+    appEl.innerHTML = searchContent + bottomNavHtml;
+
+    try {
+      // Call API to search restaurants
+      const response = await searchRestaurantsAPI({
+        q: searchQuery,
+        limit: 20,
+      });
+      results = response.items || [];
+
+      // Process results to match template expectations
+      results = processSearchResults(results);
+
+      // Save to recent searches
+      saveRecentSearch(searchQuery);
+    } catch (error) {
+      console.error("Error searching restaurants:", error);
+      results = [];
+    }
+
+    isLoading = false;
   }
 
   const searchContent = renderTemplate("search", {
@@ -38,6 +66,7 @@ export function renderSearch(searchQuery = "") {
     hasSearched,
     results,
     recentSearches,
+    isLoading: false,
   });
 
   appEl.innerHTML = searchContent + bottomNavHtml;
@@ -346,4 +375,43 @@ function removeRecentSearch(query) {
 
 function clearRecentSearches() {
   localStorage.removeItem(RECENT_SEARCHES_KEY);
+}
+
+// Process search results from API to match template expectations
+function processSearchResults(results) {
+  const BACKEND_URL = "https://pyramidally-unborrowed-cherie.ngrok-free.dev";
+  
+  return results.map((restaurant) => {
+    // Build full image URL
+    const imageUrl = restaurant.main_image_url
+      ? (restaurant.main_image_url.startsWith("http")
+          ? restaurant.main_image_url
+          : `${BACKEND_URL}${restaurant.main_image_url}`)
+      : "/assets/placeholder-restaurant.jpg";
+
+    // Format opening/closing hours (from "08:00:00" to "08:00")
+    const formatTime = (timeStr) => {
+      if (!timeStr) return "-";
+      return timeStr.substring(0, 5); // "08:00:00" -> "08:00"
+    };
+
+    // Format deposit amount
+    const formatDeposit = (amount) => {
+      if (!amount || amount === 0) return "";
+      return `Đặt cọc: ${amount.toLocaleString("vi-VN")}đ`;
+    };
+
+    return {
+      id: restaurant.id,
+      name: restaurant.name,
+      image: imageUrl,
+      cuisine: restaurant.tags || "",
+      average_rating: restaurant.average_rating || 0,
+      review_count: restaurant.review_count || 0,
+      tags: restaurant.tags || "",
+      opening_hours: formatTime(restaurant.open_time),
+      closing_hours: formatTime(restaurant.close_time),
+      priceRange: formatDeposit(restaurant.default_deposit_amount),
+    };
+  });
 }

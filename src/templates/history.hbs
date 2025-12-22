@@ -85,6 +85,9 @@
                   </svg>
                   <span>Đã đánh giá {{this.userRating}} sao</span>
                 </div>
+                {{#if this.reviewComment}}
+                  <p class="review-comment">💬 {{this.reviewComment}}</p>
+                {{/if}}
               {{/if}}
             </div>
             <div class="booking-actions">
@@ -94,8 +97,10 @@
               >Xem chi tiết</button>
               {{#if this.hasReview}}
                 <button
-                  class="btn-booking-action btn-outline btn-view-my-reviews"
-                >Xem đánh giá</button>
+                  class="btn-booking-action btn-outline btn-delete-review"
+                  data-review-id="{{this.reviewId}}"
+                  data-booking-id="{{this.id}}"
+                >Xóa đánh giá</button>
               {{/if}}
               <button
                 class="btn-booking-action btn-outline btn-rebook"

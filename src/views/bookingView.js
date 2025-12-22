@@ -1,16 +1,9 @@
 // src/views/bookingView.js
 import { renderTemplate } from "../core/templates.js";
-import {
-  bookings,
-  restaurants,
-  restaurantTables,
-  users,
-  reviews,
-} from "../data/mockData.js";
+import { getMyBookings, cancelBooking as cancelBookingAPI } from "../api/bookingApi.js";
 import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
-const currentUser = users[0];
 
 export async function renderBooking() {
   // Check authentication before showing bookings
@@ -20,88 +13,49 @@ export async function renderBooking() {
 
   const bottomNavHtml = renderTemplate("bottomNav", { activePage: "booking" });
 
-  // Get bookings ONLY from localStorage (not from mockData)
-  const localBookings = JSON.parse(
-    localStorage.getItem("dinelink_bookings") || "[]"
-  );
+  // Show loading
+  appEl.innerHTML = `
+    <div class="loading-container" style="display: flex; justify-content: center; align-items: center; min-height: 400px;">
+      <div class="spinner"></div>
+    </div>
+  ` + bottomNavHtml;
 
-  // Only use local bookings (user must pay to see bookings here)
-  const allBookings = [...localBookings];
+  try {
+    // Fetch upcoming and cancelled bookings separately with correct category
+    const [upcomingResponse, cancelledResponse] = await Promise.all([
+      getMyBookings({ category: 'upcoming', limit: 50 }),
+      getMyBookings({ category: 'cancelled', limit: 50 })
+    ]);
 
-  // Process bookings with restaurant and table info
-  const processedBookings = allBookings.map((booking) => {
-    // For localStorage bookings, structure is different
-    if (booking.restaurantId) {
-      const restaurant = restaurants.find((r) => r.id === booking.restaurantId);
+    console.log("📊 Upcoming bookings response:", upcomingResponse);
+    console.log("📊 Cancelled bookings response:", cancelledResponse);
 
-      // Format table names properly
-      let tableNames = "Chưa chọn bàn";
-      if (booking.tables) {
-        if (Array.isArray(booking.tables)) {
-          // If tables is array of objects
-          if (typeof booking.tables[0] === "object") {
-            tableNames = booking.tables
-              .map((t) => `${t.name} (${t.type || t.capacity + " người"})`)
-              .join(", ");
-          } else {
-            // If tables is array of strings
-            tableNames = booking.tables.join(", ");
-          }
-        } else if (typeof booking.tables === "string") {
-          tableNames = booking.tables;
-        }
-      }
+    // Process bookings
+    const upcomingBookings = processBookings(upcomingResponse?.items || []);
+    const cancelledBookings = processBookings(cancelledResponse?.items || []);
 
-      return {
-        id: booking.id,
-        status: booking.status,
-        restaurantId: booking.restaurantId,
-        restaurant_name:
-          restaurant?.name || booking.restaurantName || "Nhà hàng",
-        table_name: tableNames,
-        booking_time: formatBookingTime(
-          new Date(booking.date + " " + booking.time)
-        ),
-        has_review: false,
-        people: booking.people,
-        paymentStatus: booking.paymentStatus,
-      };
-    }
+    const contentHtml = renderTemplate("booking", {
+      upcomingBookings,
+      historyBookings: [],
+      cancelledBookings,
+    });
 
-    // For mockData bookings
-    const restaurant = restaurants.find((r) => r.id === booking.restaurant_id);
-    const table = restaurantTables.find((t) => t.id === booking.table_id);
-    const hasReview = reviews.some((r) => r.booking_id === booking.id);
+    appEl.innerHTML = contentHtml + bottomNavHtml;
 
-    return {
-      ...booking,
-      restaurant_name: restaurant?.name || "Nhà hàng",
-      table_name: table?.name || "Chưa chọn bàn",
-      booking_time: formatBookingTime(booking.booking_time),
-      has_review: hasReview,
-    };
-  });
+    // Initialize event listeners
+    initBookingEventListeners();
 
-  const upcomingBookings = processedBookings.filter(
-    (b) => b.status === "CONFIRMED" || b.status === "PENDING"
-  );
-
-  const cancelledBookings = processedBookings.filter(
-    (b) => b.status === "CANCELLED"
-  );
-
-  const contentHtml = renderTemplate("booking", {
-    upcomingBookings,
-    cancelledBookings,
-  });
-
-  appEl.innerHTML = contentHtml + bottomNavHtml;
-
-  // Initialize event listeners
-  initBookingEventListeners();
-
-  // Listen for booking status updates from dashboard
-  setupBookingStatusListener();
+    // Listen for booking status updates
+    setupBookingStatusListener();
+  } catch (error) {
+    console.error("Error loading bookings:", error);
+    appEl.innerHTML = `
+      <div class="error-container" style="text-align: center; padding: 40px 20px;">
+        <p>Không thể tải danh sách đặt bàn. Vui lòng thử lại.</p>
+        <button onclick="location.reload()" class="btn-primary">Tải lại</button>
+      </div>
+    ` + bottomNavHtml;
+  }
 }
 
 function initBookingEventListeners() {
@@ -178,6 +132,21 @@ function initBookingEventListeners() {
       window.location.hash = `#/${page === "home" ? "" : page}`;
     });
   });
+}
+
+// Helper function to process bookings from API response
+function processBookings(bookings) {
+  return bookings.map((booking) => ({
+    id: booking.id,
+    status: booking.status,
+    restaurantId: booking.restaurant_id,
+    restaurant_name: booking.Restaurant?.name || "Nhà hàng",
+    table_name: booking.RestaurantTable?.name || "Chưa chọn bàn",
+    booking_time: formatBookingTime(new Date(booking.booking_time)),
+    has_review: booking.has_review || false,
+    people: booking.people_count,
+    paymentStatus: booking.payment_status,
+  }));
 }
 
 // Format booking time
@@ -285,25 +254,57 @@ function showCancelPopup(bookingId) {
   }
 }
 
-function cancelBooking(bookingId) {
-  const bookings = JSON.parse(
-    localStorage.getItem("dinelink_bookings") || "[]"
-  );
-  const updatedBookings = bookings.map((b) => {
-    if (b.id === bookingId) {
-      return {
-        ...b,
-        status: "CANCELLED",
-        cancelReason: "Khách hàng hủy đơn",
-        refundStatus: "Đang xử lý hoàn tiền",
-      };
-    }
-    return b;
-  });
-  localStorage.setItem("dinelink_bookings", JSON.stringify(updatedBookings));
+async function cancelBooking(bookingId) {
+  try {
+    console.log(`🚫 Cancelling booking ID: ${bookingId}`);
+    
+    // Call API to cancel booking
+    const result = await cancelBookingAPI(bookingId);
+    
+    console.log("✅ Booking cancelled successfully:", result);
+    
+    // Show success notification
+    showNotification("Đã hủy đặt bàn thành công", "success");
+    
+    // Reload booking view after short delay
+    setTimeout(() => {
+      renderBooking();
+    }, 1000);
+  } catch (error) {
+    console.error("❌ Error cancelling booking:", error);
+    
+    // Show error notification
+    const errorMessage = error.message || "Không thể hủy đặt bàn. Vui lòng thử lại.";
+    showNotification(errorMessage, "error");
+  }
+}
 
-  // Reload booking view
+// Helper function to show notification
+function showNotification(message, type = "info") {
+  // Create notification element
+  const notification = document.createElement("div");
+  notification.className = `notification notification-${type}`;
+  notification.textContent = message;
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 16px 24px;
+    background: ${type === "success" ? "#10b981" : type === "error" ? "#ef4444" : "#3b82f6"};
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 10000;
+    animation: slideIn 0.3s ease-out;
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Remove after 3 seconds
   setTimeout(() => {
-    renderBooking();
-  }, 500);
+    notification.style.animation = "slideOut 0.3s ease-out";
+    setTimeout(() => {
+      document.body.removeChild(notification);
+    }, 300);
+  }, 3000);
 }

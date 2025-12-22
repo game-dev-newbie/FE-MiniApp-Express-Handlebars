@@ -21,10 +21,11 @@
   <div class="edit-avatar-section">
     <div class="avatar-container">
       <img
-        src="{{user.avatar_url}}"
+        src="{{#if user.avatar_url}}{{user.avatar_url}}{{else}}data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%2300c853'/%3E%3Cpath d='M50 45c8.284 0 15-6.716 15-15s-6.716-15-15-15-15 6.716-15 15 6.716 15 15 15zm0 7.5c-10 0-30 5-30 15V75h60v-7.5c0-10-20-15-30-15z' fill='white'/%3E%3C/svg%3E{{/if}}"
         alt="Avatar"
         class="profile-avatar"
         id="profileAvatar"
+        onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'150\' height=\'150\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%2300c853\'/%3E%3Cpath d=\'M50 45c8.284 0 15-6.716 15-15s-6.716-15-15-15-15 6.716-15 15 6.716 15 15 15zm0 7.5c-10 0-30 5-30 15V75h60v-7.5c0-10-20-15-30-15z\' fill=\'white\'/%3E%3C/svg%3E'"
       />
       <button class="btn-change-avatar" id="btnChangeAvatar">
         <svg
@@ -181,7 +182,7 @@
   </div>
 
   <!-- Avatar Selection Modal -->
-  <div id="avatarModal" class="avatar-modal" style="display: none;">
+  <div id="avatarModal" class="avatar-modal">
     <div class="modal-overlay"></div>
     <div class="modal-content">
       <div class="modal-header">

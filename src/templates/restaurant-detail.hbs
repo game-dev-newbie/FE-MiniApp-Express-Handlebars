@@ -17,28 +17,18 @@
     <!-- Image Carousel -->
     <div class="restaurant-carousel">
       <div class="carousel-container" id="restaurantCarousel">
-        <div class="carousel-slide active">
-          <img src="{{restaurant.image}}" alt="{{restaurant.name}} - 1" />
-        </div>
-        <div class="carousel-slide">
-          <img
-            src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400"
-            alt="{{restaurant.name}} - 2"
-          />
-        </div>
-        <div class="carousel-slide">
-          <img
-            src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400"
-            alt="{{restaurant.name}} - 3"
-          />
-        </div>
+        {{#each restaurant.carouselImages}}
+          <div class="carousel-slide {{#if @first}}active{{/if}}">
+            <img src="{{this}}" alt="{{../restaurant.name}} - {{@index}}" />
+          </div>
+        {{/each}}
       </div>
 
       <!-- Carousel Indicators -->
       <div class="carousel-indicators">
-        <span class="indicator active" data-slide="0"></span>
-        <span class="indicator" data-slide="1"></span>
-        <span class="indicator" data-slide="2"></span>
+        {{#each restaurant.carouselImages}}
+          <span class="indicator {{#if @first}}active{{/if}}" data-slide="{{@index}}"></span>
+        {{/each}}
       </div>
 
       <button
@@ -213,6 +203,20 @@
               </div>
               <p class="review-comment">{{this.comment}}</p>
               <span class="review-date">{{this.formattedTime}}</span>
+              
+              {{#if this.hasReply}}
+                <div class="review-reply">
+                  <div class="reply-header">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="9 14 4 9 9 4"></polyline>
+                      <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
+                    </svg>
+                    <span class="reply-label">Phản hồi từ nhà hàng:</span>
+                  </div>
+                  <p class="reply-comment">{{this.replyComment}}</p>
+                  <span class="reply-date">{{this.replyTime}}</span>
+                </div>
+              {{/if}}
             </div>
           {{/each}}
         </div>

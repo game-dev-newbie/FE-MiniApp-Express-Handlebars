@@ -67,26 +67,72 @@ function showNotification(message, type = "warning") {
   }
 }
 
-export function renderPayment(bookingData) {
+export async function renderPayment(bookingId) {
   // Check authentication before allowing payment
-  if (!authService.requireAuth("#/payment")) {
+  if (!authService.requireAuth(`#/payment/${bookingId}`)) {
     return;
   }
 
-  const paymentContent = renderTemplate("payment", {
-    booking: bookingData,
-  });
+  console.log(`💳 Payment page loading for booking ID: ${bookingId}`);
 
-  appEl.innerHTML = paymentContent;
+  try {
+    // Import booking API
+    const { getBookingDetail } = await import('../api/bookingApi.js');
+    
+    console.log("📡 Fetching booking detail from API...");
+    
+    // Fetch booking details from API
+    const booking = await getBookingDetail(bookingId);
+    
+    console.log("📦 Booking detail response:", booking);
+    
+    if (!booking) {
+      console.error("❌ Booking not found!");
+      showNotification("Không tìm thấy thông tin đặt bàn", "error");
+      window.location.hash = "#/booking";
+      return;
+    }
 
-  // Initialize event listeners
-  initPaymentListeners(bookingData);
+    console.log("✅ Booking found, rendering payment page");
 
-  // Initialize test buttons
-  initTestButtons();
+    // Process booking data to match template expectations
+    const processedBooking = {
+      id: booking.id,
+      restaurantName: booking.Restaurant?.name || "Nhà hàng",
+      restaurantId: booking.restaurant_id,
+      // Split booking_time into date and time
+      date: booking.booking_time?.split(" ")[0] || "",
+      time: booking.booking_time?.split(" ")[1]?.substring(0, 5) || "",
+      people: booking.people_count || 0,
+      // Format table info
+      tablesText: booking.RestaurantTable?.name || "Chưa chọn bàn",
+      depositAmount: booking.deposit_amount || 0,
+      paymentStatus: booking.payment_status,
+      customerName: booking.customer_name || "",
+      phone: booking.phone || "",
+    };
 
-  // Load saved card if exists
-  loadSavedCard();
+    console.log("📝 Processed booking for payment:", processedBooking);
+
+    const paymentContent = renderTemplate("payment", {
+      booking: processedBooking,
+    });
+
+    appEl.innerHTML = paymentContent;
+
+    // Initialize event listeners
+    initPaymentListeners(booking);
+
+    // Initialize test buttons
+    initTestButtons();
+
+    // Load saved card if exists
+    loadSavedCard();
+  } catch (error) {
+    console.error("❌ Error loading payment page:", error);
+    showNotification("Không thể tải trang thanh toán", "error");
+    window.location.hash = "#/booking";
+  }
 }
 
 function initTestButtons() {
@@ -264,7 +310,7 @@ function initPaymentListeners(bookingData) {
   }
 }
 
-function handleCardPayment(bookingData) {
+async function handleCardPayment(bookingData) {
   const cardForm = document.getElementById("cardForm");
 
   if (!cardForm.checkValidity()) {
@@ -277,27 +323,26 @@ function handleCardPayment(bookingData) {
   const cardExpiry = document.getElementById("cardExpiry").value;
   const cardCVV = document.getElementById("cardCVV").value;
 
-  // Mock payment API call with payload
-  const paymentPayload = {
-    provider: 1, // Card payment
-    mock_result: paymentTestMode === "success" ? "SUCCESS" : "FAILED",
-    cardNumber,
-    cardName,
-    cardExpiry,
-    cardCVV,
-    amount: bookingData.depositAmount,
-    bookingData,
-  };
+  try {
+    // Import payment API
+    const { payDeposit } = await import('../api/paymentApi.js');
+    
+    // Show loading
+    const btnConfirm = document.getElementById("btnConfirmPayment");
+    const originalText = btnConfirm.textContent;
+    btnConfirm.disabled = true;
+    btnConfirm.textContent = "Đang xử lý...";
 
-  console.log("Processing card payment with payload:", paymentPayload);
+    // Call payment API
+    const paymentResult = await payDeposit(bookingData.id, {
+      provider: "CARD",
+      mock_result: paymentTestMode === "success" ? "SUCCESS" : "FAILED"
+    });
 
-  // Simulate API call
-  setTimeout(() => {
+    console.log("✅ Payment API response:", paymentResult);
+
+    // Save card info if checkbox is checked and payment succeeded
     if (paymentTestMode === "success") {
-      // SUCCESS flow: Allow booking creation
-      console.log("✅ Payment SUCCESS - Creating booking");
-
-      // Save card info if checkbox is checked
       const saveCardCheckbox = document.getElementById("saveCard");
       if (saveCardCheckbox && saveCardCheckbox.checked) {
         const savedCard = {
@@ -309,52 +354,76 @@ function handleCardPayment(bookingData) {
         console.log("Card saved for future use");
       }
 
-      // Save booking with PAID status
-      saveBooking(bookingData);
-      // Show success popup and redirect to booking page
+      // Show success and redirect
       showSuccessPopup();
     } else {
-      // FAILED flow: Don't create booking, show error
-      console.log("❌ Payment FAILED - Not creating booking");
-      // Show failure popup and stay on payment page
+      // Show failure popup
       showFailurePopup();
+      btnConfirm.disabled = false;
+      btnConfirm.textContent = originalText;
     }
-  }, 1500);
+  } catch (error) {
+    console.error("❌ Payment error:", error);
+    showNotification("Thanh toán thất bại. Vui lòng thử lại.", "error");
+    
+    // Restore button
+    const btnConfirm = document.getElementById("btnConfirmPayment");
+    btnConfirm.disabled = false;
+    btnConfirm.textContent = "Xác nhận thanh toán";
+  }
 }
 
-function handleEWalletPayment(bookingData) {
+async function handleEWalletPayment(bookingData) {
   // Double check (redundant but safe)
   if (!selectedEWallet) {
     showNotification("Vui lòng chọn ví điện tử để thanh toán!", "warning");
     return;
   }
 
-  // Mock e-wallet payment API call with payload
-  const paymentPayload = {
-    provider: selectedEWallet, // momo, vnpay, or zalopay
-    mock_result: paymentTestMode === "success" ? "SUCCESS" : "FAILED",
-    amount: bookingData.depositAmount,
-    bookingData,
-  };
+  try {
+    // Import payment API
+    const { payDeposit } = await import('../api/paymentApi.js');
+    
+    // Show loading
+    const btnConfirm = document.getElementById("btnConfirmPayment");
+    const originalText = btnConfirm.textContent;
+    btnConfirm.disabled = true;
+    btnConfirm.textContent = "Đang xử lý...";
 
-  console.log("Processing e-wallet payment with payload:", paymentPayload);
+    // Map selectedEWallet to uppercase provider name
+    const providerMap = {
+      'momo': 'MOMO',
+      'vnpay': 'VNPAY',
+      'zalopay': 'ZALOPAY'
+    };
+    const provider = providerMap[selectedEWallet] || selectedEWallet.toUpperCase();
 
-  // Simulate API call
-  setTimeout(() => {
+    // Call payment API
+    const paymentResult = await payDeposit(bookingData.id, {
+      provider: provider,
+      mock_result: paymentTestMode === "success" ? "SUCCESS" : "FAILED"
+    });
+
+    console.log("✅ Payment API response:", paymentResult);
+
     if (paymentTestMode === "success") {
-      // SUCCESS flow: Allow booking creation
-      console.log("✅ Payment SUCCESS - Creating booking");
-      // Save booking with PAID status
-      saveBooking(bookingData);
-      // Show success popup and redirect to booking page
+      // Show success and redirect
       showSuccessPopup();
     } else {
-      // FAILED flow: Don't create booking, show error
-      console.log("❌ Payment FAILED - Not creating booking");
-      // Show failure popup and stay on payment page
+      // Show failure popup
       showFailurePopup();
+      btnConfirm.disabled = false;
+      btnConfirm.textContent = originalText;
     }
-  }, 1500);
+  } catch (error) {
+    console.error("❌ Payment error:", error);
+    showNotification("Thanh toán thất bại. Vui lòng thử lại.", "error");
+    
+    // Restore button
+    const btnConfirm = document.getElementById("btnConfirmPayment");
+    btnConfirm.disabled = false;
+    btnConfirm.textContent = "Xác nhận thanh toán";
+  }
 }
 
 function saveBooking(bookingData) {

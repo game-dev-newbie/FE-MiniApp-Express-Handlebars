@@ -1,13 +1,15 @@
 // src/views/bookingFormView.js
 import { renderTemplate } from "../core/templates.js";
-import { restaurants, users, getAvailableTables } from "../data/mockData.js";
-import { updateNotificationBadge } from "./notificationView.js";
+import { fetchRestaurantDetail } from "../api/restaurantApi.js";
+import { getAvailableTables as getAvailableTablesAPI, createBooking } from "../api/bookingApi.js";
+import { updateNotificationBadge } from "../utils/notificationHelper.js";
 import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
 let selectedTables = []; // Track selected tables
 
-export function renderBookingForm(restaurantId) {
+
+export async function renderBookingForm(restaurantId) {
   // Check authentication before allowing booking
   if (!authService.requireAuth(`#/booking/new/${restaurantId}`)) {
     return;
@@ -19,27 +21,61 @@ export function renderBookingForm(restaurantId) {
   // Reset selected tables when entering the page
   selectedTables = [];
 
-  // Find restaurant by ID
-  const restaurant = restaurants.find((r) => r.id === parseInt(restaurantId));
+  // Declare transformedRestaurant in outer scope so event listeners can access it
+  let transformedRestaurant = null;
 
-  if (!restaurant) {
-    // Restaurant not found, redirect to home
-    window.location.hash = "#/home";
-    return;
-  }
+  // Show loading state
+  appEl.innerHTML = `
+    <div class="loading-container" style="display: flex; justify-content: center; align-items: center; min-height: 400px;">
+      <div class="spinner"></div>
+    </div>
+  `;
 
-  // Get min date (today)
-  const today = new Date();
-  const minDate = today.toISOString().split("T")[0];
+  try {
+    // Fetch restaurant from API
+    const restaurant = await fetchRestaurantDetail(restaurantId);
 
-  const bookingFormContent = renderTemplate("bookingForm", {
-    restaurant,
-    userName: currentUser.display_name,
-    userPhone: currentUser.phone,
-    minDate,
-  });
+    if (!restaurant) {
+      // Restaurant not found, redirect to home
+      window.location.hash = "#/home";
+      return;
+    }
 
-  appEl.innerHTML = bookingFormContent;
+    // Transform restaurant data to match template expectations
+    const baseURL = "https://pyramidally-unborrowed-cherie.ngrok-free.dev";
+    const formatImageUrl = (url) => {
+      if (!url) return null;
+      return url.startsWith('http') ? url : `${baseURL}${url}`;
+    };
+
+    transformedRestaurant = {
+      ...restaurant,
+      // Format time fields
+      opening_hours: restaurant.open_time?.substring(0, 5) || "08:00",
+      closing_hours: restaurant.close_time?.substring(0, 5) || "22:00",
+      
+      // Derive cuisine from tags
+      cuisine: restaurant.tags?.split(',')[0] || "Đa dạng",
+      
+      // Format main image
+      image: formatImageUrl(restaurant.main_image_url) || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23f0f0f0' width='400' height='300'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='24' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3ENo Image%3C/text%3E%3C/svg%3E",
+      
+      // Keep average_rating for display
+      average_rating: restaurant.average_rating || 0
+    };
+
+    // Get min date (today)
+    const today = new Date();
+    const minDate = today.toISOString().split("T")[0];
+
+    const bookingFormContent = renderTemplate("bookingForm", {
+      restaurant: transformedRestaurant,
+      userName: currentUser.display_name,
+      userPhone: currentUser.phone,
+      minDate,
+    });
+
+    appEl.innerHTML = bookingFormContent;
 
   // Restore saved booking data if exists (when user comes back from payment)
   const savedBookingData = sessionStorage.getItem("pendingBooking");
@@ -80,8 +116,54 @@ export function renderBookingForm(restaurantId) {
   // Initialize event listeners
   initBookingFormListeners(restaurant);
 
+  // Add time validation event listeners (using transformedRestaurant)
+  const bookingTimeInput = document.getElementById("bookingTime");
+  if (bookingTimeInput && transformedRestaurant) {
+    bookingTimeInput.addEventListener("blur", () => {
+      const selectedTime = bookingTimeInput.value;
+      const openingTime = transformedRestaurant.opening_hours;
+      const closingTime = transformedRestaurant.closing_hours;
+
+      if (selectedTime && openingTime && closingTime) {
+        if (selectedTime < openingTime || selectedTime > closingTime) {
+          bookingTimeInput.setCustomValidity(
+            `Vui lòng chọn giờ từ ${openingTime} đến ${closingTime}`
+          );
+          bookingTimeInput.reportValidity();
+        } else {
+          bookingTimeInput.setCustomValidity("");
+        }
+      }
+    });
+
+    bookingTimeInput.addEventListener("change", () => {
+      const selectedTime = bookingTimeInput.value;
+      const openingTime = transformedRestaurant.opening_hours;
+      const closingTime = transformedRestaurant.closing_hours;
+
+      if (selectedTime && openingTime && closingTime) {
+        if (selectedTime < openingTime || selectedTime > closingTime) {
+          bookingTimeInput.setCustomValidity(
+            `Vui lòng chọn giờ từ ${openingTime} đến ${closingTime}`
+          );
+        } else {
+          bookingTimeInput.setCustomValidity("");
+        }
+      }
+    });
+  }
+
   // Setup cleanup when leaving page (except when going to payment)
   setupPageLeaveCleanup();
+  } catch (error) {
+    console.error("Error loading restaurant:", error);
+    appEl.innerHTML = `
+      <div class="error-container" style="text-align: center; padding: 40px 20px;">
+        <p style="color: #666; margin-bottom: 16px;">Không thể tải thông tin nhà hàng. Vui lòng thử lại.</p>
+        <button onclick="location.reload()" class="btn-primary">Tải lại</button>
+      </div>
+    `;
+  }
 }
 
 function setupPageLeaveCleanup() {
@@ -167,7 +249,7 @@ function initBookingFormListeners(restaurant) {
     // After loading tables, restore selected tables if any
     setTimeout(() => {
       if (selectedTables.length > 0) {
-        renderSelectedTables();
+        updateSelectedTablesSummary();
       }
     }, 100);
   }
@@ -175,7 +257,8 @@ function initBookingFormListeners(restaurant) {
   // Form submission
   const bookingForm = document.getElementById("bookingForm");
   if (bookingForm) {
-    bookingForm.addEventListener("submit", (e) => {
+    // Handle form submission
+    bookingForm.addEventListener("submit", async (e) => {
       e.preventDefault();
 
       // Validate table selection
@@ -250,8 +333,8 @@ function initBookingFormListeners(restaurant) {
         customerName: formData.get("name"),
         customerPhone: formData.get("phone"),
         note: formData.get("note"),
-        requireDeposit: restaurant.require_deposit,
-        depositAmount: restaurant.default_deposit_amount,
+        requireDeposit: restaurant.require_deposit || false,
+        depositAmount: restaurant.default_deposit_amount || 0,
       };
 
       console.log("Booking data:", bookingData);
@@ -264,13 +347,73 @@ function initBookingFormListeners(restaurant) {
       const needsDeposit =
         restaurant.require_deposit && restaurant.default_deposit_amount > 0;
 
-      if (needsDeposit) {
-        // Workflow 1: Deposit required - go to payment page
-        sessionStorage.setItem("pendingBooking", JSON.stringify(bookingData));
-        window.location.hash = "#/payment";
-      } else {
-        // Workflow 2: No deposit required - save booking directly
-        saveBookingDirectly(bookingData);
+      // Always create booking via API first
+      try {
+        // Show loading
+        const submitBtn = bookingForm.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Đang xử lý...";
+        }
+
+        console.log("📤 Creating booking with data:", {
+          restaurant_id: restaurant.id,
+          table_id: selectedTables[0].id,
+          phone: bookingData.customerPhone,
+          customer_name: bookingData.customerName,
+          people_count: parseInt(bookingData.people),
+          booking_date: bookingData.date,
+          booking_time: bookingData.time,
+          note: bookingData.note || ""
+        });
+
+        // Create booking via API
+        const booking = await createBooking({
+          restaurant_id: restaurant.id,
+          table_id: selectedTables[0].id, // First selected table
+          phone: bookingData.customerPhone,
+          customer_name: bookingData.customerName,
+          people_count: parseInt(bookingData.people),
+          booking_date: bookingData.date,
+          booking_time: bookingData.time,
+          note: bookingData.note || ""
+        });
+
+        console.log("✅ Booking created successfully:", booking);
+        console.log("🔍 Checking deposit requirement:", {
+          restaurant_require_deposit: restaurant.require_deposit,
+          restaurant_deposit_amount: restaurant.default_deposit_amount,
+          booking_id: booking.id
+        });
+
+        // Check if deposit is required from RESTAURANT data (not booking response)
+        if (restaurant.require_deposit && restaurant.default_deposit_amount > 0) {
+          // Redirect to payment page with booking ID
+          console.log(`💳 Redirecting to payment page: #/payment/${booking.id}`);
+          window.location.hash = `#/payment/${booking.id}`;
+        } else {
+          // No deposit required - show success and redirect to bookings
+          console.log("✅ No deposit required, showing success popup");
+          showBookingSuccessPopup();
+          setTimeout(() => {
+            window.location.hash = "#/booking";
+          }, 2000);
+        }
+      } catch (error) {
+        console.error("❌ Error creating booking:", error);
+        
+        // Restore button
+        const submitBtn = bookingForm.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Xác nhận đặt bàn";
+        }
+        
+        // Show error notification
+        showNotification(
+          error.message || "Không thể tạo đặt bàn. Vui lòng thử lại.",
+          "error"
+        );
       }
     });
   }
@@ -280,8 +423,7 @@ function initBookingFormListeners(restaurant) {
 }
 
 // Update available tables based on people count
-function updateAvailableTables(restaurantId, peopleCount) {
-  const tablesData = getAvailableTables(restaurantId, peopleCount);
+async function updateAvailableTables(restaurantId, peopleCount) {
   const tablesSection = document.getElementById("tablesSection");
   const tablesGrid = document.getElementById("tablesGrid");
   const overCapacityWarning = document.getElementById("overCapacityWarning");
@@ -296,61 +438,85 @@ function updateAvailableTables(restaurantId, peopleCount) {
     overCapacityWarning.style.display = "none";
   }
 
-  // Check if people count exceeds max table capacity
-  if (
-    peopleCount > tablesData.maxTableCapacity &&
-    tablesData.maxTableCapacity > 0
-  ) {
-    // Show popup to call restaurant
-    const restaurant = restaurants.find((r) => r.id === restaurantId);
-    showOverCapacityPopup(restaurant);
+  // Show loading in tables grid
+  tablesGrid.innerHTML = '<p class="loading-message">Đang tải danh sách bàn...</p>';
 
-    // Clear tables grid
-    tablesGrid.innerHTML = `<p class="no-tables-message">Số lượng người vượt quá sức chứa. Vui lòng liên hệ nhà hàng.</p>`;
-    return;
-  }
+  try {
+    // Get booking date and time from form
+    const dateInput = document.getElementById("bookingDate");
+    const timeInput = document.getElementById("bookingTime");
+    
+    if (!dateInput?.value || !timeInput?.value) {
+      tablesGrid.innerHTML = '<p class="no-tables-message">Vui lòng chọn ngày và giờ đặt bàn trước.</p>';
+      return;
+    }
 
-  // Render tables (only exact matches)
-  let tablesHTML = "";
+    // Fetch available tables from API
+    const response = await getAvailableTablesAPI({
+      restaurant_id: restaurantId,
+      booking_date: dateInput.value,
+      booking_time: timeInput.value,
+      people_count: peopleCount
+    });
 
-  if (tablesData.standard.length > 0) {
-    tablesHTML += `
-      <div class="table-type-section">
-        <h3 class="table-type-title">Bàn thường</h3>
-        <div class="table-cards">
-          ${tablesData.standard.map((table) => createTableCard(table)).join("")}
+    const availableTables = response?.items || [];
+
+    // Store tables globally for table selection handler
+    window.currentAvailableTables = availableTables;
+
+    if (availableTables.length === 0) {
+      tablesGrid.innerHTML = `<p class="no-tables-message">Không có bàn phù hợp cho ${peopleCount} người. Vui lòng chọn số người khác hoặc thời gian khác.</p>`;
+      return;
+    }
+
+    // Group tables by type (standard vs VIP) - based on name
+    const standardTables = availableTables.filter(t => !t.name?.toLowerCase().includes('vip'));
+    const vipTables = availableTables.filter(t => t.name?.toLowerCase().includes('vip'));
+
+    // Render tables
+    let tablesHTML = "";
+
+    if (standardTables.length > 0) {
+      tablesHTML += `
+        <div class="table-type-section">
+          <h3 class="table-type-title">Bàn thường</h3>
+          <div class="table-cards">
+            ${standardTables.map((table) => createTableCard(table)).join("")}
+          </div>
         </div>
-      </div>
-    `;
-  }
+      `;
+    }
 
-  if (tablesData.vip.length > 0) {
-    tablesHTML += `
-      <div class="table-type-section">
-        <h3 class="table-type-title">Bàn VIP</h3>
-        <div class="table-cards">
-          ${tablesData.vip.map((table) => createTableCard(table)).join("")}
+    if (vipTables.length > 0) {
+      tablesHTML += `
+        <div class="table-type-section">
+          <h3 class="table-type-title">Bàn VIP</h3>
+          <div class="table-cards">
+            ${vipTables.map((table) => createTableCard(table)).join("")}
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    }
+
+    tablesGrid.innerHTML = tablesHTML;
+
+    // Add click listeners to table cards
+    attachTableCardListeners();
+    updateSelectedTablesSummary();
+  } catch (error) {
+    console.error("Error fetching available tables:", error);
+    tablesGrid.innerHTML = '<p class="error-message">Không thể tải danh sách bàn. Vui lòng thử lại.</p>';
   }
-
-  if (tablesHTML === "") {
-    tablesHTML = `<p class="no-tables-message">Không có bàn phù hợp cho ${peopleCount} người. Vui lòng chọn số người khác.</p>`;
-  }
-
-  tablesGrid.innerHTML = tablesHTML;
-
-  // Add click listeners to table cards
-  attachTableCardListeners();
-  updateSelectedTablesSummary();
 }
 
 // Create table card HTML
 function createTableCard(table) {
   const isSelected = selectedTables.some((t) => t.id === table.id);
+  // Determine type from name (check if name contains 'VIP')
+  const tableType = table.name?.toLowerCase().includes('vip') ? 'vip' : 'standard';
+  
   return `
-    <div class="table-card ${table.type} ${
+    <div class="table-card ${tableType} ${
     isSelected ? "selected" : ""
   }" data-table-id="${table.id}">
       <div class="table-card-header">
@@ -382,14 +548,16 @@ function attachTableCardListeners() {
 function handleTableSelection(tableId) {
   const restaurantId = parseInt(window.location.hash.split("/")[3]);
   const peopleCount = parseInt(document.getElementById("peopleCount").value);
-  const tablesData = getAvailableTables(restaurantId, peopleCount);
+  
+  // Get tables from global storage
+  const availableTables = window.currentAvailableTables || [];
 
   // Find the table
-  const table = [...tablesData.allAvailable].find((t) => t.id === tableId);
+  const table = availableTables.find((t) => t.id === parseInt(tableId));
   if (!table) return;
 
   // Check if already selected
-  const isAlreadySelected = selectedTables.some((t) => t.id === tableId);
+  const isAlreadySelected = selectedTables.some((t) => t.id === parseInt(tableId));
 
   if (isAlreadySelected) {
     // Deselect - remove the table
@@ -409,16 +577,24 @@ function showTablePreviewModal(table, restaurantId, peopleCount) {
 
   if (!modal || !modalBody) return;
 
+  // Format image URL from API response
+  const baseURL = "https://pyramidally-unborrowed-cherie.ngrok-free.dev";
+  const formatImageUrl = (url) => {
+    if (!url) return null;
+    return url.startsWith('http') ? url : `${baseURL}${url}`;
+  };
+
+  const tableImage = formatImageUrl(table.view_image_url) || 
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23f0f0f0' width='400' height='300'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='24' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3EKhông có ảnh%3C/text%3E%3C/svg%3E";
+
   modalBody.innerHTML = `
     <div class="table-preview">
-      <img src="${table.image}" alt="${
-    table.name
-  }" class="table-preview-image" />
+      <img src="${tableImage}" alt="${table.name}" class="table-preview-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'400\\' height=\\'300\\'%3E%3Crect fill=\\'%23f0f0f0\\' width=\\'400\\' height=\\'300\\'/%3E%3Ctext fill=\\'%23999\\' font-family=\\'sans-serif\\' font-size=\\'24\\' x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' dy=\\'.3em\\'%3EKhông có ảnh%3C/text%3E%3C/svg%3E'" />
       <div class="table-preview-info">
         <h2>${table.name}</h2>
         <div class="table-preview-meta">
-          <span class="table-preview-type ${table.type}">
-            ${table.type === "vip" ? "⭐ Bàn VIP" : "🍽️ Bàn Thường"}
+          <span class="table-preview-type ${table.name?.toLowerCase().includes('vip') ? 'vip' : 'standard'}">
+            ${table.name?.toLowerCase().includes('vip') ? "⭐ Bàn VIP" : "🍽️ Bàn Thường"}
           </span>
           <span class="table-preview-capacity">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -428,6 +604,8 @@ function showTablePreviewModal(table, restaurantId, peopleCount) {
             Sức chứa: ${table.capacity} người
           </span>
         </div>
+        ${table.location ? `<p class="table-location"><strong>📍 Vị trí:</strong> ${table.location}</p>` : ''}
+        ${table.view_note ? `<p class="table-note"><strong>📝 Ghi chú:</strong> ${table.view_note}</p>` : ''}
         <button class="btn-confirm-table" id="btnConfirmTable">Chọn bàn này</button>
       </div>
     </div>
@@ -512,8 +690,10 @@ function updateSelectedTablesSummary() {
   // Add remove listeners
   const removeButtons = list.querySelectorAll(".btn-remove-table");
   removeButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const tableId = btn.dataset.tableId;
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation(); // Prevent event bubbling
+      const tableId = parseInt(btn.dataset.tableId); // Convert to number
+      console.log("🗑️ Removing table:", tableId);
       selectedTables = selectedTables.filter((t) => t.id !== tableId);
       const restaurantId = parseInt(window.location.hash.split("/")[3]);
       const peopleCount = parseInt(
@@ -564,37 +744,41 @@ function showOverCapacityPopup(restaurant) {
 }
 
 // Save booking directly without payment (for restaurants that don't require deposit)
-function saveBookingDirectly(bookingData) {
-  // Get existing bookings from localStorage
-  const existingBookings = JSON.parse(
-    localStorage.getItem("dinelink_bookings") || "[]"
-  );
+async function saveBookingDirectly(bookingData) {
+  try {
+    // Create booking via API
+    const booking = await createBooking({
+      restaurant_id: bookingData.restaurantId,
+      table_id: bookingData.tables[0].id, // First selected table
+      phone: bookingData.customerPhone,
+      customer_name: bookingData.customerName,
+      people_count: parseInt(bookingData.people),
+      booking_date: bookingData.date,
+      booking_time: bookingData.time,
+      note: bookingData.note || ""
+    });
 
-  // Create new booking with PENDING status (waiting for dashboard confirmation)
-  const newBooking = {
-    ...bookingData,
-    id: Date.now().toString(),
-    status: "PENDING",
-    paymentStatus: "UNPAID", // No payment required
-    createdAt: new Date().toISOString(),
-  };
+    console.log("✅ Booking created successfully:", booking);
 
-  // Add to bookings array
-  existingBookings.unshift(newBooking);
+    // Clear pending booking
+    sessionStorage.removeItem("pendingBooking");
 
-  // Save back to localStorage
-  localStorage.setItem("dinelink_bookings", JSON.stringify(existingBookings));
+    // Show success popup
+    showBookingSuccessPopup();
 
-  // Clear pending booking
-  sessionStorage.removeItem("pendingBooking");
-
-  console.log("Booking saved without payment:", newBooking);
-
-  // Show success popup
-  showBookingSuccessPopup();
-
-  // Simulate API call to dashboard for confirmation
-  sendBookingToDashboard(newBooking.id);
+    // Navigate to bookings page after a short delay
+    setTimeout(() => {
+      window.location.hash = "#/booking";
+    }, 2000);
+  } catch (error) {
+    console.error("❌ Error creating booking:", error);
+    
+    // Show error notification
+    showNotification(
+      error.message || "Không thể tạo đặt bàn. Vui lòng thử lại.",
+      "error"
+    );
+  }
 }
 
 // Show booking success popup

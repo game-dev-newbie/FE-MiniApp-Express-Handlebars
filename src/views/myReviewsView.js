@@ -1,10 +1,9 @@
 // src/views/myReviewsView.js
 import { renderTemplate } from "../core/templates.js";
-import { users, restaurants } from "../data/mockData.js";
+import { getMyReviews, deleteReview as deleteReviewAPI } from "../api/reviewApi.js";
 import authService from "../utils/authService.js";
 
 const appEl = document.getElementById("app");
-const currentUser = users[0];
 
 export async function renderMyReviews() {
   // Check authentication before showing reviews
@@ -12,48 +11,68 @@ export async function renderMyReviews() {
     return;
   }
 
-  // Get user reviews from localStorage
-  const userReviews = JSON.parse(
-    localStorage.getItem("dinelink_user_reviews") || "[]"
-  ).filter((r) => r.userId === currentUser.id);
+  // Show loading state
+  appEl.innerHTML = `
+    <div class="loading-container" style="display: flex; justify-content: center; align-items: center; min-height: 400px;">
+      <div class="spinner"></div>
+    </div>
+  `;
 
-  console.log("📝 User reviews:", userReviews);
-  console.log("🍽️ Available restaurants:", restaurants);
+  try {
+    // Fetch reviews from API
+    const response = await getMyReviews({ limit: 50, offset: 0 });
+    const userReviews = response?.items || [];
 
-  // Sort by date descending BEFORE enriching
-  userReviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    console.log("📝 User reviews from API:", userReviews);
 
-  // Enrich reviews with restaurant data
-  const enrichedReviews = userReviews.map((review) => {
-    const restaurant = restaurants.find(
-      (r) => r.id === parseInt(review.restaurantId)
-    );
-    console.log(
-      `🔍 Looking for restaurant ID: ${review.restaurantId}, Found:`,
-      restaurant
-    );
+    // Base URL for images
+    const baseURL = "https://pyramidally-unborrowed-cherie.ngrok-free.dev";
 
-    const stars = Array(review.rating).fill(0);
-    const emptyStars = Array(5 - review.rating).fill(0);
+    // Enrich reviews with formatted data
+    const enrichedReviews = userReviews.map((review) => {
+      const stars = Array(review.rating).fill(0);
+      const emptyStars = Array(5 - review.rating).fill(0);
 
-    return {
-      ...review,
-      restaurantName: restaurant?.name || "Nhà hàng",
-      restaurantImage: restaurant?.image || "",
-      stars,
-      emptyStars,
-      createdAt: formatDateTime(review.createdAt),
-    };
-  });
+      // Format restaurant image URL
+      const restaurantImage = review.Restaurant?.main_image_url
+        ? (review.Restaurant.main_image_url.startsWith('http')
+            ? review.Restaurant.main_image_url
+            : `${baseURL}${review.Restaurant.main_image_url}`)
+        : "";
 
-  const contentHtml = renderTemplate("myReviews", {
-    reviews: enrichedReviews,
-  });
+      return {
+        ...review,
+        restaurantName: review.Restaurant?.name || "Nhà hàng",
+        restaurantImage: restaurantImage,
+        restaurantId: review.restaurant_id,
+        bookingTime: review.Booking?.booking_time ? formatDateTime(review.Booking.booking_time) : "",
+        bookingStatus: review.Booking?.status_label || "",
+        hasReply: !!review.reply_comment,
+        replyComment: review.reply_comment || "",
+        replyTime: review.reply_created_at ? formatDateTime(review.reply_created_at) : "",
+        stars,
+        emptyStars,
+        createdAt: formatDateTime(review.created_at),
+      };
+    });
 
-  appEl.innerHTML = contentHtml;
+    const contentHtml = renderTemplate("myReviews", {
+      reviews: enrichedReviews,
+    });
 
-  // Initialize event listeners
-  initMyReviewsListeners();
+    appEl.innerHTML = contentHtml;
+
+    // Initialize event listeners
+    initMyReviewsListeners();
+  } catch (error) {
+    console.error("Error loading reviews:", error);
+    appEl.innerHTML = `
+      <div class="error-container" style="text-align: center; padding: 40px 20px;">
+        <p style="color: #666; margin-bottom: 16px;">Không thể tải danh sách đánh giá. Vui lòng thử lại.</p>
+        <button onclick="location.reload()" class="btn-primary">Tải lại</button>
+      </div>
+    `;
+  }
 }
 
 // Format date and time
@@ -99,31 +118,27 @@ function initMyReviewsListeners() {
   });
 }
 
-// Delete review from localStorage
-function deleteReview(reviewId) {
-  const userReviews = JSON.parse(
-    localStorage.getItem("dinelink_user_reviews") || "[]"
-  );
+// Delete review from API
+async function deleteReview(reviewId) {
+  try {
+    // Delete via API
+    await deleteReviewAPI(reviewId);
 
-  const review = userReviews.find((r) => r.id === reviewId);
-  const restaurantId = review?.restaurantId;
+    console.log("✅ Review deleted successfully:", reviewId);
 
-  const filteredReviews = userReviews.filter((r) => r.id !== reviewId);
+    // Dispatch event for other views to update
+    window.dispatchEvent(
+      new CustomEvent("reviewDeleted", {
+        detail: { reviewId },
+      })
+    );
 
-  localStorage.setItem(
-    "dinelink_user_reviews",
-    JSON.stringify(filteredReviews)
-  );
-
-  // Dispatch event for other views to update
-  window.dispatchEvent(
-    new CustomEvent("reviewDeleted", {
-      detail: { reviewId, restaurantId },
-    })
-  );
-
-  // Reload page
-  renderMyReviews();
+    // Reload page
+    renderMyReviews();
+  } catch (error) {
+    console.error("❌ Error deleting review:", error);
+    alert("Không thể xóa đánh giá. Vui lòng thử lại.");
+  }
 }
 
 // Show mobile-optimized delete confirmation

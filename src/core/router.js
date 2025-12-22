@@ -82,6 +82,13 @@ function handleRouteChange() {
     return;
   }
 
+  // Check for payment routes
+  if (route.startsWith("payment/")) {
+    const bookingId = route.split("/")[1];
+    renderPayment(bookingId);
+    return;
+  }
+
   // Route handling
   switch (route) {
     case "splash":
@@ -108,16 +115,6 @@ function handleRouteChange() {
       break;
     case "history":
       renderHistory();
-      break;
-    case "payment":
-      const bookingData = JSON.parse(
-        sessionStorage.getItem("pendingBooking") || "{}"
-      );
-      if (bookingData.restaurantId) {
-        renderPayment(bookingData);
-      } else {
-        window.location.hash = "#/home";
-      }
       break;
     case "profile":
       renderProfile();
