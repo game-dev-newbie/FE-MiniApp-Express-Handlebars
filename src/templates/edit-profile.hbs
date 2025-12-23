@@ -98,11 +98,9 @@
           id="email"
           name="email"
           value="{{user.email}}"
-          readonly
-          disabled
+          placeholder="Nhập email"
         />
       </div>
-      <p class="field-hint">Email không thể thay đổi</p>
     </div>
 
     <!-- Phone -->
@@ -186,7 +184,7 @@
     <div class="modal-overlay"></div>
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Chọn ảnh đại diện</h3>
+        <h3>Tải ảnh đại diện</h3>
         <button class="btn-close-modal" id="btnCloseAvatarModal">
           <svg
             width="24"
@@ -202,21 +200,30 @@
         </button>
       </div>
       <div class="modal-body">
-        <div class="avatar-options">
-          {{#each avatarOptions}}
-            <div class="avatar-option" data-avatar="{{this}}">
-              <img src="{{this}}" alt="Avatar" />
-            </div>
-          {{/each}}
-        </div>
-        <div class="upload-section">
+        <div class="upload-section-center">
+          <div class="upload-icon">
+            <svg
+              width="64"
+              height="64"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+          </div>
+          <h4>Chọn ảnh từ thiết bị</h4>
+          <p class="upload-hint">Chọn ảnh từ máy tính hoặc điện thoại của bạn</p>
           <input
             type="file"
             id="avatarUpload"
             accept="image/*"
             style="display: none;"
           />
-          <button class="btn-upload-avatar" id="btnUploadAvatar">
+          <button class="btn-upload-avatar-large" id="btnUploadAvatar">
             <svg
               width="20"
               height="20"
@@ -229,8 +236,9 @@
               <polyline points="17 8 12 3 7 8"></polyline>
               <line x1="12" y1="3" x2="12" y2="15"></line>
             </svg>
-            Tải ảnh lên
+            Chọn ảnh
           </button>
+          <p class="upload-note">Tối đa 5MB • JPG, PNG, GIF</p>
         </div>
       </div>
     </div>

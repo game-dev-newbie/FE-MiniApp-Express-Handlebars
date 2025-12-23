@@ -231,10 +231,15 @@ function initSearchEventListeners(currentQuery) {
   const btnClearHistory = document.getElementById("btnClearHistory");
   if (btnClearHistory) {
     btnClearHistory.addEventListener("click", () => {
-      if (confirm("Xóa tất cả lịch sử tìm kiếm?")) {
-        clearRecentSearches();
-        renderSearch(currentQuery);
-      }
+      // Create custom confirmation modal
+      showConfirmationModal(
+        "Xóa tất cả lịch sử?",
+        "Bạn có chắc muốn xóa toàn bộ lịch sử tìm kiếm?",
+       () => {
+          clearRecentSearches();
+          renderSearch(currentQuery);
+        }
+      );
     });
   }
 
@@ -412,6 +417,60 @@ function processSearchResults(results) {
       opening_hours: formatTime(restaurant.open_time),
       closing_hours: formatTime(restaurant.close_time),
       priceRange: formatDeposit(restaurant.default_deposit_amount),
+      address: restaurant.address || "",
     };
+  });
+}
+
+// Custom confirmation modal for mobile
+function showConfirmationModal(title, message, onConfirm) {
+  // Create modal HTML
+  const modalHTML = `
+    <div class="custom-confirm-modal" id="customConfirmModal">
+      <div class="confirm-modal-overlay"></div>
+      <div class="confirm-modal-content">
+        <h3 class="confirm-modal-title">${title}</h3>
+        <p class="confirm-modal-message">${message}</p>
+        <div class="confirm-modal-actions">
+          <button class="btn-cancel-confirm">Hủy</button>
+          <button class="btn-confirm-action">Xóa</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Add to body
+  const modalDiv = document.createElement('div');
+  modalDiv.innerHTML = modalHTML;
+  document.body.appendChild(modalDiv.firstElementChild);
+
+  const modal = document.getElementById('customConfirmModal');
+  const btnCancel = modal.querySelector('.btn-cancel-confirm');
+  const btnConfirm = modal.querySelector('.btn-confirm-action');
+  const overlay = modal.querySelector('.confirm-modal-overlay');
+
+  // Show modal with animation
+  requestAnimationFrame(() => {
+    modal.classList.add('active');
+  });
+
+  // Close function
+  const closeModal = () => {
+    modal.classList.remove('active');
+    setTimeout(() => {
+      modal.remove();
+    }, 300);
+  };
+
+  // Cancel button
+  btnCancel.addEventListener('click', closeModal);
+
+  // Overlay click
+  overlay.addEventListener('click', closeModal);
+
+  // Confirm button
+  btnConfirm.addEventListener('click', () => {
+    onConfirm();
+    closeModal();
   });
 }

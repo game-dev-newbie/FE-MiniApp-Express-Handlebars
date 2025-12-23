@@ -29,20 +29,35 @@ export function initRouter() {
 function handleRouteChange() {
   const hash = window.location.hash || "#/splash";
 
-  // Get app element and add fade animation
+  // Get app element and add smooth fade transition
   const appEl = document.getElementById("app");
   if (appEl) {
-    appEl.classList.remove("page-transition-enter", "page-transition-exit");
-    appEl.classList.add("page-transition-enter");
-
-    // Remove animation class after animation completes
+    // Add fade out transition
+    appEl.classList.add("page-transition-out");
+    
+    // Wait for fade out, then render new page
     setTimeout(() => {
-      appEl.classList.remove("page-transition-enter");
-    }, 300);
+      renderRoute(hash);
+      
+      // Remove fade out and add fade in
+      appEl.classList.remove("page-transition-out");
+      appEl.classList.add("page-transition-in");
+      
+      // Clean up after fade in completes
+      setTimeout(() => {
+        appEl.classList.remove("page-transition-in");
+      }, 300);
+    }, 200);
+  } else {
+    // No transition, just render
+    renderRoute(hash);
   }
 
   // Scroll to top on route change
   window.scrollTo(0, 0);
+}
+
+function renderRoute(hash) {
 
   // Parse route
   const route = hash.slice(2); // Remove "#/"

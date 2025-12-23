@@ -1,0 +1,240 @@
+/* ===== PAGE TRANSITIONS ===== */
+
+/* Base app transition */
+#app {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Page transition states */
+.page-transition-out {
+  opacity: 0;
+  transform: scale(0.98);
+  pointer-events: none;
+}
+
+.page-transition-in {
+  animation: pageTransitionIn 0.3s ease-out forwards;
+}
+
+@keyframes pageTransitionIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade transition */
+.fade-out {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Slide transitions */
+.slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-down {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slide in from right (for detail pages) */
+.slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Scale transition */
+.scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Stagger animation for lists */
+.stagger-item {
+  opacity: 0;
+  animation: staggerFadeIn 0.4s ease-out forwards;
+}
+
+@keyframes staggerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Apply stagger delays */
+.stagger-item:nth-child(1) { animation-delay: 0.05s; }
+.stagger-item:nth-child(2) { animation-delay: 0.10s; }
+.stagger-item:nth-child(3) { animation-delay: 0.15s; }
+.stagger-item:nth-child(4) { animation-delay: 0.20s; }
+.stagger-item:nth-child(5) { animation-delay: 0.25s; }
+.stagger-item:nth-child(6) { animation-delay: 0.30s; }
+.stagger-item:nth-child(n+7) { animation-delay: 0.35s; }
+
+/* Tab switching transition */
+.tab-content {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.tab-content.hidden {
+  display: none;
+}
+
+.tab-content.active {
+  animation: tabFadeIn 0.3s ease-out;
+}
+
+@keyframes tabFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Loading state transition */
+.loading-transition {
+  position: relative;
+}
+
+.loading-transition::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+[data-theme="dark"] .loading-transition::before {
+  background: rgba(30, 30, 30, 0.8);
+}
+
+.loading-transition.loading::before {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Smooth height transition */
+.height-transition {
+  overflow: hidden;
+  transition: height 0.3s ease;
+}
+
+/* Image lazy load fade in */
+.lazy-image {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.lazy-image.loaded {
+  opacity: 1;
+}
+
+/* Blur load effect (for images) */
+.blur-load {
+  filter: blur(10px);
+  transition: filter 0.3s ease;
+}
+
+.blur-load.loaded {
+  filter: blur(0);
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 768px) {
+  /* Faster animations on mobile */
+  .page-transition-in,
+  .fade-in,
+  .slide-up,
+  .slide-down,
+  .scale-in {
+    animation-duration: 0.25s;
+  }
+  
+  /* Reduce stagger delay on mobile */
+  .stagger-item:nth-child(n) {
+    animation-delay: 0.03s;
+  }
+}

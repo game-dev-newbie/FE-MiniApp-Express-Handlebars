@@ -15,9 +15,6 @@ export async function renderBookingForm(restaurantId) {
     return;
   }
 
-  // Get current user from authService
-  const currentUser = authService.getUser();
-
   // Reset selected tables when entering the page
   selectedTables = [];
 
@@ -32,8 +29,13 @@ export async function renderBookingForm(restaurantId) {
   `;
 
   try {
-    // Fetch restaurant from API
-    const restaurant = await fetchRestaurantDetail(restaurantId);
+    // Fetch user profile and restaurant in parallel
+    const [userData, restaurant] = await Promise.all([
+      import("../api/userApi.js").then(({ getMyProfile }) => getMyProfile()),
+      fetchRestaurantDetail(restaurantId)
+    ]);
+
+    console.log("👤 User data for booking form:", userData);
 
     if (!restaurant) {
       // Restaurant not found, redirect to home
@@ -70,8 +72,8 @@ export async function renderBookingForm(restaurantId) {
 
     const bookingFormContent = renderTemplate("bookingForm", {
       restaurant: transformedRestaurant,
-      userName: currentUser.display_name,
-      userPhone: currentUser.phone,
+      userName: userData.display_name || "",
+      userPhone: userData.phone || "",
       minDate,
     });
 

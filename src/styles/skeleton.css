@@ -1,0 +1,286 @@
+/* ===== SKELETON LOADING SCREENS ===== */
+
+/* Base skeleton animation */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 0%,
+    #f8f8f8 20%,
+    #f0f0f0 40%,
+    #f0f0f0 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Dark mode skeleton */
+[data-theme="dark"] .skeleton {
+  background: linear-gradient(
+    90deg,
+    #2a2a2a 0%,
+    #333 20%,
+    #2a2a2a 40%,
+    #2a2a2a 100%
+  );
+}
+
+/* Skeleton shapes */
+.skeleton-text {
+  height: 14px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+}
+
+.skeleton-title {
+  height: 24px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+}
+
+.skeleton-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+
+.skeleton-avatar-lg {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+}
+
+.skeleton-image {
+  height: 200px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.skeleton-button {
+  height: 44px;
+  border-radius: 8px;
+}
+
+.skeleton-badge {
+  height: 28px;
+  width: 100px;
+  border-radius: 14px;
+}
+
+/* Restaurant card skeleton */
+.restaurant-card-skeleton {
+  background: white;
+  border-radius: 12px;
+  padding: 0;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .restaurant-card-skeleton {
+  background: #1e1e1e;
+}
+
+.restaurant-card-skeleton .skeleton-image {
+  margin: 0;
+  border-radius: 0;
+  height: 180px;
+}
+
+.restaurant-card-skeleton .skeleton-content {
+  padding: 16px;
+}
+
+.restaurant-card-skeleton .skeleton-title {
+  width: 70%;
+  margin-bottom: 8px;
+}
+
+.restaurant-card-skeleton .skeleton-text {
+  width: 50%;
+  margin-bottom: 6px;
+}
+
+.restaurant-card-skeleton .skeleton-text:last-child {
+  width: 40%;
+}
+
+/* Booking card skeleton */
+.booking-card-skeleton {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border-left: 4px solid #e0e0e0;
+}
+
+[data-theme="dark"] .booking-card-skeleton {
+  background: #1e1e1e;
+  border-left-color: #333;
+}
+
+.booking-card-skeleton .skeleton-badge {
+  margin-bottom: 12px;
+}
+
+.booking-card-skeleton .skeleton-title {
+  width: 60%;
+  margin-bottom: 12px;
+}
+
+.booking-card-skeleton .skeleton-text {
+  width: 80%;
+  margin-bottom: 8px;
+}
+
+.booking-card-skeleton .skeleton-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.booking-card-skeleton .skeleton-button {
+  flex: 1;
+}
+
+/* Grid skeleton (for search results) */
+.grid-card-skeleton {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .grid-card-skeleton {
+  background: #1e1e1e;
+}
+
+.grid-card-skeleton .skeleton-image {
+  height: 140px;
+  margin: 0;
+  border-radius: 0;
+}
+
+.grid-card-skeleton .skeleton-content {
+  padding: 12px;
+}
+
+.grid-card-skeleton .skeleton-title {
+  width: 80%;
+  height: 18px;
+  margin-bottom: 8px;
+}
+
+.grid-card-skeleton .skeleton-text {
+  width: 60%;
+  height: 12px;
+}
+
+/* Profile section skeleton */
+.profile-section-skeleton {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+[data-theme="dark"] .profile-section-skeleton {
+  background: #1e1e1e;
+}
+
+.profile-header-skeleton {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.profile-header-skeleton .skeleton-avatar-lg {
+  flex-shrink: 0;
+}
+
+.profile-info-skeleton {
+  flex: 1;
+}
+
+.profile-info-skeleton .skeleton-title {
+  width: 150px;
+  margin-bottom: 8px;
+}
+
+.profile-info-skeleton .skeleton-text {
+  width: 120px;
+}
+
+/* Skeleton shimmer effect (alternative) */
+@keyframes skeleton-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  animation: skeleton-shimmer 1.5s infinite;
+}
+
+[data-theme="dark"] .skeleton-shimmer::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+}
+
+/* Skeleton list container */
+.skeleton-list {
+  padding: 16px;
+}
+
+/* Hide skeleton when content loads */
+.skeleton-loaded .skeleton {
+  display: none;
+}
+
+/* Fade transition when replacing skeleton */
+.content-fade-in {
+  animation: contentFadeIn 0.3s ease-out;
+}
+
+@keyframes contentFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

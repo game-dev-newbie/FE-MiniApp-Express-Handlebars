@@ -14,13 +14,23 @@ const appEl = document.getElementById("app");
 export async function renderHome() {
   // Check if user is logged in (now synchronous)
   const isLoggedIn = authService.isAuthenticated();
-  const user = isLoggedIn ? authService.getUser() : null;
-
-  // Use logged in user data or guest data
-  const displayName = user ? user.display_name : "Quý khách";
-  const defaultAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%2300c853'/%3E%3Cpath d='M50 45c8.284 0 15-6.716 15-15s-6.716-15-15-15-15 6.716-15 15 6.716 15 15 15zm0 7.5c-10 0-30 5-30 15V75h60v-7.5c0-10-20-15-30-15z' fill='white'/%3E%3C/svg%3E";
-  const avatarUrl = (user && user.avatar_url) ? user.avatar_url : defaultAvatar;
-  const userId = user ? user.id : null;
+  
+  let displayName = "Quý khách";
+  let avatarUrl = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%2300c853'/%3E%3Cpath d='M50 45c8.284 0 15-6.716 15-15s-6.716-15-15-15-15 6.716-15 15 6.716 15 15 15zm0 7.5c-10 0-30 5-30 15V75h60v-7.5c0-10-20-15-30-15z' fill='white'/%3E%3C/svg%3E";
+  
+  // Fetch real user data from API if logged in
+  if (isLoggedIn) {
+    try {
+      const { getMyProfile } = await import("../api/userApi.js");
+      const userData = await getMyProfile();
+      displayName = userData.display_name || "Quý khách";
+      avatarUrl = userData.avatar_url || avatarUrl;
+      console.log("👤 User data for home:", { displayName, avatarUrl });
+    } catch (error) {
+      console.warn("Could not fetch user profile, using guest:", error);
+      // Fall back to guest
+    }
+  }
 
   // Render header and bottom nav
   const headerHtml = renderTemplate("header", {
@@ -29,13 +39,30 @@ export async function renderHome() {
   });
   const bottomNavHtml = renderTemplate("bottomNav", { activePage: "home" });
 
-  // Show loading state
+  // Show skeleton loading state (instead of spinner)
   appEl.innerHTML =
     headerHtml +
     `
     <main class="main-content">
-      <div class="loading-container" style="display: flex; justify-content: center; align-items: center; min-height: 400px;">
-        <div class="spinner"></div>
+      <div class="home-banner" style="margin-bottom: 24px;">
+        <div class="skeleton" style="height: 160px; border-radius: 12px; margin-bottom: 16px;"></div>
+      </div>
+      
+      <div class="section-header">
+        <div class="skeleton skeleton-title" style="width: 200px; margin-bottom: 16px;"></div>
+      </div>
+      
+      <div class="skeleton-list">
+        ${Array(3).fill(`
+          <div class="restaurant-card-skeleton">
+            <div class="skeleton skeleton-image"></div>
+            <div class="skeleton-content">
+              <div class="skeleton skeleton-title"></div>
+              <div class="skeleton skeleton-text" style="width: 60%;"></div>
+              <div class="skeleton skeleton-text" style="width: 40%;"></div>
+            </div>
+          </div>
+        `).join('')}
       </div>
     </main>
   ` +

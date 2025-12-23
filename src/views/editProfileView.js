@@ -2,32 +2,9 @@
 import { renderTemplate } from "../core/templates.js";
 import authService from "../utils/authService.js";
 import { chooseImage } from "zmp-sdk/apis";
+import { DEFAULT_AVATAR } from "../utils/avatarHelper.js";
 
 const appEl = document.getElementById("app");
-
-// Predefined avatar options
-const AVATAR_OPTIONS = [
-  "https://i.pravatar.cc/150?img=1",
-  "https://i.pravatar.cc/150?img=2",
-  "https://i.pravatar.cc/150?img=3",
-  "https://i.pravatar.cc/150?img=5",
-  "https://i.pravatar.cc/150?img=7",
-  "https://i.pravatar.cc/150?img=8",
-  "https://i.pravatar.cc/150?img=12",
-  "https://i.pravatar.cc/150?img=13",
-  "https://i.pravatar.cc/150?img=14",
-  "https://i.pravatar.cc/150?img=16",
-  "https://i.pravatar.cc/150?img=20",
-  "https://i.pravatar.cc/150?img=32",
-  "https://i.pravatar.cc/150?img=33",
-  "https://i.pravatar.cc/150?img=41",
-  "https://i.pravatar.cc/150?img=47",
-  "https://i.pravatar.cc/150?img=50",
-  "https://i.pravatar.cc/150?img=60",
-  "https://i.pravatar.cc/150?img=65",
-  "https://i.pravatar.cc/150?img=68",
-  "https://i.pravatar.cc/150?img=70",
-];
 
 let selectedAvatarUrl = null;
 
@@ -37,23 +14,49 @@ export async function renderEditProfile() {
     return;
   }
 
-  // Get current user
-  const user = authService.getUser();
-  if (!user) {
-    window.location.hash = "#/login";
-    return;
+  // Show loading state
+  appEl.innerHTML = `
+    <div class="loading-container" style="display: flex; justify-content: center; align-items: center; min-height: 400px;">
+      <div class="spinner"></div>
+    </div>
+  `;
+
+  try {
+    // Fetch user profile from API
+    const { getMyProfile } = await import("../api/userApi.js");
+    const userData = await getMyProfile();
+
+    console.log("👤 Fetched user profile for editing:", userData);
+
+    // Transform API data to match template format
+    const user = {
+      id: userData.id,
+      display_name: userData.display_name || "",
+      name: userData.display_name || "User",
+      email: userData.email || "",
+      phone: userData.phone || "",
+      avatar_url: userData.avatar_url || DEFAULT_AVATAR,
+      bio: userData.bio || ""
+    };
+
+    const contentHtml = renderTemplate("edit-profile", {
+      user,
+    });
+
+    appEl.innerHTML = contentHtml;
+
+    // Initialize
+    selectedAvatarUrl = user.avatar_url;
+    initEditProfileEventListeners();
+  } catch (error) {
+    console.error("Error loading edit profile:", error);
+    appEl.innerHTML = `
+      <div class="error-container" style="text-align: center; padding: 40px 20px;">
+        <p>Không thể tải thông tin. Vui lòng thử lại.</p>
+        <button onclick="window.history.back()" class="btn-primary">Quay lại</button>
+      </div>
+    `;
   }
-
-  const contentHtml = renderTemplate("edit-profile", {
-    user,
-    avatarOptions: AVATAR_OPTIONS,
-  });
-
-  appEl.innerHTML = contentHtml;
-
-  // Initialize
-  selectedAvatarUrl = user.avatar_url;
-  initEditProfileEventListeners();
 }
 
 function initEditProfileEventListeners() {
@@ -104,6 +107,57 @@ function initEditProfileEventListeners() {
   }
 }
 
+// Helper function to compress image before upload
+async function compressImage(file, maxWidth = 600, quality = 0.7) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        // Create canvas
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // Resize if too large
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        // Draw and compress
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Convert to blob
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              // Create new file from blob
+              const compressedFile = new File([blob], file.name, {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+              });
+              resolve(compressedFile);
+            } else {
+              reject(new Error('Compression failed'));
+            }
+          },
+          'image/jpeg',
+          quality
+        );
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 function showAvatarModal() {
   const modal = document.getElementById("avatarModal");
   if (!modal) {
@@ -115,16 +169,8 @@ function showAvatarModal() {
 
   // Show modal with animation
   modal.classList.add("active");
-  
-  // Debug: check modal state
-  setTimeout(() => {
-    const computedStyle = window.getComputedStyle(modal);
-    console.log("Modal display:", computedStyle.display);
-    console.log("Modal opacity:", computedStyle.opacity);
-    console.log("Modal pointer-events:", computedStyle.pointerEvents);
-  }, 100);
 
-  // Close modal function
+  // Close modal function  
   const closeModal = () => {
     console.log("🔒 Closing modal");
     modal.classList.remove("active");
@@ -133,10 +179,8 @@ function showAvatarModal() {
   // Close button
   const btnClose = modal.querySelector("#btnCloseAvatarModal");
   if (btnClose) {
-    console.log("✅ Close button found");
     btnClose.onclick = (e) => {
       e.stopPropagation();
-      console.log("❌ Close button clicked");
       closeModal();
     };
   }
@@ -144,79 +188,103 @@ function showAvatarModal() {
   // Overlay click to close
   const overlay = modal.querySelector(".modal-overlay");
   if (overlay) {
-    console.log("✅ Overlay found");
     overlay.onclick = (e) => {
       e.stopPropagation();
-      console.log("🖱️ Overlay clicked");
       closeModal();
     };
   }
 
-  // Avatar options selection
-  const avatarOptions = modal.querySelectorAll(".avatar-option");
-  console.log(`Found ${avatarOptions.length} avatar options`);
-  
-  avatarOptions.forEach((option, index) => {
-    option.onclick = (e) => {
-      e.stopPropagation();
-      const avatarUrl = option.getAttribute("data-avatar");
-      console.log(`🎭 Avatar ${index + 1} clicked:`, avatarUrl);
-      selectAvatar(avatarUrl);
-      closeModal();
-    };
-  });
-
-  // Upload button - Use Zalo chooseImage API
+  // Upload button - trigger file input
   const btnUpload = modal.querySelector("#btnUploadAvatar");
-  console.log("Upload button found:", !!btnUpload);
+  const fileInput = modal.querySelector("#avatarUpload");
   
-  if (btnUpload) {
-    btnUpload.onclick = async (e) => {
+  if (btnUpload && fileInput) {
+    btnUpload.onclick = (e) => {
       e.stopPropagation();
       console.log("📤 Upload button clicked");
-      
-      try {
-        // Try to use Zalo Mini App chooseImage API first
-        const { filePaths } = await chooseImage({
-          count: 1,
-          sourceType: ["album", "camera"],
-          cameraType: "front",
-        });
-
-        if (filePaths && filePaths.length > 0) {
-          const imagePath = filePaths[0];
-          selectAvatar(imagePath);
-          closeModal();
-          console.log("✅ Image selected from Zalo:", imagePath);
-        }
-      } catch (error) {
-        console.warn("Zalo chooseImage not available, falling back to HTML input:", error);
-
-        // Fallback to HTML file input
-        const fileInput = modal.querySelector("#avatarUpload");
-        if (fileInput) {
-          fileInput.click();
-        }
-      }
+      fileInput.click();
     };
 
-    // Fallback file input handler
-    const fileInput = modal.querySelector("#avatarUpload");
-    if (fileInput) {
-      fileInput.onchange = (e) => {
-        const file = e.target.files[0];
-        console.log("📁 File selected:", file?.name);
-        
-        if (file && file.type.startsWith("image/")) {
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            selectAvatar(event.target.result);
-            closeModal();
-          };
-          reader.readAsDataURL(file);
+    // Handle file selection - auto upload
+    fileInput.onchange = async (e) => {
+      const file = e.target.files[0];
+      console.log("📁 File selected:", file?.name, `(${(file?.size / 1024 / 1024).toFixed(2)}MB)`);
+      
+      if (file && file.type.startsWith("image/")) {
+        try {
+          // Show loading state
+          btnUpload.disabled = true;
+          btnUpload.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spinner">
+              <circle cx="12" cy="12" r="10"></circle>
+            </svg>
+            Đang nén ảnh...
+          `;
+
+          // Compress image first
+          console.log("🗜️ Compressing image...");
+          const compressedFile = await compressImage(file);
+          console.log("✅ Compressed:", `${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`);
+
+          // Update loading text
+          btnUpload.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spinner">
+              <circle cx="12" cy="12" r="10"></circle>
+            </svg>
+            Đang tải lên...
+          `;
+
+          // Upload compressed image to server
+          const { uploadAvatar } = await import("../api/userApi.js");
+          const uploadResult = await uploadAvatar(compressedFile);
+          
+          console.log("✅ Upload successful:", uploadResult);
+
+          // Update profile with new avatar path
+          const { updateMyProfile } = await import("../api/userApi.js");
+          await updateMyProfile({
+            avatar_url: uploadResult.path  // Use relative path for DB
+          });
+
+          console.log("✅ Profile updated with new avatar");
+
+          // Update local display with full URL
+          selectAvatar(uploadResult.url);
+          
+          // Close modal
+          closeModal();
+          
+          // Show success notification
+          showNotification("Cập nhật ảnh đại diện thành công!", "success");
+
+          // Reset file input
+          fileInput.value = "";
+        } catch (error) {
+          console.error("Upload error:", error);
+          showNotification(
+            error.message || "Tải ảnh lên thất bại. Vui lòng thử lại.",
+            "error"
+          );
+          
+          // Reset button
+          btnUpload.disabled = false;
+          btnUpload.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            Chọn ảnh
+          `;
+          
+          // Reset file input
+          fileInput.value = "";
         }
-      };
-    }
+      } else if (file) {
+        showNotification("Vui lòng chọn file ảnh hợp lệ", "error");
+        fileInput.value = "";
+      }
+    };
   }
 }
 
@@ -251,7 +319,7 @@ async function handleSaveProfile() {
   const formData = new FormData(form);
   const displayName = formData.get("displayName")?.trim();
   const phone = formData.get("phone")?.trim();
-  const bio = formData.get("bio")?.trim();
+  const email = formData.get("email")?.trim();
 
   // Validation
   if (!displayName) {
@@ -270,10 +338,7 @@ async function handleSaveProfile() {
   btnSave.textContent = "Đang lưu...";
 
   try {
-    // Get current user
-    const currentUser = authService.getUser();
-
-    let avatarUrl = selectedAvatarUrl || currentUser.avatar_url;
+    let avatarUrl = selectedAvatarUrl;
 
     // If avatar is a local Zalo path or base64, upload it to server first
     if (
@@ -282,36 +347,34 @@ async function handleSaveProfile() {
     ) {
       console.log("📤 Uploading avatar to server...");
       try {
-        // Upload avatar to backend
         const uploadResult = await uploadAvatarToServer(avatarUrl);
         if (uploadResult.success) {
           avatarUrl = uploadResult.url;
           console.log("✅ Avatar uploaded successfully:", avatarUrl);
         }
       } catch (uploadError) {
-        console.warn("⚠️ Avatar upload failed, using local path:", uploadError);
-        // Continue with local path if upload fails
+        console.warn("⚠️ Avatar upload failed, skipping avatar update:", uploadError);
+        avatarUrl = null; // Don't update avatar if upload fails
       }
     }
 
-    // Prepare update data
-    const profileData = {
-      display_name: displayName,
-      avatar_url: avatarUrl,
-      phone: phone || currentUser.phone,
-      bio: bio || currentUser.bio || "",
-    };
+    // Prepare update data - only include non-empty fields
+    const profileData = {};
+    
+    if (displayName) profileData.display_name = displayName;
+    if (phone) profileData.phone = phone;
+    if (email) profileData.email = email;
+    if (avatarUrl && avatarUrl !== selectedAvatarUrl) {
+      profileData.avatar_url = avatarUrl;
+    }
 
     console.log("📝 Updating profile with data:", profileData);
 
     // Call API to update profile
-    const result = await authService.updateProfile(profileData);
+    const { updateMyProfile } = await import("../api/userApi.js");
+    const updatedUser = await updateMyProfile(profileData);
 
-    if (!result.success) {
-      throw new Error(result.error || "Cập nhật thất bại");
-    }
-
-    console.log("✅ Profile updated successfully:", result.user);
+    console.log("✅ Profile updated successfully:", updatedUser);
 
     // Show success
     showNotification("Cập nhật thông tin thành công!", "success");

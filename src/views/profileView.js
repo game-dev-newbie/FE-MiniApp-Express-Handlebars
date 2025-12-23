@@ -7,6 +7,7 @@ import {
   getUserFavoriteIds,
 } from "../data/mockData.js";
 import authService from "../utils/authService.js";
+import { DEFAULT_AVATAR } from "../utils/avatarHelper.js";
 
 const appEl = document.getElementById("app");
 
@@ -55,36 +56,61 @@ export async function renderProfile() {
     return;
   }
 
-  // Get current user from authService
-  const currentUser = authService.getUser();
-  if (!currentUser) {
-    window.location.hash = "#/login";
-    return;
-  }
-
   const bottomNavHtml = renderTemplate("bottomNav", { activePage: "profile" });
 
-  // Get current theme
-  const currentTheme = localStorage.getItem("dinelink_theme") || "light";
+  // Show loading state
+  appEl.innerHTML = `
+    <div class="loading-container" style="display: flex; justify-content: center; align-items: center; min-height: 400px;">
+      <div class="spinner"></div>
+    </div>
+  ` + bottomNavHtml;
 
-  // Show loading stats first
-  const contentHtml = renderTemplate("profile", {
-    user: currentUser,
-    stats: { bookings: "...", reviews: "...", favorites: "..." },
-    isLightMode: currentTheme === "light",
-  });
+  try {
+    // Fetch user profile from API
+    const { getMyProfile } = await import("../api/userApi.js");
+    const userData = await getMyProfile();
 
-  appEl.innerHTML = contentHtml + bottomNavHtml;
+    console.log("👤 User profile from API:", userData);
 
-  // Initialize event listeners
-  initProfileEventListeners();
+    // Transform API data to match template format
+    const user = {
+      id: userData.id,
+      name: userData.display_name || "User",
+      email: userData.email || "",
+      phone: userData.phone || "",
+      avatar: userData.avatar_url || DEFAULT_AVATAR
+    };
 
-  // Setup real-time update listeners
-  setupProfileUpdateListeners();
+    // Get current theme
+    const currentTheme = localStorage.getItem("dinelink_theme") || "light";
 
-  // Fetch and update stats from API
-  const stats = await getProfileStats();
-  updateStatsInDOM(stats);
+    // Show loading stats first
+    const contentHtml = renderTemplate("profile", {
+      user: user,
+      stats: { bookings: "...", reviews: "...", favorites: "..." },
+      isLightMode: currentTheme === "light",
+    });
+
+    appEl.innerHTML = contentHtml + bottomNavHtml;
+
+    // Initialize event listeners
+    initProfileEventListeners();
+
+    // Setup real-time update listeners
+    setupProfileUpdateListeners();
+
+    // Fetch and update stats from API
+    const stats = await getProfileStats();
+    updateStatsInDOM(stats);
+  } catch (error) {
+    console.error("Error loading profile:", error);
+    appEl.innerHTML = `
+      <div class="error-container" style="text-align: center; padding: 40px 20px;">
+        <p>Không thể tải thông tin cá nhân. Vui lòng thử lại.</p>
+        <button onclick="location.reload()" class="btn-primary">Tải lại</button>
+      </div>
+    ` + bottomNavHtml;
+  }
 }
 
 // Function to update stats in DOM without full re-render

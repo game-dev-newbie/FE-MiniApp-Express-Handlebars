@@ -1,6 +1,6 @@
-<main class="main-content">
+<main class="main-content booking-page">
   <!-- Booking Header - Fixed Sticky -->
-  <div class="page-header">
+  <div class="page-header booking-header">
     <div class="header-spacer"></div>
     <h1 class="page-title">Lịch đặt bàn</h1>
     <div class="header-spacer"></div>
@@ -21,7 +21,7 @@
             <div class="booking-header">
               <div class="booking-status-badge {{this.status}}">
                 {{#if (eq this.status "CONFIRMED")}}✓ Đã xác nhận{{/if}}
-                {{#if (eq this.status "PENDING")}}⏳ Chờ xác nhận{{/if}}
+                {{#if (eq this.status "PENDING")}}🕐 Chờ xác nhận{{/if}}
               </div>
               <span class="booking-date">{{this.booking_time}}</span>
             </div>
