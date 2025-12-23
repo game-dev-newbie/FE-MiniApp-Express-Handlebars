@@ -1,0 +1,260 @@
+/* ================================================================
+   PREMIUM PAYMENT CARD STYLES
+   Modern glassmorphism card with gradients and 3D effects
+   ================================================================ */
+
+.card-preview {
+  perspective: 1000px;
+  margin: 24px auto;
+  max-width: 380px;
+}
+
+.card-preview-inner {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.586; /* Standard credit card ratio */
+  border-radius: 20px;
+  padding: 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 
+    0 10px 40px rgba(102, 126, 234, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+  transform: rotateX(5deg) rotateY(-5deg);
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.23, 1, 0.320, 1);
+  overflow: hidden;
+}
+
+.card-preview:hover .card-preview-inner {
+  transform: rotateX(0deg) rotateY(0deg) scale(1.02);
+}
+
+/* Gradient Layers */
+.card-gradient-1 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+  border-radius: 20px;
+  z-index: 1;
+}
+
+.card-gradient-2 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.3), transparent 50%);
+  border-radius: 20px;
+  z-index: 1;
+}
+
+/* Shine Effect */
+.card-shine {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 70%
+  );
+  animation: cardShine 3s infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes cardShine {
+  0%, 100% {
+    transform: translate(-100%, -100%) rotate(45deg);
+  }
+  50% {
+    transform: translate(100%, 100%) rotate(45deg);
+  }
+}
+
+/* Card Logo */
+.card-logo {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 2;
+  opacity: 0.9;
+}
+
+/* Premium Chip Design */
+.card-chip {
+  position: relative;
+  width: 45px;
+  height: 36px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+  margin-bottom: 24px;
+  z-index: 2;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+  overflow: hidden;
+}
+
+.chip-line {
+  position: absolute;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.1), transparent);
+  left: 4px;
+  right: 4px;
+}
+
+.chip-line:nth-child(1) { top: 8px; }
+.chip-line:nth-child(2) { top: 14px; }
+.chip-line:nth-child(3) { top: 20px; }
+.chip-line:nth-child(4) { top: 26px; }
+
+.chip-main {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  right: 6px;
+  bottom: 6px;
+  border-radius: 3px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1));
+}
+
+/* Contactless Icon */
+.contactless-icon {
+  position: absolute;
+  top: 70px;
+  right: 24px;
+  z-index: 2;
+  animation: contactlessPulse 2s infinite;
+}
+
+@keyframes contactlessPulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.1); }
+}
+
+/* Card Number */
+.card-number {
+  font-family: 'Courier New', monospace;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: white;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(255, 255, 255, 0.1);
+  margin-bottom: 20px;
+  z-index: 10;
+  position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+/* Card Details */
+.card-details {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  z-index: 10;
+  position: relative;
+}
+
+.card-holder,
+.card-expiry {
+  flex: 1;
+}
+
+.card-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.card-value {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  text-transform: uppercase;
+}
+
+/* Hologram Effect */
+.card-hologram {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: 
+    radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+  filter: blur(10px);
+  animation: hologramFloat 4s infinite ease-in-out;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes hologramFloat {
+  0%, 100% { transform: translateY(0px) scale(1); opacity: 0.3; }
+  50% { transform: translateY(-10px) scale(1.1); opacity: 0.5; }
+}
+
+/* Mobile Optimization */
+@media (max-width: 480px) {
+  .card-preview {
+    max-width: 100%;
+    margin: 16px;
+  }
+  
+  .card-preview-inner {
+    padding: 20px;
+  }
+  
+  .card-number {
+    font-size: 16px;
+    letter-spacing: 1.5px;
+  }
+  
+  .card-value {
+    font-size: 12px;
+  }
+  
+  .card-chip {
+    width: 40px;
+    height: 32px;
+  }
+}
+
+/* Dark Mode Support */
+[data-theme="dark"] .card-preview-inner {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+}
+
+/* Accessibility - Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .card-shine,
+  .contactless-icon,
+  .card-hologram {
+    animation: none;
+  }
+  
+  .card-preview-inner {
+    transition: none;
+  }
+}

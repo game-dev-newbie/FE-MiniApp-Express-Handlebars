@@ -13,11 +13,34 @@ export async function renderBooking() {
 
   const bottomNavHtml = renderTemplate("bottomNav", { activePage: "booking" });
 
-  // Show loading
+  // Show skeleton loading (instead of spinner)
   appEl.innerHTML = `
-    <div class="loading-container" style="display: flex; justify-content: center; align-items: center; min-height: 400px;">
-      <div class="spinner"></div>
-    </div>
+    <main class="main-content booking-page">
+      <div class="page-header booking-header">
+        <div class="header-spacer"></div>
+        <h1 class="page-title">Lịch đặt bàn</h1>
+        <div class="header-spacer"></div>
+      </div>
+      
+      <div class="booking-tabs">
+        <button class="booking-tab active">Sắp tới</button>
+        <button class="booking-tab">Đã hủy</button>
+      </div>
+      
+      <div class="skeleton-list">
+        ${Array(3).fill(`
+          <div class="booking-card-skeleton">
+            <div class="skeleton skeleton-badge"></div>
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-text"></div>
+            <div class="skeleton-actions">
+              <div class="skeleton skeleton-button"></div>
+              <div class="skeleton skeleton-button"></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </main>
   ` + bottomNavHtml;
 
   try {

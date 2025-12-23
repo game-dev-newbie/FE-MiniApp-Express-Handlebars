@@ -440,8 +440,19 @@ async function updateAvailableTables(restaurantId, peopleCount) {
     overCapacityWarning.style.display = "none";
   }
 
-  // Show loading in tables grid
-  tablesGrid.innerHTML = '<p class="loading-message">Đang tải danh sách bàn...</p>';
+  // Show beautiful skeleton loading
+  tablesGrid.innerHTML = `
+    <div class="table-type-section">
+      <div class="skeleton" style="width: 120px; height: 24px; margin-bottom: 16px; border-radius: 6px;"></div>
+      <div class="table-cards">
+        ${Array(4).fill(`
+          <div class="table-card-skeleton">
+            <div class="skeleton" style="height: 80px; border-radius: 12px;"></div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
 
   try {
     // Get booking date and time from form

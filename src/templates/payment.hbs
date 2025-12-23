@@ -121,21 +121,53 @@
 
   <!-- Card Payment Form -->
   <div id="cardPaymentForm" class="payment-form-container active">
-    <!-- Card Preview -->
+    <!-- Card Preview - PREMIUM DESIGN -->
     <div class="card-preview">
       <div class="card-preview-inner">
-        <div class="card-chip"></div>
+        <!-- Card background layers -->
+        <div class="card-gradient-1"></div>
+        <div class="card-gradient-2"></div>
+        <div class="card-shine"></div>
+        
+        <!-- Card logo -->
+        <div class="card-logo">
+          <svg width="40" height="32" viewBox="0 0 40 32" fill="none">
+            <circle cx="16" cy="16" r="12" fill="rgba(255,255,255,0.3)"/>
+            <circle cx="24" cy="16" r="12" fill="rgba(255,255,255,0.5)"/>
+          </svg>
+        </div>
+        
+        <!-- Card chip with animation -->
+        <div class="card-chip">
+          <div class="chip-line"></div>
+          <div class="chip-line"></div>
+          <div class="chip-line"></div>
+          <div class="chip-line"></div>
+          <div class="chip-main"></div>
+        </div>
+        
+        <!-- Contactless icon -->
+        <div class="contactless-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2">
+            <path d="M12 18v.01M8 18c0-2.21 1.79-4 4-4s4 1.79 4 4M5 18c0-3.87 3.13-7 7-7s7 3.13 7 7"/>
+          </svg>
+        </div>
+        
         <div class="card-number" id="previewCardNumber">•••• •••• •••• ••••</div>
+        
         <div class="card-details">
           <div class="card-holder">
-            <div class="card-label">Tên chủ thẻ</div>
+            <div class="card-label">TÊN CHỦ THẺ</div>
             <div class="card-value" id="previewCardName">TÊN CHỦ THẺ</div>
           </div>
           <div class="card-expiry">
-            <div class="card-label">Hết hạn</div>
+            <div class="card-label">HẾT HẠN</div>
             <div class="card-value" id="previewCardExpiry">MM/YY</div>
           </div>
         </div>
+        
+        <!-- Hologram effect -->
+        <div class="card-hologram"></div>
       </div>
     </div>
 

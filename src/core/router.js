@@ -29,32 +29,48 @@ export function initRouter() {
 function handleRouteChange() {
   const hash = window.location.hash || "#/splash";
 
-  // Get app element and add smooth fade transition
+  // Scroll to top FIRST (before transition)
+  window.scrollTo(0, 0);
+
+  // Get app element
   const appEl = document.getElementById("app");
-  if (appEl) {
-    // Add fade out transition
-    appEl.classList.add("page-transition-out");
+  
+  if (!appEl) {
+    renderRoute(hash);
+    return;
+  }
+
+  // Skip transition for initial splash
+  if (hash === "#/splash" && !appEl.innerHTML) {
+    renderRoute(hash);
+    return;
+  }
+
+  // Use requestAnimationFrame for smooth transition
+  requestAnimationFrame(() => {
+    // Add fade out
+    appEl.style.opacity = '0';
+    appEl.style.transform = 'scale(0.98)';
+    appEl.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
     
-    // Wait for fade out, then render new page
+    // Render new content after fade out
     setTimeout(() => {
       renderRoute(hash);
       
-      // Remove fade out and add fade in
-      appEl.classList.remove("page-transition-out");
-      appEl.classList.add("page-transition-in");
-      
-      // Clean up after fade in completes
-      setTimeout(() => {
-        appEl.classList.remove("page-transition-in");
-      }, 300);
-    }, 200);
-  } else {
-    // No transition, just render
-    renderRoute(hash);
-  }
-
-  // Scroll to top on route change
-  window.scrollTo(0, 0);
+      // Fade in new content
+      requestAnimationFrame(() => {
+        appEl.style.opacity = '1';
+        appEl.style.transform = 'scale(1)';
+        
+        // Clean up inline styles after transition
+        setTimeout(() => {
+          appEl.style.opacity = '';
+          appEl.style.transform = '';
+          appEl.style.transition = '';
+        }, 200);
+      });
+    }, 150);
+  });
 }
 
 function renderRoute(hash) {

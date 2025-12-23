@@ -10,8 +10,52 @@ import authService from "../utils/authService.js";
 const appEl = document.getElementById("app");
 
 export async function renderRestaurantDetail(restaurantId) {
-  // Show loading state
-  appEl.innerHTML = '<div class="loading-spinner">Đang tải...</div>';
+  // Show beautiful skeleton loading state
+  appEl.innerHTML = `
+    <main class="main-content">
+      <!-- Image carousel skeleton -->
+      <div class="skeleton" style="height: 280px; border-radius: 0; margin: 0;"></div>
+      
+      <!-- Restaurant info skeleton -->
+      <div class="restaurant-info-section" style="padding: 20px;">
+        <div class="skeleton skeleton-title" style="width: 70%; margin-bottom: 12px;"></div>
+        <div class="skeleton skeleton-text" style="width: 50%; margin-bottom: 8px;"></div>
+        <div class="skeleton skeleton-text" style="width: 40%; margin-bottom: 16px;"></div>
+        
+        <!-- Rating skeleton -->
+        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+          <div class="skeleton" style="width: 100px; height: 32px; border-radius: 16px;"></div>
+          <div class="skeleton" style="width: 100px; height: 32px; border-radius: 16px;"></div>
+        </div>
+        
+        <!-- Action buttons skeleton -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px;">
+          <div class="skeleton skeleton-button"></div>
+          <div class="skeleton skeleton-button"></div>
+        </div>
+      </div>
+      
+      <!-- Tabs skeleton -->
+      <div style="padding: 0 20px; margin-top: 24px;">
+        <div style="display: flex; gap: 24px; border-bottom: 2px solid #f0f0f0; margin-bottom: 20px;">
+          <div class="skeleton" style="width: 80px; height: 40px;"></div>
+          <div class="skeleton" style="width: 80px; height: 40px;"></div>
+          <div class="skeleton" style="width: 80px; height: 40px;"></div>
+        </div>
+      </div>
+      
+      <!-- Content skeleton -->
+      <div style="padding: 0 20px;">
+        ${Array(2).fill(`
+          <div style="margin-bottom: 20px;">
+            <div class="skeleton skeleton-text" style="width: 100%; margin-bottom: 8px;"></div>
+            <div class="skeleton skeleton-text" style="width: 90%; margin-bottom: 8px;"></div>
+            <div class="skeleton skeleton-text" style="width: 75%;"></div>
+          </div>
+        `).join('')}
+      </div>
+    </main>
+  `;
 
   try {
     // Fetch restaurant detail from API (includes info + images + deposit info)
@@ -163,14 +207,117 @@ function initRestaurantDetailListeners(restaurant) {
     });
   }
 
-  // Book restaurant button
-  const btnBook = document.getElementById("btnBookRestaurant");
+  // Book restaurant button - updated ID
+  const btnBook = document.getElementById("btnBookTable");
   if (btnBook) {
     btnBook.addEventListener("click", () => {
-      const restaurantId = btnBook.getAttribute("data-id");
-      window.location.hash = `#/booking/new/${restaurantId}`;
+      window.location.hash = `#/booking/new/${restaurant.id}`;
     });
   }
+
+  // Menu Image Lightbox
+  initMenuLightbox();
+}
+
+// Menu Image Lightbox functionality
+function initMenuLightbox() {
+  const menuItems = document.querySelectorAll('.menu-image-item');
+  const lightbox = document.getElementById('menuLightbox');
+  const lightboxImage = document.getElementById('lightboxImage');
+  const lightboxCounter = document.getElementById('lightboxCounter');
+  const closeBtn = document.getElementById('closeLightbox');
+  const prevBtn = document.getElementById('prevMenu');
+  const nextBtn = document.getElementById('nextMenu');
+  const overlay = lightbox?.querySelector('.lightbox-overlay');
+  
+  if (!lightbox || menuItems.length === 0) return;
+
+  let currentIndex = 0;
+  const menuImages = Array.from(menuItems).map(item => item.dataset.menuSrc);
+
+  console.log('🖼️ Menu images:', menuImages); // Debug
+
+  // Navigation function
+  const showLightboxImage = (index) => {
+    const imgSrc = menuImages[index];
+    console.log('📸 Loading image:', imgSrc); // Debug
+    
+    lightboxImage.src = imgSrc;
+    lightboxCounter.textContent = `${index + 1} / ${menuImages.length}`;
+    
+    // Show loading state
+    lightboxImage.style.opacity = '0';
+    
+    // Fade in when loaded
+    lightboxImage.onload = () => {
+      lightboxImage.style.opacity = '1';
+      lightboxImage.style.transition = 'opacity 0.3s ease';
+    };
+    
+    lightboxImage.onerror = () => {
+      console.error('❌ Failed to load image:', imgSrc);
+      lightboxImage.alt = 'Không thể tải ảnh';
+    };
+  };
+
+  // Open lightbox
+  menuItems.forEach((item, index) => {
+    item.addEventListener('click', () => {
+      currentIndex = index;
+      showLightboxImage(currentIndex);
+      lightbox.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      
+      // Haptic feedback
+      if (navigator.vibrate) navigator.vibrate(10);
+    });
+  });
+
+  // Close lightbox
+  const closeLightbox = () => {
+    lightbox.classList.remove('active');
+    document.body.style.overflow = '';
+  };
+
+  closeBtn?.addEventListener('click', closeLightbox);
+  overlay?.addEventListener('click', closeLightbox);
+
+  // Previous image
+  prevBtn?.addEventListener('click', () => {
+    currentIndex = (currentIndex - 1 + menuImages.length) % menuImages.length;
+    showLightboxImage(currentIndex);
+  });
+
+  // Next image
+  nextBtn?.addEventListener('click', () => {
+    currentIndex = (currentIndex + 1) % menuImages.length;
+    showLightboxImage(currentIndex);
+  });
+
+  // Keyboard navigation
+  const handleKeydown = (e) => {
+    if (!lightbox.classList.contains('active')) return;
+    
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') prevBtn?.click();
+    if (e.key === 'ArrowRight') nextBtn?.click();
+  };
+  
+  document.addEventListener('keydown', handleKeydown);
+
+  // Touch swipe
+  let touchStartX = 0;
+  let touchEndX = 0;
+
+  lightboxImage.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+  });
+
+  lightboxImage.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    if (touchStartX - touchEndX > 50) nextBtn?.click();
+    if (touchEndX - touchStartX > 50) prevBtn?.click();
+  });
 }
 
 // Carousel functionality

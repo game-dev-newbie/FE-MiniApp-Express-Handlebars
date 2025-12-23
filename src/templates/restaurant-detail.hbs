@@ -146,8 +146,16 @@
         <h3>Menu nhà hàng</h3>
         <div class="menu-images-grid">
           {{#each restaurant.menuImages}}
-            <div class="menu-image-item">
+            <div class="menu-image-item clickable" data-menu-index="{{@index}}" data-menu-src="{{this}}">
               <img src="{{this}}" alt="Menu {{@index}}" loading="lazy" />
+              <div class="menu-image-overlay">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="m21 21-4.35-4.35"></path>
+                  <line x1="11" y1="8" x2="11" y2="14"></line>
+                  <line x1="8" y1="11" x2="14" y2="11"></line>
+                </svg>
+              </div>
             </div>
           {{/each}}
         </div>
@@ -247,11 +255,35 @@
   <!-- Booking Button -->
   <div class="restaurant-detail-footer">
     <button
-      class="btn-book-restaurant"
-      id="btnBookRestaurant"
-      data-id="{{restaurant.id}}"
+      class="btn-book-restaurant btn-primary btn-booking"
+      id="btnBookTable"
     >
       Đặt bàn ngay
     </button>
   </div>
 </main>
+
+<!-- Menu Image Lightbox Modal -->
+<div id="menuLightbox" class="menu-lightbox">
+  <div class="lightbox-overlay"></div>
+  <div class="lightbox-content">
+    <button class="lightbox-close" id="closeLightbox">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    <button class="lightbox-prev" id="prevMenu">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+    <button class="lightbox-next" id="nextMenu">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
+    <img id="lightboxImage" src="" alt="Menu Image" />
+    <div class="lightbox-counter" id="lightboxCounter">1 / 1</div>
+  </div>
+</div>

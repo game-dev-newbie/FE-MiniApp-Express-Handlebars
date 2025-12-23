@@ -58,11 +58,32 @@ export async function renderProfile() {
 
   const bottomNavHtml = renderTemplate("bottomNav", { activePage: "profile" });
 
-  // Show loading state
+  // Show skeleton loading (instead of spinner)
   appEl.innerHTML = `
-    <div class="loading-container" style="display: flex; justify-content: center; align-items: center; min-height: 400px;">
-      <div class="spinner"></div>
-    </div>
+    <main class="main-content">
+      <div class="profile-section-skeleton">
+        <div class="profile-header-skeleton">
+          <div class="skeleton skeleton-avatar-lg"></div>
+          <div class="profile-info-skeleton">
+            <div class="skeleton skeleton-title" style="width: 150px;"></div>
+            <div class="skeleton skeleton-text" style="width: 120px;"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="profile-section-skeleton">
+        <div class="skeleton skeleton-text" style="width: 100px; margin-bottom: 16px;"></div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+          <div class="skeleton" style="height: 80px; border-radius: 12px;"></div>
+          <div class="skeleton" style="height: 80px; border-radius: 12px;"></div>
+          <div class="skeleton" style="height: 80px; border-radius: 12px;"></div>
+        </div>
+      </div>
+      
+      <div class="profile-section-skeleton">
+        ${Array(4).fill('<div class="skeleton skeleton-text" style="margin-bottom: 12px;"></div>').join('')}
+      </div>
+    </main>
   ` + bottomNavHtml;
 
   try {
